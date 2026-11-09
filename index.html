@@ -220,7 +220,7 @@
                             • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns can leap 2 tiles on first move!<br>
                             • <strong>🏰 Castling:</strong> O-O / O-O-O castling between unmoved King &amp; Rook.<br>
                             • <strong>💎 Diamond Bosses:</strong> Spawn on Diamond Generators and stay tethered within 2 tiles!<br>
-                            • <strong>🧠 AI Loop Shield:</strong> Level 1-25 engine penalizes move oscillations.
+                            • <strong>🧠 AI Loop Shield:</strong> Level 1-25 engine penalizes move oscillations &amp; builds bridges!
                         </p>
                     </div>
 
@@ -673,7 +673,7 @@
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-amber-300 text-sm mb-1">💎 DIAMOND GUARDIANS (EVERY 50 TURNS)</h4>
-                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn directly on Diamond Generators! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement restricted to a 2-tile radius around their home generator. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
+                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn directly on Diamond Generators! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement strictly restricted to a 2-tile radius around their home generator. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
                 </div>
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
@@ -683,7 +683,7 @@
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-purple-300 text-sm mb-1">🧠 GOD-AI ENGINE (LEVEL 1-25) &amp; MOVE LOOP PREVENTION</h4>
-                    <p>Configurable per team! Level 25 features telepearl jumps, wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and position history tracking to prevent back-and-forth loops.</p>
+                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with -120pt loop prevention penalties.</p>
                 </div>
             </div>
         </div>
@@ -1369,9 +1369,10 @@
             let tile = G.boardGrid[key];
             if (tile && !tile.isVoid && !tile.piece) return { x: targetX, z: targetZ };
 
-            for (let r = 1; r <= 12; r++) {
+            for (let r = 1; r <= 25; r++) {
                 for (let dx = -r; dx <= r; dx++) {
                     for (let dz = -r; dz <= r; dz++) {
+                        if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
                         const tx = targetX + dx, tz = targetZ + dz;
                         const t = G.boardGrid[keyOf(tx, tz)];
                         if (t && !t.isVoid && !t.piece) return { x: tx, z: tz };
@@ -1424,6 +1425,7 @@
                 obsMesh: null,
                 homeGen: null,
                 role: 'guard',
+                moveHistory: [],
                 mesh: mesh
             };
 
@@ -1456,6 +1458,14 @@
             clearBoard();
             const map = mapById(mapId) || MAP_CATALOG[0];
             G.mapData = map;
+
+            // Automatically sync format if selecting a 4-team map
+            if (map.teams === 4 && G.teamFormat !== '4-team') {
+                G.teamFormat = '4-team';
+                G.teams = TEAM_FORMATS['4-team'];
+                renderTeamControllerOptions();
+            }
+
             const theme = MAP_THEMES[map.theme] || MAP_THEMES.neon;
             scene.background.setHex(theme.bg);
             scene.fog.color.setHex(theme.fog);
@@ -2431,6 +2441,19 @@
             endTurn();
         }
 
+        function updateAutoPlayButtonUI() {
+            const btn = $('btn-autoplay-toggle');
+            if (!btn) return;
+            $('autoplay-icon').className = G.autoPlayActive ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+            $('autoplay-text').innerText = G.autoPlayActive ? 'PAUSE' : 'AUTO-PLAY';
+            btn.classList.toggle('bg-amber-950', G.autoPlayActive);
+            btn.classList.toggle('border-amber-500', G.autoPlayActive);
+            btn.classList.toggle('text-amber-300', G.autoPlayActive);
+            btn.classList.toggle('bg-emerald-950', !G.autoPlayActive);
+            btn.classList.toggle('border-emerald-500', !G.autoPlayActive);
+            btn.classList.toggle('text-emerald-300', !G.autoPlayActive);
+        }
+
         function endTurn() {
             if (G.gameOver) return;
             const ending = G.turn;
@@ -2471,6 +2494,16 @@
             }
 
             checkWin();
+
+            // AUTO-PLAY MANAGEMENT FOR HUMAN TURNS
+            if (G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'human') {
+                if (G.autoPlayActive) {
+                    G.autoPlayActive = false;
+                    updateAutoPlayButtonUI();
+                    showFloatingText('AUTO-PLAY PAUSED FOR YOUR TURN', null, null, '#38bdf8');
+                }
+            }
+
             updateTurnUI();
             updateHUDCounters();
 
@@ -2497,12 +2530,7 @@
 
         function toggleAutoPlay() {
             G.autoPlayActive = !G.autoPlayActive;
-            const btn = $('btn-autoplay-toggle');
-            $('autoplay-icon').className = G.autoPlayActive ? 'fa-solid fa-pause' : 'fa-solid fa-play';
-            $('autoplay-text').innerText = G.autoPlayActive ? 'PAUSE' : 'AUTO-PLAY';
-            btn.classList.toggle('bg-amber-950', G.autoPlayActive);
-            btn.classList.toggle('border-amber-500', G.autoPlayActive);
-            btn.classList.toggle('text-amber-300', G.autoPlayActive);
+            updateAutoPlayButtonUI();
             if (G.autoPlayActive && !G.gameOver) triggerAITurnDelay();
         }
 
@@ -2717,7 +2745,7 @@
         }
 
         /* =====================================================================
-           GOD-AI ENGINE (LEVEL 1 TO 25) WITH LOOP PREVENTION
+           GOD-AI ENGINE (LEVEL 1 TO 25) WITH ACTIVE BRIDGING & LOOP SHIELD
            ===================================================================== */
         function aiBaseCenter(team) {
             const b = bedOf(team);
@@ -2773,22 +2801,33 @@
         }
 
         function aiTryBridge(team) {
-            G.pieces.filter(p => p.team === team && p.blocks > 0 && p.type !== 'bed').forEach(p => {
-                if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) return;
+            if (G.mode !== 'bedwars') return;
+            const piecesWithBlocks = G.pieces.filter(p => p.team === team && p.blocks > 0 && p.type !== 'bed');
+            
+            for (const p of piecesWithBlocks) {
+                if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) break;
                 const target = aiTarget(p);
-                if (!target) return;
-                const cur = cheb(p, target);
-                let walkable = false;
-                for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
-                    if (!dx && !dz) continue;
-                    const t = G.boardGrid[keyOf(p.x + dx, p.z + dz)];
-                    if (t && !t.isVoid && !t.piece && cheb(t, target) < cur) walkable = true;
+                if (!target) continue;
+                
+                const ghosts = calculateGhostBridgeTiles(p);
+                if (!ghosts.length) continue;
+
+                const currentDist = cheb(p, target);
+                let bestGhost = null;
+                let bestDist = currentDist;
+
+                ghosts.forEach(g => {
+                    const d = cheb(g, target);
+                    if (d < bestDist) {
+                        bestDist = d;
+                        bestGhost = g;
+                    }
+                });
+
+                if (bestGhost) {
+                    placeBridgeTile(p, bestGhost.x, bestGhost.z);
                 }
-                if (walkable) return;
-                let best = null;
-                calculateGhostBridgeTiles(p).forEach(g => { const d = cheb(g, target); if (d < cur && (!best || d < best.d)) best = { g, d }; });
-                if (best) placeBridgeTile(p, best.g.x, best.g.z);
-            });
+            }
         }
 
         function evaluateMoveScore(piece, move, attackTarget, aiLevel) {
@@ -2796,25 +2835,28 @@
             const target = aiTarget(piece);
 
             if (attackTarget) {
-                score += 50 + getAtk(attackTarget) * 4;
-                if (attackTarget.type === 'bed') score += 180;
-                if (attackTarget.type === 'k') score += 120;
-                if (attackTarget.type === 'guardian') score += 90;
-                score += Math.max(0, 15 - attackTarget.hp) * 3;
+                score += 80 + getAtk(attackTarget) * 5;
+                if (attackTarget.type === 'bed') score += 250;
+                if (attackTarget.type === 'k') score += 200;
+                if (attackTarget.type === 'guardian') score += 110;
+                score += Math.max(0, 15 - attackTarget.hp) * 4;
             } else if (move) {
-                if (target) score += (cheb(piece, target) - cheb(move, target)) * 6;
-                if (piece.type === 'k' && G.mode === 'bedwars') score -= 8;
-                if (move.isCastle) score += 40;
+                if (target) score += (cheb(piece, target) - cheb(move, target)) * 12;
+                if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
+                if (move.isCastle) score += 50;
+                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 30;
             }
 
-            // Move Oscillation Loop Prevention Penalty
-            if (move && piece.moveHistory && piece.moveHistory.length >= 2) {
-                const recentMatch = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
-                if (recentMatch > 0) score -= (recentMatch * 40 * (aiLevel / 10));
+            // Move Oscillation Loop Prevention Penalty (-120 pts per match)
+            if (move && piece.moveHistory && piece.moveHistory.length > 0) {
+                const matches = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
+                if (matches > 0) {
+                    score -= (matches * 120 * (aiLevel / 10));
+                }
             }
 
             if (aiLevel < 25) {
-                const noiseFactor = (25 - aiLevel) * 3;
+                const noiseFactor = (25 - aiLevel) * 2;
                 score += (Math.random() - 0.5) * noiseFactor;
             }
 
@@ -2847,7 +2889,10 @@
             const ctrl = G.teamControllers[team] || { level: 10 };
             const aiLevel = ctrl.level;
 
-            if (G.mode === 'bedwars') { aiShop(team); aiTryBridge(team); }
+            if (G.mode === 'bedwars') { 
+                aiShop(team); 
+                aiTryBridge(team); 
+            }
 
             const tpCandidates = G.pieces.filter(p => p.team === team && p.type !== 'bed' && !inBase(p) && p.tpLeft === 0);
             for (const p of tpCandidates) {
@@ -3081,7 +3126,14 @@
                 const card = document.createElement('div');
                 const isSel = (G.selectedMapId === m.id);
                 card.className = `p-3 rounded-2xl bg-slate-900 border ${isSel ? 'map-card-active border-cyan-400' : 'border-slate-800'} cursor-pointer hover:border-cyan-500 transition`;
-                card.onclick = () => { G.selectedMapId = m.id; renderMapCards(); };
+                card.onclick = () => { 
+                    G.selectedMapId = m.id; 
+                    if (m.teams === 4 && G.teamFormat !== '4-team') {
+                        setTeamFormat('4-team');
+                    } else {
+                        renderMapCards(); 
+                    }
+                };
                 const dims = m.W ? `${m.W}x${m.H}` : `${m.size}x${m.size}`;
                 card.innerHTML = `
                     <div class="font-orbitron font-bold text-xs text-slate-200 mb-1 flex items-center justify-between">
