@@ -1,0 +1,3102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHESS 2: ULTIMATE EXPANSION</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Three.js & OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            user-select: none;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow: hidden;
+        }
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), inset 0 0 15px rgba(6, 182, 212, 0.2); }
+        .glow-crimson { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), inset 0 0 15px rgba(239, 68, 68, 0.2); }
+        .glow-gold { box-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
+        .glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(16, 185, 129, 0.2); }
+        .glow-diamond { box-shadow: 0 0 25px rgba(56, 189, 248, 0.8), inset 0 0 15px rgba(56, 189, 248, 0.4); }
+        .glow-purple { box-shadow: 0 0 20px rgba(168, 85, 247, 0.6); }
+
+        .text-glow-cyan { text-shadow: 0 0 12px rgba(6, 182, 212, 0.8); }
+        .text-glow-gold { text-shadow: 0 0 12px rgba(245, 158, 11, 0.9); }
+        .text-glow-emerald { text-shadow: 0 0 12px rgba(16, 185, 129, 0.9); }
+        .text-glow-purple { text-shadow: 0 0 12px rgba(168, 85, 247, 0.9); }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .floating-text {
+            position: absolute;
+            pointer-events: none;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 1.25rem;
+            animation: floatUpFade 1.3s ease-out forwards;
+            z-index: 70;
+        }
+        @keyframes floatUpFade {
+            0% { transform: translate(-50%, -50%) scale(0.7); opacity: 1; }
+            50% { transform: translate(-50%, -90%) scale(1.25); opacity: 1; }
+            100% { transform: translate(-50%, -130%) scale(1); opacity: 0; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        ::-webkit-scrollbar-thumb { background: #38bdf8; border-radius: 3px; }
+
+        .dice-spin { animation: spinDice 0.3s ease-in-out infinite alternate; }
+        @keyframes spinDice {
+            0% { transform: rotateX(0deg) rotateY(0deg) scale(1); }
+            100% { transform: rotateX(360deg) rotateY(360deg) scale(1.15); }
+        }
+
+        .map-card-active {
+            border-color: #38bdf8 !important;
+            background: rgba(8, 145, 178, 0.25) !important;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+        
+        .badge-brilliant { background: #06b6d4; color: #020617; font-weight: 900; }
+        .badge-excellent { background: #10b981; color: #020617; font-weight: 900; }
+        .badge-best { background: #eab308; color: #020617; font-weight: 900; }
+        .badge-good { background: #3b82f6; color: #ffffff; font-weight: 700; }
+        .badge-inaccuracy { background: #f97316; color: #ffffff; font-weight: 700; }
+        .badge-mistake { background: #ef4444; color: #ffffff; font-weight: 700; }
+        .badge-blunder { background: #881337; color: #fecdd3; font-weight: 900; border: 1px solid #f43f5e; }
+        .badge-missed { background: #a855f7; color: #ffffff; font-weight: 700; }
+    </style>
+</head>
+<body class="w-full h-screen relative bg-slate-950">
+
+    <!-- 3D WebGL Canvas Container -->
+    <div id="canvas-container" class="w-full h-full absolute top-0 left-0 z-0"></div>
+
+    <!-- Floating Text Overlay Container -->
+    <div id="floating-text-container" class="w-full h-full absolute top-0 left-0 pointer-events-none z-70 overflow-hidden"></div>
+
+    <!-- PERSISTENT TOP-LEVEL CONTROL BAR (Z-INDEX 60 - ALWAYS ON TOP) -->
+    <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-4 py-2 rounded-2xl flex items-center justify-between gap-3 border-cyan-500/40 pointer-events-auto shadow-2xl hidden max-w-4xl w-[95%]">
+        
+        <!-- Turn & Map Status -->
+        <div class="flex items-center gap-2">
+            <span id="turn-dot" class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+            <div class="flex flex-col">
+                <span id="turn-text" class="font-orbitron font-bold text-xs text-cyan-400 leading-tight">WHITE'S TURN</span>
+                <span class="text-[9px] text-slate-400 font-mono">TURN <span id="turn-counter" class="text-white font-bold">1</span> • <span id="map-name-tag" class="text-cyan-300">ARCHIPELAGO</span></span>
+            </div>
+        </div>
+
+        <!-- Playback Speed Controls & Steppers -->
+        <div class="flex items-center gap-1.5 font-mono text-xs">
+            <button id="btn-autoplay-toggle" onclick="toggleAutoPlay()" class="px-3 py-1.5 rounded-xl bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold hover:bg-emerald-900 transition flex items-center gap-1 shadow">
+                <i id="autoplay-icon" class="fa-solid fa-play"></i> <span id="autoplay-text">AUTO-PLAY</span>
+            </button>
+
+            <button onclick="stepForwardAIMove()" title="Advance 1 Move" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 hover:border-cyan-400 transition shadow">
+                <i class="fa-solid fa-forward-step"></i> STEP
+            </button>
+
+            <!-- Speed Multiplier Dropdown -->
+            <div class="flex items-center gap-1 bg-slate-900 border border-slate-700 px-2 py-1 rounded-xl">
+                <i class="fa-solid fa-bolt text-amber-400 text-xs"></i>
+                <select id="autoplay-speed-select" onchange="changeAutoPlaySpeed(this.value)" class="bg-transparent text-cyan-300 font-bold outline-none text-[11px] cursor-pointer">
+                    <option value="0.5">0.5x Slow</option>
+                    <option value="1.0" selected>1.0x Normal</option>
+                    <option value="2.0">2.0x Fast</option>
+                    <option value="5.0">5.0x Turbo</option>
+                    <option value="10.0">10.0x Ultra</option>
+                    <option value="99.0">INSTANT</option>
+                </select>
+            </div>
+
+            <!-- Hint & Review Shortcuts -->
+            <button onclick="showBestMoveHint()" title="Best Move Hint" class="px-2.5 py-1.5 rounded-xl bg-amber-950 border border-amber-500 text-amber-300 font-bold hover:bg-amber-900 transition flex items-center gap-1 shadow">
+                <i class="fa-solid fa-lightbulb text-amber-400"></i> HINT
+            </button>
+
+            <button onclick="openAnalysisModal()" title="Game Move Review Drawer" class="px-2.5 py-1.5 rounded-xl bg-purple-950 border border-purple-500 text-purple-300 font-bold hover:bg-purple-900 transition flex items-center gap-1 shadow">
+                <i class="fa-solid fa-chart-line text-purple-400"></i> REVIEW
+            </button>
+        </div>
+
+        <button onclick="returnToMainMenu()" title="Main Menu" class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-red-400 text-slate-300 hover:text-red-400 transition text-xs">
+            <i class="fa-solid fa-house"></i>
+        </button>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl p-4 overflow-y-auto">
+        <div class="glass-panel max-w-5xl w-full rounded-3xl p-6 md:p-8 border-cyan-500/40 shadow-2xl relative flex flex-col gap-6 max-h-[94vh] overflow-y-auto">
+            
+            <div class="text-center space-y-1">
+                <div class="inline-block px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/50 text-cyan-400 text-xs font-orbitron font-bold tracking-widest uppercase mb-1">
+                    CHESS 2.0 • ULTIMATE EXPANSION EDITION
+                </div>
+                <h1 class="font-orbitron font-black text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-emerald-400 text-glow-cyan tracking-wider">
+                    CHESS 2: GOD-AI &amp; 4-TEAM REALMS
+                </h1>
+                <p class="text-xs md:text-sm text-slate-400 font-mono">15 MASSIVE MAPS (UP TO 60x60) • CASTLING &amp; PAWN DOUBLE MOVES • AI LVL 1-25 • FULL ENGINE EVALUATION</p>
+            </div>
+
+            <!-- Configuration Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- 1. Game Mode & Team System -->
+                <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                    <h3 class="font-orbitron text-xs font-bold text-cyan-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-gamepad"></i> 1. MODE &amp; TEAM FORMAT
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-2 mb-2">
+                        <button id="team-format-2" onclick="setTeamFormat('2-team')" class="p-2.5 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-orbitron text-xs font-bold text-center transition">
+                            ⚔️ 2-TEAM DUAL
+                        </button>
+                        <button id="team-format-4" onclick="setTeamFormat('4-team')" class="p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-orbitron text-xs font-bold text-center transition hover:border-cyan-500">
+                            🛡️ 4-TEAM QUAD
+                        </button>
+                    </div>
+
+                    <div class="space-y-2">
+                        <button id="mode-btn-bedwars" onclick="selectGameMode('bedwars')" class="w-full p-2.5 rounded-xl border bg-cyan-950/80 border-cyan-500 text-cyan-300 font-orbitron text-xs font-bold flex items-center justify-between transition">
+                            <span>🛏️ BEDWARS MODE</span>
+                            <i class="fa-solid fa-cubes"></i>
+                        </button>
+                        <button id="mode-btn-standard" onclick="selectGameMode('standard')" class="w-full p-2.5 rounded-xl border bg-slate-900 border-slate-700 text-slate-400 font-orbitron text-xs font-bold flex items-center justify-between transition hover:border-cyan-500">
+                            <span>⚡ STANDARD CHESS 2</span>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </button>
+                        <button id="mode-btn-commander" onclick="selectGameMode('commander')" class="w-full p-2.5 rounded-xl border bg-slate-900 border-slate-700 text-slate-400 font-orbitron text-xs font-bold flex items-center justify-between transition hover:border-purple-500">
+                            <span>🛡️ COMMANDER DRAFT</span>
+                            <i class="fa-solid fa-coins"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Team Matchmaking & AI Level 1-25 -->
+                <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                    <h3 class="font-orbitron text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-robot"></i> 2. CONTROLLERS &amp; AI (LVL 1-25)
+                    </h3>
+                    
+                    <div id="team-controllers-container" class="space-y-2.5 max-h-48 overflow-y-auto pr-1">
+                        <!-- Dynamic team controllers injected here -->
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+                        <span class="text-purple-300 font-bold">🐲 CHAOS PIECES:</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input id="toggle-chaos-pieces" type="checkbox" checked onchange="toggleChaosPieces(this.checked)" class="sr-only peer">
+                            <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 3. Rules, Guardians & Audio -->
+                <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-orbitron text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 mb-2">
+                            <i class="fa-solid fa-gem"></i> 3. EXPANSION MECHANICS
+                        </h3>
+                        <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
+                            • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns can leap 2 tiles on first move!<br>
+                            • <strong>🏰 Castling:</strong> O-O / O-O-O castling between unmoved King &amp; Rook.<br>
+                            • <strong>💎 Diamond Bosses:</strong> Neutral 15 HP boss spawns every 50 turns for +10 Diamonds.<br>
+                            • <strong>🧠 AI Loop Shield:</strong> Level 1-25 engine penalizes move oscillations.
+                        </p>
+                    </div>
+
+                    <button id="btn-sound-toggle" onclick="toggleAudioEngine()" class="w-full py-2.5 rounded-xl bg-slate-900 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 font-orbitron text-xs font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-volume-high"></i> AUDIO: SOUND ON
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- MAP SELECTOR (ALL 15 MAPS) -->
+            <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-orbitron text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 MAPS • UP TO 60x60 MASSIVE REALMS)
+                    </h3>
+                    <span id="map-count-badge" class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono">15 MAPS AVAILABLE</span>
+                </div>
+                
+                <div id="map-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-56 overflow-y-auto pr-1">
+                    <!-- 15 maps dynamically rendered here -->
+                </div>
+            </div>
+
+            <!-- Launch Button Bar -->
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-slate-800">
+                <button onclick="openCodexModal()" class="px-5 py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-amber-500 text-amber-400 font-orbitron text-xs font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-book-open"></i> CHESS 2 RULEBOOK CODEX
+                </button>
+
+                <button id="btn-launch-game" onclick="launchGameMatch()" class="w-full sm:w-auto px-10 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 via-purple-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-orbitron font-black text-sm uppercase tracking-wider shadow-xl active:scale-95 transition glow-cyan">
+                    LAUNCH MATCH <i class="fa-solid fa-play ms-1"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- COMMANDER DRAFT OVERLAY BAR -->
+    <div id="commander-draft-bar" class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-6 py-3 rounded-2xl border-purple-500/50 shadow-2xl flex flex-wrap items-center justify-center gap-4 hidden pointer-events-auto max-w-4xl w-full">
+        <div class="flex items-center gap-2 border-r border-slate-800 pr-4">
+            <span class="text-xl">🛡️</span>
+            <div>
+                <div class="font-orbitron font-bold text-xs text-purple-300">COMMANDER DRAFT</div>
+                <div class="text-[10px] text-slate-400 font-mono">BUDGET: <span id="draft-points-left" class="text-amber-400 font-bold text-sm">35</span> PTS</div>
+            </div>
+        </div>
+
+        <div class="flex items-center flex-wrap gap-1.5">
+            <button onclick="selectDraftPieceType('p', 1)" id="draft-btn-p" class="px-2.5 py-1 rounded-lg bg-cyan-950 border border-cyan-500 text-cyan-300 text-xs font-mono">PAWN (1pt)</button>
+            <button onclick="selectDraftPieceType('n', 3)" id="draft-btn-n" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs font-mono">KNIGHT (3pt)</button>
+            <button onclick="selectDraftPieceType('b', 3)" id="draft-btn-b" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs font-mono">BISHOP (3pt)</button>
+            <button onclick="selectDraftPieceType('r', 5)" id="draft-btn-r" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs font-mono">ROOK (5pt)</button>
+            <button onclick="selectDraftPieceType('q', 9)" id="draft-btn-q" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 text-xs font-mono">QUEEN (9pt)</button>
+            <button onclick="selectDraftPieceType('d', 7)" id="draft-btn-d" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-purple-300 text-xs font-mono">DRAGON (7pt)</button>
+            <button onclick="selectDraftPieceType('nec', 6)" id="draft-btn-nec" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-purple-300 text-xs font-mono">NECRO (6pt)</button>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button onclick="autoFillCommanderDraft()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron text-xs font-bold">AUTO-FILL</button>
+            <button onclick="clearCommanderDraft()" class="px-3 py-1.5 rounded-xl bg-red-950/80 hover:bg-red-900 text-red-300 font-orbitron text-xs font-bold">CLEAR</button>
+            <button onclick="finishCommanderDraft()" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-emerald-600 text-white font-orbitron font-bold text-xs uppercase shadow glow-purple">
+                START BATTLE <i class="fa-solid fa-shield-halved ms-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- HUD OVERLAY HEADER -->
+    <header id="hud-header" class="absolute top-16 left-3 right-3 z-20 flex flex-wrap justify-between items-center gap-2 pointer-events-none hidden">
+        <div id="hud-team-cards-bar" class="w-full flex flex-wrap items-center justify-between gap-2">
+            <!-- Dynamic Team Cards Injected Here -->
+        </div>
+    </header>
+
+    <!-- DIAMOND GUARDIAN / EVENT BANNER -->
+    <div id="event-alert-banner" class="absolute top-[145px] left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-sky-950/95 border-2 border-sky-400 text-sky-200 font-orbitron text-xs font-bold shadow-2xl animate-pulse hidden pointer-events-none text-center glow-diamond">
+        💎 DIAMOND GUARDIANS HAVE SPAWNED AT THE CENTER SHRINE!
+    </div>
+
+    <!-- RIGHT SIDE ACTION HUD BUTTONS -->
+    <div id="hud-sidebar" class="absolute top-36 right-3 z-20 flex flex-col gap-2 pointer-events-auto hidden">
+        <button onclick="setCameraPreset('orbit')" title="Orbit 3D View" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+            <i class="fa-solid fa-cube"></i>
+        </button>
+        <button onclick="setCameraPreset('top')" title="Tactical Top-Down View" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+            <i class="fa-solid fa-table-cells"></i>
+        </button>
+        <button onclick="setCameraPreset('iso')" title="Isometric View" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+            <i class="fa-solid fa-layer-group"></i>
+        </button>
+        <div class="w-full h-[1px] bg-slate-800 my-1"></div>
+        
+        <!-- Spellbook Button -->
+        <button id="btn-sidebar-spellbook" onclick="openSpellbookModal()" title="Mana Spell Deck" class="w-10 h-10 rounded-xl glass-panel hover:bg-purple-900/50 text-purple-400 border border-purple-500/50 flex items-center justify-center transition active:scale-95 shadow glow-purple">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+        </button>
+        
+        <!-- Bedwars Shop Button -->
+        <button id="btn-sidebar-itemshop" onclick="openItemShopModal()" title="Bedwars Shop" class="w-10 h-10 rounded-xl glass-panel hover:bg-emerald-900/50 text-emerald-400 border border-emerald-500/50 flex items-center justify-center transition active:scale-95 shadow glow-emerald hidden">
+            <i class="fa-solid fa-cart-shopping"></i>
+        </button>
+
+        <!-- Game Move Analysis Drawer Button -->
+        <button onclick="openAnalysisModal()" title="Game Move Analysis & Replay" class="w-10 h-10 rounded-xl glass-panel hover:bg-amber-900/50 text-amber-400 border border-amber-500/50 flex items-center justify-center transition active:scale-95 shadow glow-gold">
+            <i class="fa-solid fa-chart-line"></i>
+        </button>
+
+        <button onclick="openCodexModal()" title="Rules Codex" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-300 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+            <i class="fa-solid fa-book-open"></i>
+        </button>
+    </div>
+
+    <!-- DETAILED PIECE INSPECTOR CARD -->
+    <div id="piece-inspector-card" class="absolute bottom-16 left-3 z-30 pointer-events-auto w-80 glass-panel rounded-2xl p-3 border-cyan-500/40 shadow-2xl flex flex-col gap-2 hidden">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <div class="flex items-center gap-2">
+                <span id="inspector-icon-box" class="w-8 h-8 rounded-lg bg-slate-900 border border-cyan-400 flex items-center justify-center text-cyan-400 text-lg">
+                    <i class="fa-solid fa-chess-pawn"></i>
+                </span>
+                <div>
+                    <div id="inspector-name" class="font-orbitron font-bold text-xs text-cyan-300 uppercase truncate">SELECT A PIECE</div>
+                    <div id="inspector-team-tag" class="text-[9px] text-slate-400 font-mono">HOVER OR CLICK ON BOARD</div>
+                </div>
+            </div>
+            <span id="inspector-tp-status" class="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded hidden">
+                🌀 TP: 3 TURNS
+            </span>
+        </div>
+
+        <div class="space-y-1.5 text-xs">
+            <div class="flex justify-between items-center text-[10px] text-slate-300 font-mono">
+                <span>HEALTH:</span>
+                <span id="inspector-hp-text" class="font-bold text-emerald-400">10 / 10 HP</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
+                <div id="inspector-hp-bar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full w-[100%] transition-all"></div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+                <div class="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <span class="text-slate-400"><i class="fa-solid fa-hand-fist text-red-400 me-1"></i> ATK</span>
+                    <span id="inspector-atk-val" class="font-bold text-red-300">4</span>
+                </div>
+                <div class="p-1.5 rounded-lg bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <span class="text-slate-400"><i class="fa-solid fa-shield text-blue-400 me-1"></i> DEF</span>
+                    <span id="inspector-def-val" class="font-bold text-blue-300">2</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="inspector-gear-section" class="border-t border-slate-800 pt-1.5">
+            <div class="flex justify-between text-[9px] font-orbitron font-bold text-slate-400 uppercase tracking-wider mb-1">
+                <span>GEAR &amp; CARGO</span>
+                <span id="inspector-in-base-badge" class="text-amber-400 font-mono text-[9px]">📍 IN HOME BASE</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 text-[10px] font-mono mb-1">
+                <div id="inspector-gear-sword" class="p-1 rounded bg-slate-900 border border-slate-800 text-slate-300 truncate">🗡️ Wooden Sword</div>
+                <div id="inspector-gear-armor" class="p-1 rounded bg-slate-900 border border-slate-800 text-slate-300 truncate">🛡️ No Armor</div>
+            </div>
+            <div id="inspector-carried-gems-box" class="grid grid-cols-4 gap-1 text-[9px] font-mono text-center">
+                <div class="p-1 rounded bg-slate-900 border border-amber-800 text-amber-300">🧶 <span id="inspector-wool-cnt">0</span> Wool</div>
+                <div class="p-1 rounded bg-slate-900 border border-sky-800 text-sky-300">💎 <span id="inspector-dia-cnt">0</span> Dia</div>
+                <div class="p-1 rounded bg-slate-900 border border-emerald-800 text-emerald-300">🟢 <span id="inspector-em-cnt">0</span> Em</div>
+                <div class="p-1 rounded bg-slate-900 border border-purple-800 text-purple-300">🔮 <span id="inspector-pearl-cnt-badge">0</span> Pearl</div>
+            </div>
+        </div>
+
+        <!-- BEDWARS ACTIONS -->
+        <div id="inspector-bedwars-actions" class="flex flex-col gap-1.5 pt-1.5 border-t border-slate-800 hidden">
+            <div class="flex gap-1.5">
+                <button id="btn-toggle-bridge-mode" onclick="toggleBridgePlacementMode()" class="flex-1 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-orbitron font-bold text-[10px] uppercase transition shadow">
+                    🧶 WOOL BRIDGE
+                </button>
+                <button id="btn-start-tp-home" onclick="startTpToHome()" class="flex-1 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-[10px] uppercase transition shadow">
+                    🌀 TP HOME
+                </button>
+            </div>
+            <div class="flex gap-1.5">
+                <button id="btn-use-telepearl" onclick="toggleTelepearlTargetMode()" class="flex-1 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-orbitron font-bold text-[10px] uppercase transition shadow">
+                    🔮 TELEPEARL (<span id="inspector-pearl-cnt">0</span>)
+                </button>
+                <button id="btn-inspector-shop-quick" onclick="openItemShopModal()" class="flex-1 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-orbitron font-bold text-[10px] uppercase transition shadow">
+                    🛒 BASE SHOP
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM HUD PROMPT & END TURN BAR -->
+    <div id="bottom-hud-bar" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex items-center gap-3 hidden">
+        <div id="action-prompt" class="glass-panel px-6 py-2.5 rounded-full border-cyan-500/40 text-cyan-300 font-orbitron text-xs font-semibold shadow-xl flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-cyan-400"></i>
+            <span id="prompt-text">Select a piece to move across valid tiles.</span>
+        </div>
+        <button id="btn-end-turn" onclick="manualEndTurn()" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-emerald-600 hover:from-cyan-400 hover:to-emerald-500 text-slate-950 font-orbitron font-black text-xs uppercase tracking-wider shadow-lg active:scale-95 transition flex items-center gap-2 glow-cyan">
+            <span>END TURN</span>
+            <i class="fa-solid fa-forward"></i>
+        </button>
+    </div>
+
+    <!-- D20 COMBAT ENCOUNTER MODAL -->
+    <div id="modal-d20-combat" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-6 border-red-500/60 max-w-md w-full text-center shadow-2xl relative glow-crimson mt-10">
+            <div class="text-xs font-orbitron font-bold text-red-400 uppercase tracking-widest mb-1">
+                ⚔️ D20 COMBAT ENCOUNTER
+            </div>
+            <h2 class="font-orbitron font-black text-2xl text-white mb-4">BATTLE ENCOUNTER</h2>
+            
+            <div class="flex items-center justify-around my-4 bg-slate-900/80 p-4 rounded-2xl border border-slate-800">
+                <div class="text-center">
+                    <div id="d20-atk-icon" class="text-3xl text-cyan-400 mb-1">♟️</div>
+                    <div id="d20-atk-name" class="font-orbitron font-bold text-xs text-cyan-300">ATTACKER</div>
+                    <div id="d20-atk-stat" class="text-[10px] text-slate-400 font-mono">ATK: 5</div>
+                </div>
+
+                <div class="text-2xl font-black font-orbitron text-red-500 italic">VS</div>
+
+                <div class="text-center">
+                    <div id="d20-def-icon" class="text-3xl text-red-400 mb-1">♞</div>
+                    <div id="d20-def-name" class="font-orbitron font-bold text-xs text-red-300">DEFENDER</div>
+                    <div id="d20-def-stat" class="text-[10px] text-slate-400 font-mono">DEF: 2</div>
+                </div>
+            </div>
+
+            <!-- D20 Spinning Display -->
+            <div class="my-6 relative flex flex-col items-center justify-center">
+                <div id="d20-die-display" class="w-20 h-20 bg-gradient-to-tr from-red-600 via-purple-600 to-cyan-500 rounded-2xl flex items-center justify-center text-3xl font-black font-orbitron shadow-2xl border-2 border-white/40 glow-purple">
+                    20
+                </div>
+                <div id="d20-roll-subtext" class="text-xs font-mono text-amber-400 mt-2">ROLLING D20...</div>
+            </div>
+
+            <div id="d20-result-banner" class="text-sm font-orbitron font-bold text-emerald-400 mb-4 hidden">
+                CRITICAL HIT! DEFENDER ELIMINATED!
+            </div>
+
+            <button id="btn-resolve-d20" onclick="resolveD20Combat()" class="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-orbitron font-bold text-xs uppercase shadow-lg transition">
+                ROLL COMBAT DICE <i class="fa-solid fa-dice-d20 ms-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME MOVE ANALYSIS & REPLAY MODAL -->
+    <div id="modal-analysis" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-6 border-amber-500/50 max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative mt-10">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="flex items-center gap-3 mb-2">
+                <span class="text-3xl">📊</span>
+                <div>
+                    <h3 class="font-orbitron font-black text-2xl text-amber-400 text-glow-gold uppercase">GAME MOVE ANALYSIS &amp; ENGINE EVALUATION</h3>
+                    <p class="text-xs text-slate-400 font-mono">COMPLETE CHESS ANNOTATIONS (!!, !, ⭐, 👍, ?!, ?, ??, 💔) &amp; REPLAY STEPPER</p>
+                </div>
+            </div>
+
+            <!-- Interactive Stepper Controls -->
+            <div class="flex items-center justify-between bg-slate-900/90 p-3 rounded-2xl border border-slate-800 text-xs font-mono mb-2">
+                <div class="flex items-center gap-2">
+                    <button onclick="analysisStepFirst()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">⏮ FIRST</button>
+                    <button onclick="analysisStepPrev()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">◀ PREV</button>
+                    <button onclick="analysisStepNext()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">NEXT ▶</button>
+                    <button onclick="analysisStepLatest()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">⏭ LATEST</button>
+                </div>
+                <div class="text-slate-300">
+                    MOVE: <strong id="analysis-step-idx" class="text-amber-400 font-bold">0 / 0</strong>
+                </div>
+            </div>
+
+            <!-- Analysis Log List -->
+            <div id="analysis-log-container" class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl p-4 border border-slate-800 space-y-2 font-mono text-xs my-2 max-h-60">
+                <!-- Dynamic move history entries injected here -->
+            </div>
+
+            <div class="flex items-center justify-between border-t border-slate-800 pt-3">
+                <div class="flex items-center flex-wrap gap-2 text-[11px] font-mono text-slate-300">
+                    <span class="px-1.5 py-0.5 rounded badge-brilliant">!! Brilliant</span>
+                    <span class="px-1.5 py-0.5 rounded badge-excellent">! Excellent</span>
+                    <span class="px-1.5 py-0.5 rounded badge-best">⭐ Best</span>
+                    <span class="px-1.5 py-0.5 rounded badge-good">👍 Good</span>
+                    <span class="px-1.5 py-0.5 rounded badge-inaccuracy">?! Inaccuracy</span>
+                    <span class="px-1.5 py-0.5 rounded badge-mistake">? Mistake</span>
+                    <span class="px-1.5 py-0.5 rounded badge-blunder">?? Blunder</span>
+                    <span class="px-1.5 py-0.5 rounded badge-missed">💔 Missed Win</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="showBestMoveHint(); closeModals();" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-orbitron text-xs font-bold transition">
+                        💡 HIGHLIGHT BEST MOVE
+                    </button>
+                    <button onclick="closeModals()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron text-xs font-bold">
+                        CLOSE
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MANA SPELLBOOK MODAL -->
+    <div id="modal-spellbook" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-6 border-purple-500/50 max-w-lg w-full shadow-2xl relative">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-2xl">⚡</span>
+                <h3 class="font-orbitron font-black text-2xl text-purple-300 text-glow-purple uppercase">MANA SPELLBOOK</h3>
+            </div>
+            <p class="text-xs text-slate-400 font-mono mb-4">AVAILABLE MANA: <strong id="spell-mana-avail" class="text-purple-400">3</strong> PTS</p>
+
+            <div class="space-y-3">
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-cyan-300">💥 ORBITAL LASER STRIKE</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Deals 15 damage to any target tile on the board.</div>
+                    </div>
+                    <button onclick="castSpell('laser')" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-xs uppercase whitespace-nowrap">
+                        4 MANA
+                    </button>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-purple-300">🌀 QUANTUM SWAP</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Swap positions of any two friendly pieces instantly.</div>
+                    </div>
+                    <button onclick="castSpell('swap')" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-orbitron font-bold text-xs uppercase whitespace-nowrap">
+                        3 MANA
+                    </button>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-emerald-300">💀 SUMMON SKELE-PAWN</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Summons a Skele-Pawn unit on any empty home tile.</div>
+                    </div>
+                    <button onclick="castSpell('skele')" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-orbitron font-bold text-xs uppercase whitespace-nowrap">
+                        2 MANA
+                    </button>
+                </div>
+
+                <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-orbitron font-bold text-xs text-amber-300">🛡️ AURA SHIELD</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Grants +5 bonus Armor DEF to a selected unit.</div>
+                    </div>
+                    <button onclick="castSpell('shield')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-orbitron font-bold text-xs uppercase whitespace-nowrap">
+                        3 MANA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IN-BASE BEDWARS SHOP MODAL -->
+    <div id="modal-item-shop" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-6 border-emerald-500/50 max-w-xl w-full text-center shadow-2xl relative">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <span class="text-2xl">🛒</span>
+                <h3 class="font-orbitron font-black text-2xl text-emerald-400 text-glow-emerald uppercase tracking-wider">BEDWARS ITEM SHOP</h3>
+            </div>
+            <p id="shop-piece-label" class="text-[11px] text-slate-300 font-mono mb-2">Select a piece</p>
+
+            <div id="shop-base-warning" class="text-xs text-amber-400 bg-amber-950/80 border border-amber-700 py-1 px-3 rounded-lg font-mono mb-2 hidden">
+                ⚠️ THE SELECTED PIECE MUST BE STANDING IN YOUR HOME BASE TO BUY OR UPGRADE!
+            </div>
+
+            <!-- Treasury & emerald transfer -->
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/80 p-2.5 rounded-2xl border border-slate-800 text-xs font-mono mb-3">
+                <div class="text-left">
+                    <div>TEAM: <strong id="shop-iron-val" class="text-slate-100">0</strong> IRON • <strong id="shop-dia-val" class="text-sky-400">0</strong> DIA • <strong id="shop-em-val" class="text-emerald-400">0</strong> EM</div>
+                    <div class="text-[10px] text-slate-400">CARRIED BY PIECE: <span id="shop-piece-em-val" class="text-emerald-300 font-bold">0</span> EM</div>
+                </div>
+                <button id="btn-transfer-em" onclick="transferEmeraldToPiece()" class="px-3 py-1 rounded-xl bg-emerald-950 border border-emerald-500 hover:bg-emerald-900 text-emerald-300 font-orbitron font-bold text-[10px] uppercase transition">
+                    📥 GIVE 1 TEAM EM TO PIECE
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left max-h-[52vh] overflow-y-auto pr-1 font-mono">
+
+                <!-- 1. SWORD -->
+                <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 sm:col-span-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-cyan-300 font-orbitron">
+                        <span>1. 🗡️ SWORD</span>
+                        <span id="shop-sword-cost-tag" class="text-amber-400">8 Iron</span>
+                    </div>
+                    <p id="shop-sword-desc" class="text-[10px] text-slate-400"></p>
+                    <button id="btn-buy-sword" onclick="shopButton('sword')" class="w-full py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-xs uppercase">UPGRADE SWORD</button>
+                </div>
+
+                <!-- 2. ARMOR -->
+                <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 sm:col-span-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-blue-300 font-orbitron">
+                        <span>2. 🛡️ ARMOR</span>
+                        <span id="shop-armor-cost-tag" class="text-amber-400">8 Iron</span>
+                    </div>
+                    <p id="shop-armor-desc" class="text-[10px] text-slate-400"></p>
+                    <button id="btn-buy-armor" onclick="shopButton('armor')" class="w-full py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-orbitron font-bold text-xs uppercase">UPGRADE ARMOR</button>
+                </div>
+
+                <!-- 3. WOOL -->
+                <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+                    <div class="flex justify-between items-center text-xs font-bold text-amber-300 font-orbitron">
+                        <span>3. 🧶 WOOL x4</span>
+                        <span class="text-slate-100">4 Iron</span>
+                    </div>
+                    <p id="shop-wool-desc" class="text-[10px] text-slate-400">Wool blocks for bridging across the void.</p>
+                    <button id="btn-buy-wool" onclick="shopButton('wool')" class="w-full py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-orbitron font-bold text-xs uppercase">BUY WOOL</button>
+                </div>
+
+                <!-- 4. OBSIDIAN -->
+                <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1">
+                    <div class="flex justify-between items-center text-xs font-bold text-purple-300 font-orbitron">
+                        <span>4. 🪨 OBSIDIAN</span>
+                        <span class="text-emerald-400">1 Em (team)</span>
+                    </div>
+                    <p id="shop-obs-desc" class="text-[10px] text-slate-400"></p>
+                    <button id="btn-buy-obsidian" onclick="shopButton('obsidian')" class="w-full py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-orbitron font-bold text-xs uppercase">PLACE ON BED</button>
+                </div>
+
+                <!-- 5. TELEPEARL -->
+                <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 sm:col-span-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-fuchsia-300 font-orbitron">
+                        <span>5. 🔮 TELEPEARL</span>
+                        <span class="text-emerald-400">2 Em (from piece)</span>
+                    </div>
+                    <p id="shop-pearl-desc" class="text-[10px] text-slate-400"></p>
+                    <button id="btn-buy-pearl" onclick="shopButton('pearl')" class="w-full py-1.5 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-orbitron font-bold text-xs uppercase">BUY TELEPEARL</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- RULES CODEX MODAL -->
+    <div id="modal-codex" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-6 border-amber-500/50 max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl relative">
+            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">📜</span>
+                <h3 class="font-orbitron font-black text-2xl text-amber-400 text-glow-gold uppercase">CHESS 2 RULEBOOK &amp; CODEX</h3>
+            </div>
+
+            <div class="space-y-4 text-xs font-mono text-slate-300 leading-relaxed">
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <h4 class="font-orbitron font-bold text-sky-300 text-sm mb-1">♟️ PAWN DOUBLE MOVE &amp; 🏰 CASTLING MECHANICS</h4>
+                    <p>• <strong>Pawn Double Step:</strong> Unmoved Pawns can leap 2 squares forward along their forward vector on their first move!<br>
+                    • <strong>Castling (O-O / O-O-O):</strong> Kings and friendly Rooks that haven't moved can castle if the rank path between them is unblocked and non-void.</p>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <h4 class="font-orbitron font-bold text-amber-300 text-sm mb-1">💎 DIAMOND GUARDIANS (EVERY 50 TURNS)</h4>
+                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn on shrine tiles! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <h4 class="font-orbitron font-bold text-cyan-300 text-sm mb-1">🎲 ACCELERATED D20 COMBAT &amp; PLAYBACK CONTROL</h4>
+                    <p>Capturing an enemy piece triggers a D20 Combat encounter! Final Damage = (D20 Roll + Attacker ATK) - Defender DEF. Change round speed dynamically from 0.5x to INSTANT via the persistent top bar overlay!</p>
+                </div>
+
+                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                    <h4 class="font-orbitron font-bold text-purple-300 text-sm mb-1">🧠 GOD-AI ENGINE (LEVEL 1-25) &amp; MOVE LOOP PREVENTION</h4>
+                    <p>Configurable per team! Level 25 features telepearl jumps, wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and position history tracking to prevent back-and-forth loops.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GAME OVER MODAL -->
+    <div id="modal-game-over" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-xl hidden pointer-events-auto">
+        <div class="glass-panel rounded-3xl p-8 border-cyan-500/50 max-w-md w-full text-center shadow-2xl relative glow-cyan">
+            <div class="text-4xl mb-2">🏆</div>
+            <h2 id="winner-title" class="font-orbitron font-black text-3xl text-cyan-300 text-glow-cyan uppercase mb-2">WHITE VICTORY!</h2>
+            <p id="winner-subtitle" class="text-xs font-mono text-slate-300 mb-6">All enemy Kings and Beds have been completely obliterated.</p>
+
+            <div class="space-y-3">
+                <button onclick="openAnalysisModal()" class="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-orbitron font-bold text-xs uppercase shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-chart-line"></i> VIEW GAME ANALYSIS &amp; REPLAY
+                </button>
+                <button onclick="returnToMainMenu()" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition">
+                    RETURN TO MAIN MENU
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT GAME ENGINE -->
+    <script>
+        /* =====================================================================
+           CHESS 2: ULTIMATE EXPANSION ENGINE WITH PAWN 2-STEP & CASTLING
+           ===================================================================== */
+        const ALL_TEAMS = ['white', 'black', 'red', 'blue', 'green', 'yellow'];
+        const TEAM_FORMATS = {
+            '2-team': ['white', 'black'],
+            '4-team': ['red', 'blue', 'green', 'yellow']
+        };
+
+        const TEAM_CONFIGS = {
+            white: { name: 'White', color: '#f8fafc', hex: 0xf8fafc, accent: 0x06b6d4, borderClass: 'border-cyan-500/40' },
+            black: { name: 'Black', color: '#64748b', hex: 0x64748b, accent: 0xef4444, borderClass: 'border-red-500/40' },
+            red:    { name: 'Red',    color: '#ef4444', hex: 0xef4444, accent: 0xf87171, borderClass: 'border-red-500/40' },
+            blue:   { name: 'Blue',   color: '#3b82f6', hex: 0x3b82f6, accent: 0x60a5fa, borderClass: 'border-blue-500/40' },
+            green:  { name: 'Green',  color: '#10b981', hex: 0x10b981, accent: 0x34d399, borderClass: 'border-emerald-500/40' },
+            yellow: { name: 'Yellow', color: '#eab308', hex: 0xeab308, accent: 0xfde047, borderClass: 'border-amber-500/40' },
+            neutral:{ name: 'Guardian', color: '#38bdf8', hex: 0x38bdf8, accent: 0x38bdf8, borderClass: 'border-sky-500/40' }
+        };
+
+        const keyOf = (x, z) => `${x},${z}`;
+        const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
+        const $ = id => document.getElementById(id);
+
+        const TYPE_NAMES = { p: 'Pawn', n: 'Knight', b: 'Bishop', r: 'Rook', q: 'Queen', k: 'King', d: 'Dragon', nec: 'Necromancer', skele: 'Skele-Pawn', bed: 'Bed', guardian: 'Diamond Guardian' };
+        const TYPE_ICONS = { p: 'fa-chess-pawn', n: 'fa-chess-knight', b: 'fa-chess-bishop', r: 'fa-chess-rook', q: 'fa-chess-queen', k: 'fa-chess-king', d: 'fa-dragon', nec: 'fa-skull', skele: 'fa-skull-crossbones', bed: 'fa-bed', guardian: 'fa-shield-halved' };
+        const BASE_STATS = {
+            k: { hp: 25, atk: 6, def: 4 }, q: { hp: 18, atk: 9, def: 3 }, r: { hp: 14, atk: 5, def: 5 },
+            b: { hp: 12, atk: 5, def: 2 }, n: { hp: 12, atk: 6, def: 3 }, p: { hp: 8, atk: 3, def: 1 },
+            d: { hp: 20, atk: 8, def: 4 }, nec: { hp: 14, atk: 6, def: 2 }, skele: { hp: 6, atk: 3, def: 1 },
+            bed: { hp: 30, atk: 0, def: 6 }, guardian: { hp: 15, atk: 5, def: 3 }
+        };
+
+        const SWORD_TIERS = [
+            { name: 'Wooden Sword', atk: 0, cost: null },
+            { name: 'Stone Sword', atk: 2, cost: { iron: 20 } },
+            { name: 'Iron Sword', atk: 4, cost: { iron: 70 } },
+            { name: 'Diamond Sword', atk: 6, cost: { em: 4 } },
+            { name: 'Emerald Sword', atk: 8, cost: { em: 10 } }
+        ];
+        const ARMOR_TIERS = [
+            { name: 'No Armor', def: 0, hp: 0, cost: null },
+            { name: 'Leather Armor', def: 1, hp: 4, cost: { iron: 50 } },
+            { name: 'Iron Armor', def: 2, hp: 8, cost: { iron: 120 } },
+            { name: 'Diamond Armor', def: 3, hp: 12, cost: { em: 8 } },
+            { name: 'Emerald Armor', def: 4, hp: 16, cost: { em: 25 } }
+        ];
+        const WOOL_COST = 4, WOOL_QTY = 4;
+        const OBSIDIAN_MAX = 8, OBSIDIAN_COST = { em: 1 }, OBSIDIAN_HP = 10, OBSIDIAN_LOCK_TURNS = 3;
+        const PEARL_COST_EM = 2, PEARL_RANGE = 6;
+        const TP_TURNS = 3;
+        const RESPAWN_TURNS = 5;
+        const BED_BREAK_TURN = 200, BED_WARN_AHEAD = 6;
+        const MAX_BRIDGES_PER_TURN = 2;
+        const GEN_VISUAL_MAX = 5;
+        const GEN_CFG = {
+            em: { interval: 4, color: 0x10b981, label: 'EMERALD' },
+            dia: { interval: 3, color: 0x38bdf8, label: 'DIAMOND' }
+        };
+        const DRAFT_COSTS = { p: 1, n: 3, b: 3, r: 5, q: 9, d: 7, nec: 6 };
+
+        /* --- GAME STATE --- */
+        const G = {
+            teamFormat: '2-team',
+            teams: ['white', 'black'],
+            teamControllers: {
+                white: { type: 'human', level: 10 },
+                black: { type: 'ai', level: 10 },
+                red:    { type: 'human', level: 10 },
+                blue:   { type: 'ai', level: 10 },
+                green:  { type: 'ai', level: 10 },
+                yellow: { type: 'ai', level: 10 }
+            },
+            mode: 'bedwars',
+            chaosPieces: true,
+            soundEnabled: true,
+            turnIndex: 0,
+            turn: 'white',
+            turnCount: 1,
+            selectedPiece: null,
+            validMoves: [],
+            attackTargets: [],
+            ghostBridgeTiles: [],
+            bridgeModeActive: false,
+            bridgesThisTurn: 0,
+            pearlMode: false,
+            pearlTargets: [],
+            spellMode: null,
+            bestMoveHint: null,
+            gameOver: false,
+            matchId: 0,
+            aiTimer: null,
+            autoPlayActive: false,
+            speedMultiplier: 1.0,
+
+            draftPhase: false,
+            draftPoints: 35,
+            draftSelectedPiece: 'p',
+            draftSelectedCost: 1,
+
+            resources: null,
+            activeBattle: null,
+            moveHistoryLog: [],
+            analysisCurrentIndex: 0,
+
+            selectedMapId: 'quad_archipelago',
+            mapData: null,
+            boardGrid: {},
+            pieces: [],
+            gens: [],
+            bedPos: {},
+            bases: {}
+        };
+
+        function getSpeedDelay(ms) {
+            if (G.speedMultiplier >= 90) return 0;
+            return Math.max(10, Math.floor(ms / G.speedMultiplier));
+        }
+
+        function newTeamRes(isBedwars) { return { iron: 10, dia: 0, em: 0, mana: 3, bedAlive: isBedwars, respawnQueue: [] }; }
+        function initResources() {
+            G.resources = {};
+            const isB = (G.mode === 'bedwars');
+            ALL_TEAMS.forEach(t => G.resources[t] = newTeamRes(isB));
+        }
+        initResources();
+
+        /* --- MAP THEMES --- */
+        const MAP_THEMES = {
+            neon: { name: "Cyberpunk Neon", bg: 0x030712, fog: 0x030712, tileA: 0x0f172a, tileB: 0x1e293b, accent: 0x06b6d4 },
+            lava: { name: "Lava Inferno", bg: 0x180404, fog: 0x180404, tileA: 0x2a0808, tileB: 0x450a0a, accent: 0xef4444 },
+            celestial: { name: "Celestial Sanctuary", bg: 0x090d16, fog: 0x090d16, tileA: 0x1e1b4b, tileB: 0x312e81, accent: 0xa855f7 },
+            emerald: { name: "Toxic Emerald", bg: 0x021a12, fog: 0x021a12, tileA: 0x064e3b, tileB: 0x047857, accent: 0x10b981 },
+            tundra: { name: "Frostbite Tundra", bg: 0x08192d, fog: 0x08192d, tileA: 0x0c4a6e, tileB: 0x0284c7, accent: 0x38bdf8 },
+            crystal: { name: "Crystal Cavern", bg: 0x12072b, fog: 0x12072b, tileA: 0x3b0764, tileB: 0x581c87, accent: 0xc084fc },
+            sky: { name: "Sky Islands", bg: 0x0c1e38, fog: 0x0c1e38, tileA: 0x1e293b, tileB: 0x334155, accent: 0x38bdf8 },
+            void: { name: "Void Abyss", bg: 0x020617, fog: 0x020617, tileA: 0x0f172a, tileB: 0x1e1b4b, accent: 0x818cf8 },
+            sunset: { name: "Sunset Citadel", bg: 0x1a091a, fog: 0x1a091a, tileA: 0x4c0519, tileB: 0x831843, accent: 0xf43f5e }
+        };
+
+        /* =====================================================================
+           FULL MAP CATALOG (ALL 15 MAPS INCLUDING 5 MASSIVE 50x50+ ARENAS)
+           ===================================================================== */
+        const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
+
+        const MAP_CATALOG = [
+            /* --- 4-TEAM & 50x50+ MASSIVE MAPS (5 MAPS) --- */
+            {
+                id: 'quad_archipelago', kind: 'bedwars', teams: 4, name: "55x55 Quad Realm Archipelago", W: 55, H: 55, theme: 'sky', fwd: FWD_NS,
+                desc: "55x55 4-Team Mega Arena. 4 Floating corner fortresses, central Emerald structure, outer Diamond shrines.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (-20)) <= 6) return { h: 0, base: 'red' };
+                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (-20)) <= 6) return { h: 0, base: 'blue' };
+                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (20)) <= 6) return { h: 0, base: 'green' };
+                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (20)) <= 6) return { h: 0, base: 'yellow' };
+                    if (ax <= 4 && az <= 4) return { h: 0.6 };
+                    if (Math.abs(ax - 14) <= 3 && Math.abs(az - 14) <= 3) return { h: 0.3 };
+                    if (ax <= 2 && az <= 22) return { h: 0.1 };
+                    if (az <= 2 && ax <= 22) return { h: 0.1 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (-20)) <= 6) return 'red';
+                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (-20)) <= 6) return 'blue';
+                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (20)) <= 6) return 'green';
+                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (20)) <= 6) return 'yellow';
+                    return null;
+                },
+                gens: [
+                    { x: 0, z: 0, type: 'em' }, { x: -3, z: 0, type: 'em' }, { x: 3, z: 0, type: 'em' },
+                    { x: -14, z: -14, type: 'dia' }, { x: 14, z: -14, type: 'dia' },
+                    { x: 14, z: 14, type: 'dia' }, { x: -14, z: 14, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['n', -19, -21], ['p', -20, -19]],
+                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['n', 19, -21], ['p', 20, -19]],
+                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['n', 19, 21], ['p', 20, 19]],
+                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['n', -19, 21], ['p', -20, 19]]
+                }
+            },
+            {
+                id: 'cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic 4-Team Crossroads", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
+                desc: "60x60 Sprawling 4-Arm Fortress Matrix. Central Obsidian Void Rift with elevated diamond shrines and boss platforms.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (az >= 18 && ax <= 8) return { h: 0 };
+                    if (ax >= 18 && az <= 8) return { h: 0 };
+                    const r = Math.sqrt(x * x + z * z);
+                    if (r <= 7) return { h: 0.5 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (z <= -18 && Math.abs(x) <= 8) return 'red';
+                    if (x >= 18 && Math.abs(z) <= 8) return 'blue';
+                    if (z >= 18 && Math.abs(x) <= 8) return 'green';
+                    if (x <= -18 && Math.abs(z) <= 8) return 'yellow';
+                    return null;
+                },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: 0, z: -5, type: 'dia' }, { x: 5, z: 0, type: 'dia' },
+                    { x: 0, z: 5, type: 'dia' }, { x: -5, z: 0, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', 0, -26], ['k', 0, -25], ['q', 1, -25], ['r', -3, -25], ['r', 3, -25], ['n', -1, -24], ['p', 0, -23]],
+                    blue:   [['bed', 26, 0], ['k', 25, 0], ['q', 25, 1], ['r', 25, -3], ['r', 25, 3], ['n', 24, -1], ['p', 23, 0]],
+                    green:  [['bed', 0, 26], ['k', 0, 25], ['q', -1, 25], ['r', 3, 25], ['r', -3, 25], ['n', 1, 24], ['p', 0, 23]],
+                    yellow: [['bed', -26, 0], ['k', -25, 0], ['q', -25, -1], ['r', -25, 3], ['r', -25, -3], ['n', -24, 1], ['p', -23, 0]]
+                }
+            },
+            {
+                id: 'dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'lava', fwd: FWD_NS,
+                desc: "50x50 Volcanic Fortress Ring. Concentric lava moats, central dragon egg shrine with high value emerald drops.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (ax >= 15 && az >= 15) return { h: 0 };
+                    if (ax <= 5 && az <= 5) return { h: 0.8 };
+                    if (Math.abs(ax - 10) <= 3 && Math.abs(az - 10) <= 3) return { h: 0.3 };
+                    if (ax <= 3 || az <= 3) return { h: 0.1 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (x <= -15 && z <= -15) return 'red';
+                    if (x >= 15 && z <= -15) return 'blue';
+                    if (x >= 15 && z >= 15) return 'green';
+                    if (x <= -15 && z >= 15) return 'yellow';
+                    return null;
+                },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: -10, z: -10, type: 'dia' }, { x: 10, z: -10, type: 'dia' },
+                    { x: 10, z: 10, type: 'dia' }, { x: -10, z: 10, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['p', -18, -17]],
+                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['p', 18, -17]],
+                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['p', 18, 17]],
+                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['p', -18, 17]]
+                }
+            },
+            {
+                id: 'nether_quadrant', kind: 'bedwars', teams: 4, name: "52x52 Nether Fortress Quadrant", W: 52, H: 52, theme: 'crystal', fwd: FWD_NS,
+                desc: "52x52 Nether Obsidian Castle grid with narrow bridges connecting isolated 4-team bases.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (ax >= 16 && az >= 16) return { h: 0 };
+                    if (ax <= 6 && az <= 6) return { h: 0.4 };
+                    if (ax <= 3 || az <= 3) return { h: 0.1 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (x <= -16 && z <= -16) return 'red';
+                    if (x >= 16 && z <= -16) return 'blue';
+                    if (x >= 16 && z >= 16) return 'green';
+                    if (x <= -16 && z >= 16) return 'yellow';
+                    return null;
+                },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: 0, z: -12, type: 'dia' }, { x: 12, z: 0, type: 'dia' },
+                    { x: 0, z: 12, type: 'dia' }, { x: -12, z: 0, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -21, -21], ['k', -20, -20], ['q', -19, -20], ['r', -21, -19], ['r', -19, -21], ['p', -19, -18]],
+                    blue:   [['bed', 21, -21], ['k', 20, -20], ['q', 19, -20], ['r', 21, -19], ['r', 19, -21], ['p', 19, -18]],
+                    green:  [['bed', 21, 21], ['k', 20, 20], ['q', 19, 20], ['r', 21, 19], ['r', 19, 21], ['p', 19, 18]],
+                    yellow: [['bed', -21, 21], ['k', -20, 20], ['q', -19, 20], ['r', -21, 19], ['r', -19, 21], ['p', -19, 18]]
+                }
+            },
+            {
+                id: 'star_temple', kind: 'bedwars', teams: 4, name: "50x50 Celestial Star Temple", W: 50, H: 50, theme: 'celestial', fwd: FWD_NS,
+                desc: "50x50 8-Pointed Star layout. Central celestial altar with double diamond shrines on outer peaks.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (ax >= 16 && az >= 16) return { h: 0 };
+                    if (ax <= 5 && az <= 5) return { h: 0.7 };
+                    if (ax + az <= 22) return { h: 0.2 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (x <= -16 && z <= -16) return 'red';
+                    if (x >= 16 && z <= -16) return 'blue';
+                    if (x >= 16 && z >= 16) return 'green';
+                    if (x <= -16 && z >= 16) return 'yellow';
+                    return null;
+                },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: -13, z: 0, type: 'dia' }, { x: 13, z: 0, type: 'dia' },
+                    { x: 0, z: -13, type: 'dia' }, { x: 0, z: 13, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['p', -18, -17]],
+                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['p', 18, -17]],
+                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['p', 18, 17]],
+                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['p', -18, 17]]
+                }
+            },
+
+            /* --- 2-TEAM BEDWARS EXCLUSIVE MAPS (5 MAPS) --- */
+            {
+                id: 'archipelago', kind: 'bedwars', teams: 2, name: "Archipelago Bedwars", W: 19, H: 19, theme: 'sky', fwd: FWD_NS,
+                desc: "19x19. Three isolated island chains: bases, a central EMERALD isle and two side DIAMOND isles.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (az >= 5 && ax <= 4) return { h: 0 };
+                    if (az <= 2 && ax <= 3) return { h: 0.5 };
+                    if (az <= 2 && ax >= 6 && ax <= 8) return { h: 0.25 };
+                    return null;
+                },
+                baseWhite: (x, z) => z >= 5 && Math.abs(x) <= 4,
+                gens: [{ x: 0, z: 0, type: 'em' }, { x: -7, z: 0, type: 'dia' }, { x: 7, z: 0, type: 'dia' }],
+                spawn: [['bed', 0, 8], ['k', 0, 7], ['q', 1, 7], ['r', -3, 7], ['r', 3, 7], ['n', -1, 6], ['n', 1, 6], ['p', 0, 6]]
+            },
+            {
+                id: 'sky_ridge', kind: 'bedwars', teams: 2, name: "Sky Ridge Fortress", W: 21, H: 11, theme: 'tundra', fwd: FWD_NS,
+                desc: "21x11 Narrow sky ridge connecting bases directly across double diamond outposts.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (ax <= 9 && az <= 3) return { h: 0.2 };
+                    if (ax <= 4 && az <= 4) return { h: 0.5 };
+                    return null;
+                },
+                baseWhite: (x, z) => z >= 3 && Math.abs(x) <= 4,
+                gens: [{ x: 0, z: 0, type: 'em' }, { x: -7, z: 0, type: 'dia' }, { x: 7, z: 0, type: 'dia' }],
+                spawn: [['bed', 0, 4], ['k', 0, 3], ['q', 1, 3], ['r', -3, 3], ['r', 3, 3], ['p', 0, 2]]
+            },
+            {
+                id: 'crossroads', kind: 'bedwars', teams: 2, name: "Crossroads", W: 17, H: 17, theme: 'lava', fwd: FWD_NS,
+                desc: "17x17 aggressive plus-shape. Bases are linked by a 3-wide spine through a DIAMOND hill.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (az >= 5 && ax <= 3) return { h: 0 };
+                    if (ax <= 2 && az <= 2) return { h: 0.5 };
+                    if (az <= 2 && ax >= 7 && ax <= 8) return { h: 0.25 };
+                    return null;
+                },
+                baseWhite: (x, z) => z >= 5 && Math.abs(x) <= 3,
+                gens: [{ x: 0, z: 0, type: 'dia' }, { x: -7, z: 0, type: 'em' }, { x: 7, z: 0, type: 'em' }],
+                spawn: [['bed', 0, 8], ['k', 0, 7], ['q', 1, 7], ['r', -2, 7], ['r', 2, 7], ['n', -1, 6], ['n', 1, 6], ['p', 0, 5]]
+            },
+            {
+                id: 'ring_of_fire', kind: 'bedwars', teams: 2, name: "Ring of Fire", W: 15, H: 15, theme: 'lava', fwd: FWD_NS,
+                desc: "15x15 Concentric volcanic ring surrounding central emerald altar.",
+                tile(x, z) {
+                    const r = Math.sqrt(x * x + z * z);
+                    if (r <= 2.5) return { h: 0.6 };
+                    if (r >= 4 && r <= 6.5) return { h: 0.2 };
+                    return null;
+                },
+                baseWhite: (x, z) => z >= 4 && Math.abs(x) <= 3,
+                gens: [{ x: 0, z: 0, type: 'em' }, { x: -5, z: 0, type: 'dia' }, { x: 5, z: 0, type: 'dia' }],
+                spawn: [['bed', 0, 6], ['k', 0, 5], ['q', 1, 5], ['r', -2, 5], ['r', 2, 5], ['p', 0, 4]]
+            },
+            {
+                id: 'stepped_pyramid', kind: 'bedwars', teams: 2, name: "Stepped Pyramid", W: 15, H: 15, theme: 'sunset', fwd: FWD_NS,
+                desc: "15x15 Multi-tiered ziggurat arena with high elevation advantages.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (ax <= 2 && az <= 2) return { h: 0.9 };
+                    if (ax <= 4 && az <= 4) return { h: 0.5 };
+                    if (ax <= 6 && az <= 6) return { h: 0.1 };
+                    return null;
+                },
+                baseWhite: (x, z) => z >= 5 && Math.abs(x) <= 3,
+                gens: [{ x: 0, z: 0, type: 'em' }, { x: -4, z: 0, type: 'dia' }, { x: 4, z: 0, type: 'dia' }],
+                spawn: [['bed', 0, 6], ['k', 0, 5], ['q', 1, 5], ['r', -3, 5], ['r', 3, 5], ['p', 0, 4]]
+            },
+
+            /* --- STANDARD / CLASSIC MAPS (5 MAPS) --- */
+            { id: 'classic', kind: 'classic', teams: 2, name: "Classic 8x8 Arena", size: 8, theme: 'neon', fwd: FWD_NS, desc: "Traditional 8x8 chessboard with Castling, Pawn 2-step & D20 combat.", tile: () => ({ h: 0 }) },
+            { id: 'donut', kind: 'classic', teams: 2, name: "The Void Donut 10x10", size: 10, theme: 'celestial', fwd: FWD_NS, desc: "Circular ring board with a hollow void pit in the center.", tile: (x, z) => (Math.sqrt(x * x + z * z) < 2.2) ? null : { h: 0 } },
+            { id: 'l_shaped', kind: 'classic', teams: 2, name: "L-Shaped Arena 10x10", size: 10, theme: 'emerald', fwd: FWD_NS, desc: "Asymmetric tactical L-board challenging piece positioning.", tile: (x, z) => (x < 0 && z < 0) ? null : { h: 0 } },
+            { id: 'cross_arena', kind: 'classic', teams: 2, name: "Cross Arena 12x12", size: 12, theme: 'lava', fwd: FWD_NS, desc: "12x12 Plus-shaped battlefield encouraging heavy flank attacks.", tile: (x, z) => (Math.abs(x) > 3 && Math.abs(z) > 3) ? null : { h: 0 } },
+            { id: 'dual_islands', kind: 'classic', teams: 2, name: "Dual Islands 12x12", size: 12, theme: 'sunset', fwd: FWD_NS, desc: "Two large landmasses separated by a central channel.", tile: (x, z) => (Math.abs(x) <= 1 && Math.abs(z) <= 2) ? null : { h: 0 } }
+        ];
+
+        const mapById = id => MAP_CATALOG.find(m => m.id === id);
+        function mapKindForMode(mode) { return mode === 'bedwars' ? 'bedwars' : 'classic'; }
+        function isMapAllowed(mapId, mode, teamFormat) {
+            const m = mapById(mapId);
+            if (!m) return false;
+            const modeOk = m.kind === mapKindForMode(mode);
+            const teamOk = (teamFormat === '4-team') ? (m.teams === 4) : (m.teams === 2 || !m.teams);
+            return modeOk && teamOk;
+        }
+        function ensureValidMap() {
+            if (!isMapAllowed(G.selectedMapId, G.mode, G.teamFormat)) {
+                const first = MAP_CATALOG.find(m => isMapAllowed(m.id, G.mode, G.teamFormat));
+                G.selectedMapId = first ? first.id : 'quad_archipelago';
+            }
+        }
+
+        /* --- WEB AUDIO SYNTHESIZER --- */
+        let audioCtx = null;
+        function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playSound(type) {
+            if (!G.soundEnabled) return;
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                const S = {
+                    move: ['sine', 300, 600, 0.2, 0.1], click: ['triangle', 440, 440, 0.1, 0.05],
+                    dice: ['square', 150, 400, 0.2, 0.15], hit: ['sawtooth', 200, 60, 0.3, 0.25],
+                    bridge: ['sine', 220, 350, 0.25, 0.12], laser: ['sawtooth', 800, 150, 0.3, 0.4],
+                    tp: ['sine', 900, 200, 0.2, 0.35], gem: ['triangle', 600, 1200, 0.2, 0.2],
+                    buy: ['square', 500, 800, 0.1, 0.1], boss: ['sawtooth', 120, 380, 0.4, 0.6]
+                }[type];
+                if (!S) return;
+                osc.type = S[0];
+                osc.frequency.setValueAtTime(S[1], now);
+                osc.frequency.exponentialRampToValueAtTime(Math.max(1, S[2]), now + S[4]);
+                gain.gain.setValueAtTime(S[3], now);
+                gain.gain.linearRampToValueAtTime(0.01, now + S[4]);
+                osc.start(now); osc.stop(now + S[4]);
+            } catch (e) {}
+        }
+        function toggleAudioEngine() {
+            G.soundEnabled = !G.soundEnabled;
+            const btn = $('btn-sound-toggle');
+            btn.innerHTML = G.soundEnabled ? `<i class="fa-solid fa-volume-high"></i> AUDIO: SOUND ON` : `<i class="fa-solid fa-volume-xmark"></i> AUDIO: MUTED`;
+            btn.classList.toggle('text-cyan-300', G.soundEnabled);
+            btn.classList.toggle('text-slate-400', !G.soundEnabled);
+        }
+
+        /* --- THREE.JS SCENE SETUP --- */
+        let scene, camera, renderer, controls, raycaster, mouse, starfieldParticles;
+        const targetRingGroup = new THREE.Group();
+        let camScale = 1;
+
+        const GEO = {
+            move: new THREE.RingGeometry(0.25, 0.4, 24),
+            atkOuter: new THREE.RingGeometry(0.35, 0.48, 24),
+            atkInner: new THREE.CircleGeometry(0.3, 24),
+            select: new THREE.RingGeometry(0.5, 0.62, 32),
+            bestHint: new THREE.RingGeometry(0.55, 0.7, 32),
+            ghost: new THREE.BoxGeometry(0.9, 0.1, 0.9),
+            gem: new THREE.OctahedronGeometry(0.2),
+            obsidian: new THREE.BoxGeometry(0.26, 0.26, 0.26),
+            tpMarker: new THREE.TorusGeometry(0.75, 0.05, 8, 32)
+        };
+
+        function initThreeEngine() {
+            const container = $('canvas-container');
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020617);
+            scene.fog = new THREE.FogExp2(0x020617, 0.008);
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 30, 35);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.05;
+            controls.minDistance = 6;
+            controls.maxDistance = 180;
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            dirLight.position.set(30, 60, 30);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.left = -60; dirLight.shadow.camera.right = 60;
+            dirLight.shadow.camera.top = 60; dirLight.shadow.camera.bottom = -60;
+            scene.add(dirLight);
+
+            scene.add(targetRingGroup);
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            createStarfield();
+
+            window.addEventListener('resize', onWindowResize);
+
+            let downPos = null;
+            renderer.domElement.addEventListener('pointerdown', e => { downPos = { x: e.clientX, y: e.clientY }; });
+            renderer.domElement.addEventListener('pointerup', e => {
+                if (!downPos) return;
+                const moved = Math.hypot(e.clientX - downPos.x, e.clientY - downPos.y);
+                downPos = null;
+                if (moved < 6) onCanvasClick(e);
+            });
+            let lastHover = 0;
+            renderer.domElement.addEventListener('pointermove', e => {
+                const t = performance.now();
+                if (t - lastHover < 70) return;
+                lastHover = t;
+                onCanvasHover(e);
+            });
+            window.addEventListener('keydown', e => { if (e.key === 'Escape') cancelAllModes(); });
+
+            animate();
+        }
+
+        function createStarfield() {
+            const count = 1200;
+            const geo = new THREE.BufferGeometry();
+            const pos = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i += 3) {
+                pos[i] = (Math.random() - 0.5) * 220;
+                pos[i + 1] = Math.random() * 80 - 10;
+                pos[i + 2] = (Math.random() - 0.5) * 220;
+            }
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            starfieldParticles = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.35, transparent: true, opacity: 0.6 }));
+            scene.add(starfieldParticles);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            if (starfieldParticles) starfieldParticles.rotation.y += 0.0003;
+            G.gens.forEach(g => g.gems.forEach(m => { m.rotation.y += 0.03; }));
+            renderer.render(scene, camera);
+        }
+
+        /* --- PROCEDURAL 3D PIECE GENERATOR --- */
+        function createPieceMesh(type, team) {
+            const group = new THREE.Group();
+            const cfg = TEAM_CONFIGS[team] || TEAM_CONFIGS.white;
+            const mat = new THREE.MeshStandardMaterial({ color: cfg.hex, roughness: 0.3, metalness: 0.4 });
+            const accentMat = new THREE.MeshStandardMaterial({ color: cfg.accent, emissive: cfg.accent, emissiveIntensity: 0.6, roughness: 0.2 });
+
+            if (type !== 'bed') {
+                const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.65, 0.2, 16), mat);
+                baseMesh.position.y = 0.1;
+                group.add(baseMesh);
+                const ringMesh = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.04, 8, 24), accentMat);
+                ringMesh.rotation.x = Math.PI / 2;
+                ringMesh.position.y = 0.05;
+                group.add(ringMesh);
+            }
+            const add = (geo, m, x, y, z) => { const mesh = new THREE.Mesh(geo, m); mesh.position.set(x || 0, y || 0, z || 0); group.add(mesh); return mesh; };
+
+            if (type === 'p') {
+                add(new THREE.CylinderGeometry(0.25, 0.45, 0.7, 16), mat, 0, 0.55, 0);
+                add(new THREE.SphereGeometry(0.3, 16, 16), mat, 0, 1.0, 0);
+            } else if (type === 'r') {
+                add(new THREE.CylinderGeometry(0.4, 0.5, 0.9, 16), mat, 0, 0.65, 0);
+                add(new THREE.BoxGeometry(0.7, 0.3, 0.7), mat, 0, 1.1, 0);
+            } else if (type === 'n') {
+                add(new THREE.CylinderGeometry(0.35, 0.5, 0.7, 16), mat, 0, 0.55, 0);
+                add(new THREE.BoxGeometry(0.4, 0.6, 0.6), mat, 0, 1.0, 0.1);
+            } else if (type === 'b') {
+                add(new THREE.CylinderGeometry(0.25, 0.45, 1.0, 16), mat, 0, 0.7, 0);
+                add(new THREE.SphereGeometry(0.25, 16, 16), accentMat, 0, 1.35, 0);
+            } else if (type === 'q') {
+                add(new THREE.CylinderGeometry(0.3, 0.5, 1.2, 16), mat, 0, 0.8, 0);
+                add(new THREE.ConeGeometry(0.45, 0.5, 8), accentMat, 0, 1.5, 0);
+            } else if (type === 'k') {
+                add(new THREE.CylinderGeometry(0.35, 0.55, 1.3, 16), mat, 0, 0.85, 0);
+                add(new THREE.BoxGeometry(0.12, 0.4, 0.12), accentMat, 0, 1.65, 0);
+                add(new THREE.BoxGeometry(0.3, 0.12, 0.12), accentMat, 0, 1.65, 0);
+            } else if (type === 'd') {
+                add(new THREE.ConeGeometry(0.5, 1.2, 5), accentMat, 0, 0.8, 0);
+                add(new THREE.BoxGeometry(0.8, 0.05, 0.4), mat, -0.5, 0.9, 0);
+                add(new THREE.BoxGeometry(0.8, 0.05, 0.4), mat, 0.5, 0.9, 0);
+            } else if (type === 'nec') {
+                add(new THREE.CylinderGeometry(0.2, 0.45, 1.1, 12), mat, 0, 0.75, 0);
+                add(new THREE.SphereGeometry(0.28, 12, 12), accentMat, 0, 1.4, 0);
+            } else if (type === 'skele') {
+                add(new THREE.CylinderGeometry(0.15, 0.35, 0.6, 8), mat, 0, 0.5, 0);
+                add(new THREE.DodecahedronGeometry(0.2), accentMat, 0, 0.9, 0);
+            } else if (type === 'bed') {
+                add(new THREE.BoxGeometry(1.0, 0.3, 1.5), mat, 0, 0.15, 0);
+                add(new THREE.BoxGeometry(0.85, 0.15, 0.4), accentMat, 0, 0.35, -0.5);
+                add(new THREE.BoxGeometry(0.85, 0.1, 0.9), accentMat, 0, 0.33, 0.25);
+            } else if (type === 'guardian') {
+                const diaMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.8, roughness: 0.1, metalness: 0.8 });
+                add(new THREE.OctahedronGeometry(0.65), diaMat, 0, 1.0, 0);
+                add(new THREE.CylinderGeometry(0.5, 0.6, 0.3, 8), mat, 0, 0.15, 0);
+            }
+            group.traverse(child => { if (child.isMesh) { child.castShadow = true; child.receiveShadow = true; } });
+            return group;
+        }
+
+        /* =====================================================================
+           MAP & BOARD BUILDER
+           ===================================================================== */
+        function clearBoard() {
+            for (const key in G.boardGrid) { if (G.boardGrid[key].tileMesh) scene.remove(G.boardGrid[key].tileMesh); }
+            G.pieces.forEach(p => scene.remove(p.mesh));
+            G.gens.forEach(g => g.gems.forEach(m => scene.remove(m)));
+            while (targetRingGroup.children.length) targetRingGroup.remove(targetRingGroup.children[0]);
+            G.boardGrid = {}; G.pieces = []; G.gens = [];
+            G.bases = {}; G.bedPos = {};
+            ALL_TEAMS.forEach(t => { G.bases[t] = new Set(); G.bedPos[t] = null; });
+        }
+
+        function buildMapBoard(mapId) {
+            clearBoard();
+            const map = mapById(mapId) || MAP_CATALOG[0];
+            G.mapData = map;
+            const theme = MAP_THEMES[map.theme] || MAP_THEMES.neon;
+            scene.background.setHex(theme.bg);
+            scene.fog.color.setHex(theme.fog);
+            $('map-name-tag').innerText = map.name;
+
+            const W = map.W || map.size, H = map.H || map.size;
+            const offX = (W - 1) / 2, offZ = (H - 1) / 2;
+            map.dims = { W, H, offX, offZ, maxZ: offZ };
+            const bedwars = (G.mode === 'bedwars');
+
+            for (let r = 0; r < H; r++) {
+                for (let c = 0; c < W; c++) {
+                    const x = c - offX, z = r - offZ;
+                    const spec = map.tile(x, z, c, r, W, H);
+                    if (!spec) { G.boardGrid[keyOf(x, z)] = { isVoid: true, x, z }; continue; }
+
+                    let genType = spec.gen || null;
+                    if (map.gens) { const gd = map.gens.find(g => g.x === x && g.z === z); if (gd) genType = gd.type; }
+
+                    let baseTeam = spec.base || null;
+                    if (bedwars && map.baseTeam) baseTeam = map.baseTeam(x, z);
+                    else if (bedwars && map.baseWhite) {
+                        if (map.baseWhite(x, z)) baseTeam = 'white';
+                        else if (map.baseWhite(-x, -z)) baseTeam = 'black';
+                    }
+
+                    let tileColor = ((r + c) % 2 === 0) ? theme.tileA : theme.tileB;
+                    if (baseTeam && TEAM_CONFIGS[baseTeam]) tileColor = TEAM_CONFIGS[baseTeam].hex;
+                    const tileMat = new THREE.MeshStandardMaterial({ color: genType ? GEN_CFG[genType].color : tileColor, roughness: 0.4, metalness: 0.2 });
+                    if (genType) { tileMat.emissive = new THREE.Color(GEN_CFG[genType].color); tileMat.emissiveIntensity = 0.35; }
+
+                    const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4 + spec.h, 0.95), tileMat);
+                    tileMesh.position.set(x, spec.h / 2, z);
+                    tileMesh.receiveShadow = true;
+                    tileMesh.userData = { tileX: x, tileZ: z };
+                    scene.add(tileMesh);
+
+                    G.boardGrid[keyOf(x, z)] = { tileMesh, x, z, height: spec.h, isVoid: false, isGenerator: !!genType, genType, baseTeam, piece: null };
+                    if (baseTeam && G.bases[baseTeam]) G.bases[baseTeam].add(keyOf(x, z));
+
+                    if (genType) {
+                        const gen = { x, z, type: genType, stock: 1, timer: 0, gems: [] };
+                        for (let i = 0; i < GEN_VISUAL_MAX; i++) {
+                            const gm = new THREE.Mesh(GEO.gem, new THREE.MeshStandardMaterial({ color: GEN_CFG[genType].color, emissive: GEN_CFG[genType].color, emissiveIntensity: 0.8 }));
+                            gm.position.set(x + (i - 2) * 0.19, spec.h + 0.75, z);
+                            scene.add(gm);
+                            gen.gems.push(gm);
+                        }
+                        G.gens.push(gen);
+                        refreshGenVisual(gen);
+                    }
+                }
+            }
+            camScale = Math.max(0.55, Math.max(W, H) / 22);
+            setCameraPreset('orbit');
+            spawnPiecesForMap(map);
+        }
+
+        function refreshGenVisual(gen) {
+            const big = 1 + Math.min(Math.max(gen.stock - GEN_VISUAL_MAX, 0), 20) * 0.04;
+            gen.gems.forEach((m, i) => { m.visible = i < gen.stock; m.scale.set(big, big, big); });
+        }
+
+        /* GUARANTEED NON-VOID TILE FINDER FOR SPAWNING */
+        function findNearestValidSpawnTile(targetX, targetZ) {
+            const key = keyOf(targetX, targetZ);
+            let tile = G.boardGrid[key];
+            if (tile && !tile.isVoid && !tile.piece) return { x: targetX, z: targetZ };
+
+            for (let r = 1; r <= 10; r++) {
+                for (let dx = -r; dx <= r; dx++) {
+                    for (let dz = -r; dz <= r; dz++) {
+                        const nx = targetX + dx, nz = targetZ + dz;
+                        const t = G.boardGrid[keyOf(nx, nz)];
+                        if (t && !t.isVoid && !t.piece) return { x: nx, z: nz };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function spawnPiecesForMap(map) {
+            if (G.mode === 'commander') { startCommanderDraft(); return; }
+
+            if (G.mode === 'bedwars' && map.spawns) {
+                G.teams.forEach(team => {
+                    if (map.spawns[team]) {
+                        map.spawns[team].forEach(([t, x, z]) => placePiece(t, team, x, z));
+                    }
+                });
+                return;
+            }
+
+            if (G.mode === 'bedwars') {
+                map.spawn.forEach(([t, x, z]) => {
+                    placePiece(t, 'white', x, z);
+                    placePiece(t, 'black', -x, -z);
+                });
+                return;
+            }
+
+            // Standard classic setup with King, Queen, Rooks, Bishops, Knights, Pawns
+            const maxZ = map.dims.maxZ;
+            const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
+            for (let c = 0; c < 8; c++) {
+                const x = c - 3.5;
+                placePiece(order[c], 'white', x, maxZ);
+                placePiece('p', 'white', x, maxZ - 1);
+                placePiece(order[c], 'black', x, -maxZ);
+                placePiece('p', 'black', x, -maxZ + 1);
+            }
+            if (G.chaosPieces) {
+                placePiece('d', 'white', -3.5, maxZ - 2);
+                placePiece('nec', 'white', 3.5, maxZ - 2);
+                placePiece('d', 'black', -3.5, -maxZ + 2);
+                placePiece('nec', 'black', 3.5, -maxZ + 2);
+            }
+        }
+
+        function placePiece(type, team, x, z) {
+            const validPos = findNearestValidSpawnTile(x, z);
+            if (!validPos) return null;
+
+            const finalX = validPos.x, finalZ = validPos.z;
+            const tile = G.boardGrid[keyOf(finalX, finalZ)];
+
+            const mesh = createPieceMesh(type, team);
+            mesh.position.set(finalX, tile.height + 0.2, finalZ);
+            scene.add(mesh);
+
+            const b = BASE_STATS[type] || BASE_STATS.p;
+            const piece = {
+                id: Math.random().toString(36).slice(2, 11),
+                type, team, x: finalX, z: finalZ, mesh,
+                baseHp: b.hp, hp: b.hp, maxHp: b.hp, baseAtk: b.atk, baseDef: b.def,
+                swordTier: 0, armorTier: 0, bonusDef: 0,
+                blocks: 0, carriedDia: 0, carriedEm: 0, pearls: 0,
+                tpLeft: 0, tpFresh: false, tpMarker: null,
+                obsHp: 0, obsLock: 0, obsBroken: false, obsGroup: null,
+                homeX: finalX, homeZ: finalZ,
+                hasMoved: false,
+                moveHistory: [],
+                role: (type === 'k' || type === 'p') ? 'guard' : (type === 'n' || type === 'b' || type === 'nec') ? 'gather' : 'raid'
+            };
+            mesh.userData.pieceId = piece.id;
+            if (type === 'bed') G.bedPos[team] = { x: finalX, z: finalZ };
+            tile.piece = piece;
+            G.pieces.push(piece);
+            return piece;
+        }
+
+        /* --- Stat helpers --- */
+        const getAtk = p => p.baseAtk + (SWORD_TIERS[p.swordTier] ? SWORD_TIERS[p.swordTier].atk : 0);
+        const obsLayers = b => Math.ceil(b.obsHp / OBSIDIAN_HP);
+        const getDef = p => p.baseDef + (ARMOR_TIERS[p.armorTier] ? ARMOR_TIERS[p.armorTier].def : 0) + p.bonusDef + (p.type === 'bed' ? obsLayers(p) : 0);
+        function recalcStats(p) {
+            const old = p.maxHp;
+            p.maxHp = p.baseHp + (p.type === 'bed' ? 0 : ARMOR_TIERS[p.armorTier].hp);
+            if (p.maxHp > old) p.hp += (p.maxHp - old);
+            p.hp = Math.min(p.hp, p.maxHp);
+        }
+        function inBase(p) { return G.mode === 'bedwars' && p.type !== 'bed' && G.bases[p.team] && G.bases[p.team].has(keyOf(p.x, p.z)); }
+        function bedOf(team) { return G.pieces.find(p => p.team === team && p.type === 'bed'); }
+        function refreshObsidianMesh(bed) {
+            if (bed.obsGroup) { bed.mesh.remove(bed.obsGroup); bed.obsGroup = null; }
+            const layers = obsLayers(bed);
+            if (!layers) return;
+            const grp = new THREE.Group();
+            const m = new THREE.MeshStandardMaterial({ color: 0x1e0b36, emissive: 0x6d28d9, emissiveIntensity: 0.45, roughness: 0.2, metalness: 0.6 });
+            for (let i = 0; i < layers; i++) {
+                const col = i % 2, row = Math.floor(i / 2);
+                const cube = new THREE.Mesh(GEO.obsidian, m);
+                cube.position.set(col === 0 ? -0.27 : 0.27, 0.55, -0.55 + row * 0.37);
+                cube.castShadow = true;
+                grp.add(cube);
+            }
+            bed.mesh.add(grp);
+            bed.obsGroup = grp;
+        }
+
+        /* =====================================================================
+           HIGHLIGHTS & BEST MOVE VISUAL HINTS
+           ===================================================================== */
+        function ringAt(geo, color, x, z, yOff, opacity) {
+            const tile = G.boardGrid[keyOf(x, z)];
+            const mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: opacity !== undefined, opacity: opacity === undefined ? 1 : opacity }));
+            mesh.position.set(x, (tile ? tile.height : 0) + yOff, z);
+            mesh.rotation.x = Math.PI / 2;
+            targetRingGroup.add(mesh);
+            return mesh;
+        }
+
+        function renderTargetHighlights() {
+            while (targetRingGroup.children.length) targetRingGroup.remove(targetRingGroup.children[0]);
+            
+            if (G.bestMoveHint) {
+                ringAt(GEO.bestHint, 0xeab308, G.bestMoveHint.fromX, G.bestMoveHint.fromZ, 0.24);
+                ringAt(GEO.bestHint, 0x10b981, G.bestMoveHint.toX, G.bestMoveHint.toZ, 0.24);
+            }
+
+            if (!G.selectedPiece) return;
+            const sp = G.selectedPiece;
+
+            ringAt(GEO.select, 0xfacc15, sp.x, sp.z, 0.21);
+
+            G.validMoves.forEach(m => ringAt(GEO.move, m.isCastle ? 0xf59e0b : 0x06b6d4, m.x, m.z, 0.22));
+
+            G.attackTargets.forEach(t => {
+                ringAt(GEO.atkOuter, 0xef4444, t.x, t.z, 0.23);
+                ringAt(GEO.atkInner, 0xef4444, t.x, t.z, 0.23, 0.3);
+            });
+
+            if (G.pearlMode) G.pearlTargets.forEach(t => ringAt(GEO.move, 0xa855f7, t.x, t.z, 0.22));
+
+            if (G.bridgeModeActive) {
+                G.ghostBridgeTiles.forEach(g => {
+                    const box = new THREE.Mesh(GEO.ghost, new THREE.MeshStandardMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.5 }));
+                    box.position.set(g.x, 0.1, g.z);
+                    box.userData = { ghostX: g.x, ghostZ: g.z };
+                    targetRingGroup.add(box);
+                });
+            }
+        }
+
+        function showBestMoveHint() {
+            const best = calculateBestMoveForTeam(G.turn);
+            if (!best || !best.piece) { showFloatingText('NO VALID BEST MOVE', null, null, '#ef4444'); return; }
+            const dest = best.m || best.target;
+            G.bestMoveHint = { fromX: best.piece.x, fromZ: best.piece.z, toX: dest.x, toZ: dest.z };
+            renderTargetHighlights();
+            playSound('click');
+            showFloatingText(`💡 BEST MOVE: ${best.piece.team.toUpperCase()} ${TYPE_NAMES[best.piece.type]} ➔ (${dest.x},${dest.z})`, dest.x, dest.z, '#eab308');
+        }
+
+        /* =====================================================================
+           MOVE CALCULATION (PAWN DOUBLE STEP & CASTLING MECHANICS INCLUDED)
+           ===================================================================== */
+        function getPieceMoves(piece) {
+            const moves = [], attacks = [];
+            const x = piece.x, z = piece.z;
+            if (piece.type === 'bed') return { moves, attacks };
+
+            function checkTile(tx, tz) {
+                const tile = G.boardGrid[keyOf(tx, tz)];
+                if (!tile || tile.isVoid) return 'stop';
+                if (!tile.piece) { moves.push({ x: tx, z: tz }); return 'continue'; }
+                if (tile.piece.team !== piece.team) attacks.push({ x: tx, z: tz, target: tile.piece });
+                return 'stop';
+            }
+            const slide = (dirs, maxStep) => dirs.forEach(d => {
+                for (let s = 1; s <= maxStep; s++) { if (checkTile(x + d[0] * s, z + d[1] * s) === 'stop') break; }
+            });
+            const ORTHO = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+            const DIAG = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+
+            const type = piece.type;
+            if (type === 'p' || type === 'skele') {
+                const f = (G.mapData.fwd && G.mapData.fwd[piece.team]) ? G.mapData.fwd[piece.team] : [0, -1];
+                const fx = x + f[0], fz = z + f[1];
+                const ft = G.boardGrid[keyOf(fx, fz)];
+                if (ft && !ft.isVoid && !ft.piece) {
+                    moves.push({ x: fx, z: fz });
+                    // PAWN DOUBLE STEP ON FIRST MOVE
+                    if (!piece.hasMoved) {
+                        const f2x = x + f[0] * 2, f2z = z + f[1] * 2;
+                        const f2t = G.boardGrid[keyOf(f2x, f2z)];
+                        if (f2t && !f2t.isVoid && !f2t.piece) {
+                            moves.push({ x: f2x, z: f2z });
+                        }
+                    }
+                }
+                // Diagonal Captures
+                [[-f[1], f[0]], [f[1], -f[0]]].forEach(p => {
+                    const t = G.boardGrid[keyOf(fx + p[0], fz + p[1])];
+                    if (t && !t.isVoid && t.piece && t.piece.team !== piece.team) {
+                        attacks.push({ x: fx + p[0], z: fz + p[1], target: t.piece });
+                    }
+                });
+            } else if (type === 'r') slide(ORTHO, 8);
+            else if (type === 'b') slide(DIAG, 8);
+            else if (type === 'q') slide(ORTHO.concat(DIAG), 8);
+            else if (type === 'k' || type === 'guardian') {
+                slide(ORTHO.concat(DIAG), 1);
+                // CASTLING MECHANICS (O-O and O-O-O)
+                if (type === 'k' && !piece.hasMoved) {
+                    const rooks = G.pieces.filter(p => p.team === piece.team && p.type === 'r' && !p.hasMoved);
+                    rooks.forEach(rook => {
+                        if (rook.z === piece.z) {
+                            const dir = Math.sign(rook.x - piece.x);
+                            let unblocked = true;
+                            let currX = piece.x + dir;
+                            while (currX !== rook.x) {
+                                const t = G.boardGrid[keyOf(currX, piece.z)];
+                                if (!t || t.isVoid || t.piece) { unblocked = false; break; }
+                                currX += dir;
+                            }
+                            if (unblocked) {
+                                moves.push({
+                                    x: piece.x + dir * 2,
+                                    z: piece.z,
+                                    isCastle: true,
+                                    rook: rook,
+                                    rookTargetX: piece.x + dir,
+                                    rookTargetZ: piece.z
+                                });
+                            }
+                        }
+                    });
+                }
+            } else if (type === 'n') [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(o => checkTile(x + o[0], z + o[1]));
+            else if (type === 'd') {
+                for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) { if (dx || dz) checkTile(x + dx, z + dz); }
+            } else if (type === 'nec') slide(ORTHO.concat(DIAG), 2);
+
+            return { moves, attacks };
+        }
+
+        function calculateGhostBridgeTiles(piece) {
+            const ghosts = [];
+            if (!piece) return ghosts;
+            [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(d => {
+                const tile = G.boardGrid[keyOf(piece.x + d[0], piece.z + d[1])];
+                if (tile && tile.isVoid) ghosts.push({ x: tile.x, z: tile.z });
+            });
+            return ghosts;
+        }
+
+        /* =====================================================================
+           INPUT & INTERACTION
+           ===================================================================== */
+        const isCurrentAI = () => G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai';
+        const isHumanTurn = () => !isCurrentAI() && !G.autoPlayActive;
+        const inputBlocked = () => G.gameOver || !!G.activeBattle || !isHumanTurn();
+
+        function pickAt(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const result = { piece: null, tile: null, ghost: null };
+
+            if (G.bridgeModeActive) {
+                const gh = raycaster.intersectObjects(targetRingGroup.children, true).find(h => h.object.userData && h.object.userData.ghostX !== undefined);
+                if (gh) { result.ghost = { x: gh.object.userData.ghostX, z: gh.object.userData.ghostZ }; return result; }
+            }
+            const meshes = [];
+            for (const k in G.boardGrid) if (G.boardGrid[k].tileMesh) meshes.push(G.boardGrid[k].tileMesh);
+            G.pieces.forEach(p => meshes.push(p.mesh));
+            const hits = raycaster.intersectObjects(meshes, true);
+            for (const h of hits) {
+                let o = h.object;
+                while (o && o.userData.pieceId === undefined && o.userData.tileX === undefined) o = o.parent;
+                if (!o) continue;
+                if (o.userData.pieceId !== undefined) {
+                    result.piece = G.pieces.find(p => p.id === o.userData.pieceId) || null;
+                    if (result.piece) result.tile = G.boardGrid[keyOf(result.piece.x, result.piece.z)];
+                } else {
+                    result.tile = G.boardGrid[keyOf(o.userData.tileX, o.userData.tileZ)];
+                    result.piece = result.tile ? result.tile.piece : null;
+                }
+                return result;
+            }
+            return result;
+        }
+
+        function onCanvasHover(event) {
+            const menu = $('main-menu');
+            if (G.gameOver || G.activeBattle || G.draftPhase || (menu && !menu.classList.contains('hidden'))) return;
+            const pick = pickAt(event);
+            const gen = (pick.tile && pick.tile.isGenerator) ? G.gens.find(g => g.x === pick.tile.x && g.z === pick.tile.z) : null;
+            if (gen) {
+                setPrompt(`${GEN_CFG[gen.type].label} GENERATOR: ${gen.stock} stored (+1 every ${GEN_CFG[gen.type].interval} turns). Carry them home!`);
+                G.genPrompt = true;
+            } else if (G.genPrompt) {
+                G.genPrompt = false;
+                setPrompt(isHumanTurn() ? defaultPrompt() : 'The AI is taking its turn...');
+            }
+            if (G.selectedPiece) return;
+            if (pick.piece) updatePieceInspector(pick.piece, true);
+            else $('piece-inspector-card').classList.add('hidden');
+        }
+
+        function onCanvasClick(event) {
+            if (inputBlocked()) return;
+            const pick = pickAt(event);
+
+            if (G.draftPhase) { handleDraftClick(pick); return; }
+            if (G.spellMode) { handleSpellClick(pick); return; }
+
+            if (G.bridgeModeActive && pick.ghost) { placeBridgeTile(G.selectedPiece, pick.ghost.x, pick.ghost.z); return; }
+
+            if (G.pearlMode && pick.tile && !pick.piece) {
+                if (G.pearlTargets.some(t => t.x === pick.tile.x && t.z === pick.tile.z)) { executePearl(G.selectedPiece, pick.tile.x, pick.tile.z); return; }
+            }
+
+            if (pick.piece) {
+                if (pick.piece.team === G.turn) { selectPiece(pick.piece); return; }
+                if (G.selectedPiece && G.attackTargets.some(t => t.x === pick.piece.x && t.z === pick.piece.z)) {
+                    initiateD20Combat(G.selectedPiece, pick.piece);
+                } else {
+                    updatePieceInspector(pick.piece, true);
+                }
+                return;
+            }
+            if (pick.tile && G.selectedPiece) {
+                const moveObj = G.validMoves.find(m => m.x === pick.tile.x && m.z === pick.tile.z);
+                if (moveObj) {
+                    executeMove(G.selectedPiece, pick.tile.x, pick.tile.z, moveObj);
+                }
+            }
+        }
+
+        function cancelAllModes() {
+            G.pearlMode = false; G.pearlTargets = [];
+            G.spellMode = null; G.bestMoveHint = null;
+            if (G.bridgeModeActive) { G.bridgeModeActive = false; G.ghostBridgeTiles = []; }
+            syncBridgeButton();
+            renderTargetHighlights();
+            if (G.selectedPiece) updatePieceInspector(G.selectedPiece);
+            setPrompt(defaultPrompt());
+        }
+
+        function selectPiece(piece) {
+            G.pearlMode = false; G.pearlTargets = []; G.spellMode = null; G.bestMoveHint = null;
+            G.selectedPiece = piece;
+            const { moves, attacks } = getPieceMoves(piece);
+            G.validMoves = moves;
+            G.attackTargets = attacks;
+            G.ghostBridgeTiles = (G.bridgeModeActive && G.mode === 'bedwars') ? calculateGhostBridgeTiles(piece) : [];
+            renderTargetHighlights();
+            updatePieceInspector(piece);
+            playSound('click');
+            if (G.mode === 'bedwars' && !$('modal-item-shop').classList.contains('hidden')) refreshShop();
+            setPrompt(piece.type === 'bed' ? 'Your bed cannot move. Defend it!' : defaultPrompt());
+        }
+
+        function deselectPiece() {
+            G.selectedPiece = null; G.validMoves = []; G.attackTargets = []; G.ghostBridgeTiles = [];
+            G.pearlMode = false; G.pearlTargets = []; G.bestMoveHint = null;
+            renderTargetHighlights();
+            $('piece-inspector-card').classList.add('hidden');
+        }
+
+        function defaultPrompt() {
+            if (G.draftPhase) return `Draft: click your back rows to place ${TYPE_NAMES[G.draftSelectedPiece]} (${G.draftSelectedCost}pt). Click a drafted piece to refund it.`;
+            if (G.selectedPiece) return 'Click a cyan circle to move (amber for Castle), or a red circle to attack.';
+            return 'Select a piece to move across valid tiles.';
+        }
+        function setPrompt(t) { $('prompt-text').innerText = t; }
+
+        /* =====================================================================
+           MOVEMENT CORE WITH CASTLING SUPPORT
+           ===================================================================== */
+        function cancelTeleportChannel(p, msg) {
+            if (p.tpLeft > 0) {
+                p.tpLeft = 0; p.tpFresh = false;
+                if (p.tpMarker) { p.mesh.remove(p.tpMarker); p.tpMarker = null; }
+                if (msg) showFloatingText(msg, p.x, p.z, '#f87171');
+            }
+        }
+
+        function movePieceTo(piece, x, z) {
+            const oldTile = G.boardGrid[keyOf(piece.x, piece.z)];
+            if (oldTile && oldTile.piece === piece) oldTile.piece = null;
+            
+            if (!piece.moveHistory) piece.moveHistory = [];
+            piece.moveHistory.push({ x, z });
+            if (piece.moveHistory.length > 8) piece.moveHistory.shift();
+
+            piece.x = x; piece.z = z;
+            const tile = G.boardGrid[keyOf(x, z)];
+            tile.piece = piece;
+            piece.mesh.position.set(x, tile.height + 0.2, z);
+            collectFromGenerator(piece, tile);
+            depositGems(piece);
+        }
+
+        function executeMove(piece, x, z, moveObj) {
+            const fromX = piece.x, fromZ = piece.z;
+            cancelTeleportChannel(piece, 'RECALL CANCELLED');
+            
+            const isCastle = moveObj && moveObj.isCastle;
+            
+            movePieceTo(piece, x, z);
+            piece.hasMoved = true;
+            
+            if (isCastle && moveObj.rook) {
+                movePieceTo(moveObj.rook, moveObj.rookTargetX, moveObj.rookTargetZ);
+                moveObj.rook.hasMoved = true;
+                const isKingside = moveObj.rookTargetX > fromX;
+                showFloatingText(isKingside ? 'O-O CASTLING!' : 'O-O-O CASTLING!', x, z, '#f59e0b');
+                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, isKingside ? 'O-O Castling' : 'O-O-O Castling');
+            } else {
+                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, 'Move');
+            }
+            
+            playSound('move');
+            deselectPiece();
+            endTurn();
+        }
+
+        /* --- Generators & Gem Bank --- */
+        function collectFromGenerator(piece, tile) {
+            if (!tile.isGenerator || piece.type === 'bed' || piece.team === 'neutral') return;
+            const gen = G.gens.find(g => g.x === tile.x && g.z === tile.z);
+            if (!gen || gen.stock <= 0) return;
+            const n = gen.stock;
+            gen.stock = 0; gen.timer = 0;
+            refreshGenVisual(gen);
+            if (G.mode === 'bedwars') {
+                if (gen.type === 'em') piece.carriedEm += n; else piece.carriedDia += n;
+                showFloatingText(`+${n} ${gen.type === 'em' ? 'EM' : 'DIA'} CARRIED - RETURN TO BASE!`, piece.x, piece.z, gen.type === 'em' ? '#10b981' : '#38bdf8');
+            } else {
+                G.resources[piece.team].mana = Math.min(10, G.resources[piece.team].mana + n);
+                showFloatingText(`+${n} MANA`, piece.x, piece.z, '#a855f7');
+            }
+            playSound('gem');
+        }
+
+        function depositGems(piece) {
+            if (G.mode !== 'bedwars' || !inBase(piece)) return;
+            if (!piece.carriedEm && !piece.carriedDia) return;
+            const res = G.resources[piece.team];
+            const parts = [];
+            if (piece.carriedEm) { res.em += piece.carriedEm; parts.push(`+${piece.carriedEm} EM`); piece.carriedEm = 0; }
+            if (piece.carriedDia) { res.dia += piece.carriedDia; parts.push(`+${piece.carriedDia} DIA`); piece.carriedDia = 0; }
+            showFloatingText(`BANKED ${parts.join(' ')}`, piece.x, piece.z, '#fde047');
+            playSound('gem');
+            updateHUDCounters();
+        }
+
+        function tickGenerators() {
+            G.gens.forEach(g => {
+                const cfg = GEN_CFG[g.type];
+                g.timer++;
+                if (g.timer >= cfg.interval) { g.timer = 0; g.stock++; refreshGenVisual(g); }
+            });
+        }
+
+        /* =====================================================================
+           DIAMOND GUARDIAN BOSS EVENT (EVERY 50 TURNS)
+           ===================================================================== */
+        function checkDiamondGuardianSpawn() {
+            if (G.turnCount % 50 === 0 && G.turnIndex === 0) {
+                spawnDiamondGuardians();
+            }
+        }
+
+        function spawnDiamondGuardians() {
+            const spawns = [{ x: 0, z: 0 }, { x: -8, z: 0 }, { x: 8, z: 0 }];
+            let spawnedCount = 0;
+
+            spawns.forEach(s => {
+                const tile = G.boardGrid[keyOf(s.x, s.z)];
+                if (tile && !tile.isVoid && !tile.piece) {
+                    placePiece('guardian', 'neutral', s.x, s.z);
+                    spawnedCount++;
+                }
+            });
+
+            if (spawnedCount > 0) {
+                const banner = $('event-alert-banner');
+                banner.innerText = `💎 DIAMOND GUARDIAN BOSS SPAWNED! (15 HP - SLAIN REWARD: 10 DIAMONDS)`;
+                banner.classList.remove('hidden');
+                setTimeout(() => banner.classList.add('hidden'), 5000);
+                playSound('boss');
+            }
+        }
+
+        /* =====================================================================
+           ACCELERATED D20 COMBAT WITH INSTANT PLAYBACK SLIDER
+           ===================================================================== */
+        function initiateD20Combat(attacker, defender) {
+            G.activeBattle = { attacker, defender, rolling: false };
+            $('d20-atk-name').innerText = `${attacker.team.toUpperCase()} ${TYPE_NAMES[attacker.type].toUpperCase()}`;
+            $('d20-atk-stat').innerText = `ATK: ${getAtk(attacker)}`;
+            $('d20-def-name').innerText = `${defender.team.toUpperCase()} ${TYPE_NAMES[defender.type].toUpperCase()}`;
+            $('d20-def-stat').innerText = `DEF: ${getDef(defender)}`;
+            $('d20-die-display').innerText = '20';
+            $('d20-roll-subtext').innerText = 'READY TO ROLL';
+            $('d20-result-banner').classList.add('hidden');
+            $('btn-resolve-d20').classList.remove('hidden');
+            $('modal-d20-combat').classList.remove('hidden');
+            playSound('dice');
+
+            if (isCurrentAI() || G.autoPlayActive || G.speedMultiplier >= 5.0) {
+                const mid = G.matchId;
+                const delay = getSpeedDelay(300);
+                setTimeout(() => { if (mid === G.matchId) resolveD20Combat(); }, delay);
+            }
+        }
+
+        function applyDamage(piece, dmg) {
+            if (dmg <= 0) return;
+            if (piece.type === 'bed') { damageBed(piece, dmg); return; }
+            piece.hp -= dmg;
+            cancelTeleportChannel(piece, 'RECALL INTERRUPTED!');
+        }
+
+        function damageBed(bed, dmg) {
+            const before = obsLayers(bed);
+            let rest = dmg;
+            if (bed.obsHp > 0) { const soak = Math.min(rest, bed.obsHp); bed.obsHp -= soak; rest -= soak; }
+            const after = obsLayers(bed);
+            if (after < before) {
+                bed.obsBroken = true;
+                showFloatingText(`OBSIDIAN BROKEN! (${after}/${OBSIDIAN_MAX} LEFT)`, bed.x, bed.z, '#a855f7');
+            }
+            bed.hp -= rest;
+            if (bed.obsBroken) bed.obsLock = OBSIDIAN_LOCK_TURNS;
+            refreshObsidianMesh(bed);
+            updateBedBadges();
+        }
+
+        function resolveD20Combat() {
+            if (!G.activeBattle || G.activeBattle.rolling) return;
+            G.activeBattle.rolling = true;
+            const { attacker, defender } = G.activeBattle;
+            const mid = G.matchId;
+
+            const roll = Math.floor(Math.random() * 20) + 1;
+            const die = $('d20-die-display');
+            die.innerText = roll;
+            die.classList.add('dice-spin');
+            $('d20-roll-subtext').innerText = 'ROLLING D20...';
+            $('btn-resolve-d20').classList.add('hidden');
+
+            const spinDelay = getSpeedDelay(500);
+            const finishDelay = getSpeedDelay(900);
+
+            const finishBattle = () => {
+                if (mid !== G.matchId) return;
+                die.classList.remove('dice-spin');
+                let damage = 0, banner = '';
+                if (roll === 20) {
+                    damage = (defender.type === 'bed') ? (20 + getAtk(attacker)) : 999;
+                    banner = (defender.type === 'bed') ? `NAT 20! BED SMASHED FOR ${damage}!` : 'NAT 20! CRITICAL INSTAKILL!';
+                } else if (roll === 1) {
+                    banner = 'NAT 1! CRITICAL BLUNDER! ATTACK FAILED!';
+                } else {
+                    damage = Math.max(1, roll + getAtk(attacker) - getDef(defender));
+                    banner = `ROLLED ${roll}! DEALT ${damage} DAMAGE!`;
+                }
+                applyDamage(defender, damage);
+                const rb = $('d20-result-banner');
+                rb.innerText = banner;
+                rb.classList.remove('hidden');
+                playSound(damage > 0 ? 'hit' : 'click');
+
+                setTimeout(() => {
+                    if (mid !== G.matchId) return;
+                    $('modal-d20-combat').classList.add('hidden');
+                    G.activeBattle = null;
+                    if (defender.hp <= 0) {
+                        const dx = defender.x, dz = defender.z;
+                        eliminatePiece(defender, attacker);
+                        if (G.gameOver) return;
+                        cancelTeleportChannel(attacker);
+                        movePieceTo(attacker, dx, dz);
+                        attacker.hasMoved = true;
+                        logGameMove(attacker, { x: attacker.x, z: attacker.z }, { x: dx, z: dz }, defender, 'Combat Capture');
+                        deselectPiece();
+                        endTurn();
+                    } else {
+                        attacker.hasMoved = true;
+                        logGameMove(attacker, { x: attacker.x, z: attacker.z }, { x: attacker.x, z: attacker.z }, defender, 'Combat Strike');
+                        deselectPiece();
+                        endTurn();
+                    }
+                }, finishDelay);
+            };
+
+            if (spinDelay <= 0) finishBattle();
+            else setTimeout(finishBattle, spinDelay);
+        }
+
+        function eliminatePiece(piece, killer) {
+            scene.remove(piece.mesh);
+            const tile = G.boardGrid[keyOf(piece.x, piece.z)];
+            if (tile && tile.piece === piece) tile.piece = null;
+            G.pieces = G.pieces.filter(p => p.id !== piece.id);
+            if (G.selectedPiece === piece) deselectPiece();
+            cancelTeleportChannel(piece);
+
+            if (piece.type === 'guardian' && killer && killer.team !== 'neutral') {
+                G.resources[killer.team].dia += 10;
+                showFloatingText(`🏆 GUARDIAN SLAIN! +10 DIAMONDS!`, piece.x, piece.z, '#38bdf8');
+                playSound('gem');
+                updateHUDCounters();
+            }
+
+            if (G.mode === 'bedwars' && killer && piece.type !== 'bed' && (piece.carriedEm || piece.carriedDia)) {
+                const em = piece.carriedEm, dia = piece.carriedDia;
+                killer.carriedEm += em; killer.carriedDia += dia;
+                showFloatingText(`LOOTED GEMS!`, piece.x, piece.z, '#fde047');
+                playSound('gem');
+            }
+
+            if (piece.type === 'bed') {
+                if (G.resources[piece.team]) G.resources[piece.team].bedAlive = false;
+                showFloatingText(`${piece.team.toUpperCase()} BED DESTROYED!`, piece.x, piece.z, '#ef4444');
+                updateBedBadges();
+            }
+
+            if (G.mode === 'bedwars' && piece.type !== 'bed' && G.resources[piece.team] && G.resources[piece.team].bedAlive) {
+                G.resources[piece.team].respawnQueue.push({ type: piece.type, turnsLeft: RESPAWN_TURNS });
+                updateBedBadges();
+            }
+
+            checkWin();
+        }
+
+        /* GUARANTEED ACCURATE WIN CONDITION DETECTOR */
+        function checkWin() {
+            if (G.gameOver) return;
+            const isBedwars = (G.mode === 'bedwars');
+
+            const activeTeams = G.teams.filter(t => {
+                const hasKing = G.pieces.some(p => p.team === t && p.type === 'k');
+                const queued = G.resources[t] && G.resources[t].respawnQueue.some(q => q.type === 'k');
+                const bedStanding = isBedwars && G.resources[t] && G.resources[t].bedAlive;
+
+                return isBedwars ? (hasKing || queued || bedStanding) : hasKing;
+            });
+
+            if (activeTeams.length <= 1) {
+                const winner = activeTeams[0] || G.turn;
+                triggerGameOver(winner, isBedwars ? 'All enemy Kings and Beds have been completely eliminated!' : 'The enemy King has been slain in Battle!');
+            }
+        }
+
+        /* =====================================================================
+           BEDWARS: WOOL BRIDGING
+           ===================================================================== */
+        function syncBridgeButton() {
+            const btn = $('btn-toggle-bridge-mode');
+            if (!btn) return;
+            btn.classList.toggle('bg-emerald-600', G.bridgeModeActive);
+            btn.classList.toggle('bg-amber-600', !G.bridgeModeActive);
+            btn.innerText = G.bridgeModeActive ? '🧶 BRIDGING ACTIVE' : '🧶 WOOL BRIDGE';
+        }
+
+        function toggleBridgePlacementMode() {
+            if (G.mode !== 'bedwars' || inputBlocked()) return;
+            G.bridgeModeActive = !G.bridgeModeActive;
+            G.pearlMode = false; G.pearlTargets = [];
+            G.ghostBridgeTiles = (G.bridgeModeActive && G.selectedPiece) ? calculateGhostBridgeTiles(G.selectedPiece) : [];
+            syncBridgeButton();
+            renderTargetHighlights();
+            if (G.bridgeModeActive) setPrompt('Click an amber ghost tile to place wool (max 2 per turn). Needs Wool on this piece.');
+            else setPrompt(defaultPrompt());
+        }
+
+        function placeBridgeTile(piece, x, z) {
+            if (G.mode !== 'bedwars' || !piece) return false;
+            const tile = G.boardGrid[keyOf(x, z)];
+            if (!tile || !tile.isVoid) return false;
+            if (piece.blocks < 1) { showFloatingText('NEED WOOL! (BUY IN BASE)', piece.x, piece.z, '#ef4444'); return false; }
+            if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) { showFloatingText('WOOL LIMIT: 2 PER TURN', piece.x, piece.z, '#ef4444'); return false; }
+            piece.blocks--;
+            G.bridgesThisTurn++;
+
+            const cfg = TEAM_CONFIGS[piece.team] || TEAM_CONFIGS.white;
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4, 0.95), new THREE.MeshStandardMaterial({ color: cfg.hex, roughness: 0.9 }));
+            mesh.position.set(x, 0, z);
+            mesh.receiveShadow = true;
+            mesh.userData = { tileX: x, tileZ: z };
+            scene.add(mesh);
+            G.boardGrid[keyOf(x, z)] = { tileMesh: mesh, x, z, height: 0, isVoid: false, isGenerator: false, genType: null, baseTeam: null, piece: null, wool: true };
+
+            playSound('bridge');
+            showFloatingText('WOOL PLACED', x, z, '#f59e0b');
+            if (piece === G.selectedPiece) {
+                const mv = getPieceMoves(piece);
+                G.validMoves = mv.moves; G.attackTargets = mv.attacks;
+                G.ghostBridgeTiles = G.bridgeModeActive ? calculateGhostBridgeTiles(piece) : [];
+                renderTargetHighlights();
+                updatePieceInspector(piece);
+            }
+            return true;
+        }
+
+        /* =====================================================================
+           BEDWARS: TP HOME & TELEPEARL
+           ===================================================================== */
+        function startTpToHome() {
+            const p = G.selectedPiece;
+            if (G.mode !== 'bedwars' || !p || inputBlocked() || p.team !== G.turn || p.type === 'bed') return;
+            if (inBase(p)) { showFloatingText('ALREADY HOME', p.x, p.z, '#94a3b8'); return; }
+            if (p.tpLeft > 0) return;
+            p.tpLeft = TP_TURNS; p.tpFresh = true;
+            const marker = new THREE.Mesh(GEO.tpMarker, new THREE.MeshBasicMaterial({ color: 0x22d3ee }));
+            marker.rotation.x = Math.PI / 2; marker.position.y = 0.25;
+            p.mesh.add(marker); p.tpMarker = marker;
+            playSound('tp');
+            showFloatingText(`RECALLING... ${TP_TURNS} TURNS`, p.x, p.z, '#22d3ee');
+            updatePieceInspector(p);
+        }
+
+        function tickTeleportChannels(team) {
+            G.pieces.filter(p => p.team === team && p.tpLeft > 0).forEach(p => {
+                if (p.tpFresh) { p.tpFresh = false; return; }
+                p.tpLeft--;
+                if (p.tpLeft <= 0) recallPieceHome(p);
+                else showFloatingText(`RECALL: ${p.tpLeft}`, p.x, p.z, '#22d3ee');
+            });
+        }
+
+        function nearestFreeBaseTile(team, fx, fz) {
+            let best = null, bd = Infinity;
+            if (!G.bases[team]) return null;
+            G.bases[team].forEach(k => {
+                const t = G.boardGrid[k];
+                if (!t || t.isVoid || t.piece) return;
+                const d = Math.max(Math.abs(t.x - fx), Math.abs(t.z - fz));
+                if (d < bd) { bd = d; best = t; }
+            });
+            return best;
+        }
+
+        function recallPieceHome(p) {
+            if (p.tpMarker) { p.mesh.remove(p.tpMarker); p.tpMarker = null; }
+            p.tpLeft = 0; p.tpFresh = false;
+            const dest = nearestFreeBaseTile(p.team, p.homeX, p.homeZ);
+            if (!dest) { showFloatingText('BASE FULL - RECALL FAILED', p.x, p.z, '#ef4444'); return; }
+            movePieceTo(p, dest.x, dest.z);
+            playSound('tp');
+            showFloatingText('RECALLED HOME!', dest.x, dest.z, '#22d3ee');
+        }
+
+        function toggleTelepearlTargetMode() {
+            const p = G.selectedPiece;
+            if (G.mode !== 'bedwars' || !p || inputBlocked() || p.team !== G.turn || p.type === 'bed') return;
+            if (G.pearlMode) { G.pearlMode = false; G.pearlTargets = []; renderTargetHighlights(); setPrompt(defaultPrompt()); return; }
+            if (p.pearls < 1) { showFloatingText('NO TELEPEARLS (BUY IN BASE)', p.x, p.z, '#ef4444'); return; }
+            G.bridgeModeActive = false; G.ghostBridgeTiles = []; syncBridgeButton();
+            G.pearlTargets = [];
+            for (const k in G.boardGrid) {
+                const t = G.boardGrid[k];
+                if (t.isVoid || t.piece) continue;
+                if (Math.max(Math.abs(t.x - p.x), Math.abs(t.z - p.z)) <= PEARL_RANGE) G.pearlTargets.push({ x: t.x, z: t.z });
+            }
+            G.pearlMode = true;
+            renderTargetHighlights();
+            setPrompt('Click a purple circle (up to 6 tiles away) to throw Telepearl.');
+        }
+
+        function executePearl(p, x, z) {
+            if (!p || p.pearls < 1) return;
+            const fromX = p.x, fromZ = p.z;
+            p.pearls--;
+            cancelTeleportChannel(p, 'RECALL CANCELLED');
+            movePieceTo(p, x, z);
+            p.hasMoved = true;
+            playSound('tp');
+            showFloatingText('TELEPEARL!', x, z, '#c084fc');
+            logGameMove(p, { x: fromX, z: fromZ }, { x, z }, null, 'Telepearl Jump');
+            deselectPiece();
+            endTurn();
+        }
+
+        /* =====================================================================
+           BEDWARS IN-BASE ITEM SHOP
+           ===================================================================== */
+        const costText = c => !c ? 'MAX' : Object.entries(c).map(([k, v]) => `${v} ${k === 'iron' ? 'Iron' : k === 'dia' ? 'Dia' : 'Em'}`).join(' + ');
+        const canAfford = (res, c) => !!c && (!c.iron || res.iron >= c.iron) && (!c.dia || res.dia >= c.dia) && (!c.em || res.em >= c.em);
+        function pay(res, c) { if (c.iron) res.iron -= c.iron; if (c.dia) res.dia -= c.dia; if (c.em) res.em -= c.em; }
+        function obsidianBlocked(bed) { return bed.obsHp + OBSIDIAN_HP > OBSIDIAN_MAX * OBSIDIAN_HP || bed.obsLock > 0; }
+        function shopPiece() { const p = G.selectedPiece; return (p && p.team === G.turn && p.type !== 'bed') ? p : null; }
+
+        function buyItem(piece, item) {
+            if (G.mode !== 'bedwars' || !piece || piece.type === 'bed' || !inBase(piece)) return false;
+            const res = G.resources[piece.team];
+            if (!res) return false;
+
+            if (item === 'sword') {
+                const next = SWORD_TIERS[piece.swordTier + 1];
+                if (!next || !canAfford(res, next.cost)) return false;
+                pay(res, next.cost); piece.swordTier++;
+            } else if (item === 'armor') {
+                const next = ARMOR_TIERS[piece.armorTier + 1];
+                if (!next || !canAfford(res, next.cost)) return false;
+                pay(res, next.cost); piece.armorTier++; recalcStats(piece);
+            } else if (item === 'wool') {
+                if (res.iron < WOOL_COST) return false;
+                res.iron -= WOOL_COST; piece.blocks += WOOL_QTY;
+            } else if (item === 'obsidian') {
+                const bed = bedOf(piece.team);
+                if (!bed || obsidianBlocked(bed) || !canAfford(res, OBSIDIAN_COST)) return false;
+                pay(res, OBSIDIAN_COST); bed.obsHp += OBSIDIAN_HP; refreshObsidianMesh(bed);
+                showFloatingText('OBSIDIAN PLACED ON BED', bed.x, bed.z, '#a855f7');
+                updateBedBadges();
+            } else if (item === 'pearl') {
+                if (piece.carriedEm < PEARL_COST_EM) return false;
+                piece.carriedEm -= PEARL_COST_EM; piece.pearls++;
+            } else return false;
+            playSound('buy');
+            return true;
+        }
+
+        function shopButton(item) {
+            const p = shopPiece();
+            if (!p || !isHumanTurn()) return;
+            if (!buyItem(p, item)) { showFloatingText('CANNOT BUY', p.x, p.z, '#ef4444'); return; }
+            showFloatingText(`BOUGHT ${item.toUpperCase()}`, p.x, p.z, '#34d399');
+            updateHUDCounters(); updatePieceInspector(p); refreshShop();
+        }
+
+        function transferEmeraldToPiece() {
+            const p = shopPiece();
+            if (!p || !inBase(p) || !isHumanTurn()) return;
+            const res = G.resources[p.team];
+            if (res.em < 1) { showFloatingText('NO TEAM EMERALDS', p.x, p.z, '#ef4444'); return; }
+            res.em--; p.carriedEm++;
+            playSound('gem');
+            updateHUDCounters(); updatePieceInspector(p); refreshShop();
+        }
+
+        function openItemShopModal() {
+            if (G.mode !== 'bedwars' || G.gameOver || !isHumanTurn()) return;
+            refreshShop();
+            $('modal-item-shop').classList.remove('hidden');
+        }
+
+        function setBtn(id, on) {
+            const b = $(id);
+            if (!b) return;
+            b.disabled = !on;
+            b.classList.toggle('opacity-40', !on);
+            b.classList.toggle('cursor-not-allowed', !on);
+        }
+
+        function refreshShop() {
+            const res = G.resources[G.turn] || newTeamRes(G.mode === 'bedwars');
+            const p = shopPiece();
+            const ok = !!p && inBase(p);
+            $('shop-iron-val').innerText = res.iron;
+            $('shop-dia-val').innerText = res.dia;
+            $('shop-em-val').innerText = res.em;
+            $('shop-piece-em-val').innerText = p ? p.carriedEm : 0;
+            $('shop-base-warning').classList.toggle('hidden', ok);
+
+            const sNext = p ? SWORD_TIERS[p.swordTier + 1] : SWORD_TIERS[1];
+            $('shop-sword-cost-tag').innerText = p ? costText(sNext && sNext.cost) : '-';
+            $('shop-sword-desc').innerText = !p ? 'Each piece owns one sword slot.' : sNext ? `${SWORD_TIERS[p.swordTier].name} -> ${sNext.name}` : `Maxed`;
+            setBtn('btn-buy-sword', ok && !!sNext && canAfford(res, sNext.cost));
+
+            const aNext = p ? ARMOR_TIERS[p.armorTier + 1] : ARMOR_TIERS[1];
+            $('shop-armor-cost-tag').innerText = p ? costText(aNext && aNext.cost) : '-';
+            $('shop-armor-desc').innerText = !p ? 'Each piece owns one armor slot.' : aNext ? `${ARMOR_TIERS[p.armorTier].name} -> ${aNext.name}` : `Maxed`;
+            setBtn('btn-buy-armor', ok && !!aNext && canAfford(res, aNext.cost));
+
+            $('shop-wool-desc').innerText = p ? `Carries ${p.blocks} wool.` : 'Wool blocks for bridging across the void.';
+            setBtn('btn-buy-wool', ok && res.iron >= WOOL_COST);
+
+            const bed = bedOf(G.turn);
+            const layers = bed ? obsLayers(bed) : 0;
+            $('shop-obs-desc').innerText = bed ? `Bed armor: ${layers}/${OBSIDIAN_MAX} layers (${bed.obsHp} HP).` : 'Bed destroyed';
+            setBtn('btn-buy-obsidian', ok && !!bed && !obsidianBlocked(bed) && canAfford(res, OBSIDIAN_COST));
+
+            $('shop-pearl-desc').innerText = p ? `Carried Em: ${p.carriedEm}/${PEARL_COST_EM}, Pearls: ${p.pearls}` : 'Teleport up to 6 tiles.';
+            setBtn('btn-buy-pearl', ok && p.carriedEm >= PEARL_COST_EM);
+            setBtn('btn-transfer-em', ok && res.em >= 1);
+        }
+
+        /* =====================================================================
+           TURN SYSTEM & ACCELERATED PLAYBACK
+           ===================================================================== */
+        function manualEndTurn() {
+            if (inputBlocked() || G.draftPhase) return;
+            endTurn();
+        }
+
+        function endTurn() {
+            if (G.gameOver) return;
+            const ending = G.turn;
+            tickTeleportChannels(ending);
+            if (G.gameOver) return;
+
+            const endBed = bedOf(ending);
+            if (endBed && endBed.obsLock > 0) {
+                endBed.obsLock--;
+                if (endBed.obsLock === 0) { endBed.obsBroken = false; showFloatingText('OBSIDIAN UNLOCKED', endBed.x, endBed.z, '#a855f7'); }
+            }
+
+            cancelAllModes();
+            deselectPiece();
+
+            let guard = 0;
+            do {
+                G.turnIndex = (G.turnIndex + 1) % G.teams.length;
+                G.turn = G.teams[G.turnIndex];
+                if (G.turnIndex === 0) {
+                    G.turnCount++;
+                    tickGenerators();
+                    checkDiamondGuardianSpawn();
+                    checkBedCollapse();
+                    if (G.gameOver) return;
+                }
+                guard++;
+            } while (!isTeamActive(G.turn) && guard < 10);
+
+            G.bridgesThisTurn = 0;
+            const res = G.resources[G.turn];
+            if (G.mode === 'bedwars') {
+                const count = G.pieces.filter(p => p.team === G.turn && inBase(p)).length;
+                if (count > 0 && res) { res.iron += count; showFloatingText(`+${count} IRON`, null, null, '#e2e8f0'); }
+                processRespawns(G.turn);
+            } else if (res) {
+                res.mana = Math.min(10, res.mana + 1);
+            }
+
+            checkWin();
+            updateTurnUI();
+            updateHUDCounters();
+
+            if (!G.gameOver && (isCurrentAI() || G.autoPlayActive)) {
+                triggerAITurnDelay();
+            }
+        }
+
+        function isTeamActive(team) {
+            const hasPiece = G.pieces.some(p => p.team === team);
+            const queued = G.resources[team] && G.resources[team].respawnQueue.length > 0;
+            const bed = G.mode === 'bedwars' && G.resources[team] && G.resources[team].bedAlive;
+            return hasPiece || queued || bed;
+        }
+
+        function triggerAITurnDelay() {
+            const mid = G.matchId;
+            clearTimeout(G.aiTimer);
+            const delay = getSpeedDelay(750);
+            G.aiTimer = setTimeout(() => {
+                if (mid === G.matchId && (isCurrentAI() || G.autoPlayActive)) runAITurn();
+            }, delay);
+        }
+
+        function toggleAutoPlay() {
+            G.autoPlayActive = !G.autoPlayActive;
+            const btn = $('btn-autoplay-toggle');
+            $('autoplay-icon').className = G.autoPlayActive ? 'fa-solid fa-pause' : 'fa-solid fa-play';
+            $('autoplay-text').innerText = G.autoPlayActive ? 'PAUSE' : 'AUTO-PLAY';
+            btn.classList.toggle('bg-amber-950', G.autoPlayActive);
+            btn.classList.toggle('border-amber-500', G.autoPlayActive);
+            btn.classList.toggle('text-amber-300', G.autoPlayActive);
+            if (G.autoPlayActive && !G.gameOver) triggerAITurnDelay();
+        }
+
+        function changeAutoPlaySpeed(val) { G.speedMultiplier = parseFloat(val); }
+
+        function stepForwardAIMove() {
+            if (G.gameOver) return;
+            runAITurn();
+        }
+
+        function checkBedCollapse() {
+            if (G.mode !== 'bedwars') return;
+            const remaining = BED_BREAK_TURN - G.turnCount;
+            if (remaining === BED_WARN_AHEAD) {
+                showFloatingText(`⚠️ ALL BEDS BREAK IN ${BED_WARN_AHEAD} TURNS!`, null, null, '#fbbf24');
+                playSound('laser');
+            }
+            if (remaining <= 0) {
+                G.teams.forEach(t => { const bed = bedOf(t); if (bed && G.resources[t] && G.resources[t].bedAlive) eliminatePiece(bed); });
+                if (!G.collapseDone) { G.collapseDone = true; showFloatingText('💥 BEDS BROKEN!', null, null, '#ef4444'); }
+            }
+        }
+
+        function processRespawns(team) {
+            if (!G.resources[team]) return;
+            const q = G.resources[team].respawnQueue;
+            const home = G.bedPos[team] || { x: 0, z: 0 };
+            for (let i = q.length - 1; i >= 0; i--) {
+                q[i].turnsLeft--;
+                if (q[i].turnsLeft > 0) continue;
+                const spot = nearestFreeBaseTile(team, home.x, home.z);
+                if (!spot) { q[i].turnsLeft = 1; continue; }
+                const np = placePiece(q[i].type, team, spot.x, spot.z);
+                q.splice(i, 1);
+                if (np) showFloatingText(`${team.toUpperCase()} ${TYPE_NAMES[np.type].toUpperCase()} RESPAWNED`, spot.x, spot.z, '#38bdf8');
+            }
+        }
+
+        /* =====================================================================
+           MANA SPELLS
+           ===================================================================== */
+        const SPELL_COST = { laser: 4, swap: 3, skele: 2, shield: 3 };
+
+        function castSpell(type) {
+            if (G.mode === 'bedwars' || inputBlocked()) return;
+            const res = G.resources[G.turn];
+            if (!res || res.mana < SPELL_COST[type]) { showFloatingText('NOT ENOUGH MANA', null, null, '#ef4444'); return; }
+            closeModals();
+            if (type === 'skele') {
+                const t = nearestFreeBaseTile(G.turn, 0, 0);
+                if (!t) { showFloatingText('NO FREE HOME TILE', null, null, '#ef4444'); return; }
+                res.mana -= SPELL_COST.skele;
+                placePiece('skele', G.turn, t.x, t.z);
+                showFloatingText('SKELE-PAWN SUMMONED!', t.x, t.z, '#10b981');
+                updateHUDCounters();
+                return;
+            }
+            G.spellMode = { type, first: null };
+            deselectPiece();
+            setPrompt(`Cast ${type.toUpperCase()}: click target piece.`);
+        }
+
+        function handleSpellClick(pick) {
+            const sm = G.spellMode;
+            const p = pick.piece;
+            if (!p) return;
+            const res = G.resources[G.turn];
+            if (sm.type === 'laser') {
+                res.mana -= SPELL_COST.laser;
+                playSound('laser');
+                showFloatingText('ORBITAL LASER!', p.x, p.z, '#06b6d4');
+                applyDamage(p, 15);
+                if (p.hp <= 0) eliminatePiece(p);
+                finishSpell();
+            } else if (sm.type === 'shield') {
+                if (p.team !== G.turn) return;
+                res.mana -= SPELL_COST.shield;
+                p.bonusDef += 5;
+                showFloatingText('+5 DEF', p.x, p.z, '#f59e0b');
+                finishSpell();
+            } else if (sm.type === 'swap') {
+                if (p.team !== G.turn) return;
+                if (!sm.first) { sm.first = p; setPrompt('QUANTUM SWAP: click second friendly piece.'); return; }
+                if (sm.first === p) return;
+                const a = sm.first, b = p;
+                const ta = G.boardGrid[keyOf(a.x, a.z)], tb = G.boardGrid[keyOf(b.x, b.z)];
+                [a.x, b.x] = [b.x, a.x]; [a.z, b.z] = [b.z, a.z];
+                ta.piece = b; tb.piece = a;
+                a.mesh.position.set(a.x, tb.height + 0.2, a.z);
+                b.mesh.position.set(b.x, ta.height + 0.2, b.z);
+                res.mana -= SPELL_COST.swap;
+                playSound('tp');
+                finishSpell();
+            }
+        }
+        function finishSpell() { G.spellMode = null; setPrompt(defaultPrompt()); updateHUDCounters(); }
+
+        /* =====================================================================
+           COMMANDER DRAFT
+           ===================================================================== */
+        function draftEligible(tile) { return tile && !tile.isVoid && !tile.piece && tile.z >= G.mapData.dims.maxZ - 2; }
+        function startCommanderDraft() {
+            G.draftPhase = true; G.draftPoints = 35;
+            const maxZ = G.mapData.dims.maxZ;
+            let kt = null;
+            for (const k in G.boardGrid) { const t = G.boardGrid[k]; if (!t.isVoid && t.z === maxZ && (!kt || Math.abs(t.x) < Math.abs(kt.x))) kt = t; }
+            if (kt) placePiece('k', 'white', kt.x, kt.z);
+            $('commander-draft-bar').classList.remove('hidden');
+            selectDraftPieceType('p', 1);
+            $('draft-points-left').innerText = G.draftPoints;
+            setPrompt(defaultPrompt());
+        }
+        function selectDraftPieceType(type, cost) {
+            G.draftSelectedPiece = type; G.draftSelectedCost = cost;
+            ['p', 'n', 'b', 'r', 'q', 'd', 'nec'].forEach(t => {
+                const b = $(`draft-btn-${t}`);
+                if (!b) return;
+                const on = (t === type);
+                b.classList.toggle('border-cyan-500', on); b.classList.toggle('bg-cyan-950', on);
+                b.classList.toggle('border-slate-700', !on); b.classList.toggle('bg-slate-900', !on);
+            });
+            if (G.draftPhase) setPrompt(defaultPrompt());
+        }
+        function handleDraftClick(pick) {
+            if (pick.piece) {
+                const p = pick.piece;
+                if (p.team === 'white' && p.type !== 'k') {
+                    G.draftPoints += DRAFT_COSTS[p.type] || 0;
+                    scene.remove(p.mesh);
+                    G.boardGrid[keyOf(p.x, p.z)].piece = null;
+                    G.pieces = G.pieces.filter(q => q.id !== p.id);
+                    $('draft-points-left').innerText = G.draftPoints;
+                }
+                return;
+            }
+            if (!draftEligible(pick.tile)) { showFloatingText('PLACE IN BACK 3 ROWS', pick.tile ? pick.tile.x : 0, pick.tile ? pick.tile.z : 0, '#ef4444'); return; }
+            if (G.draftPoints < G.draftSelectedCost) { showFloatingText('NOT ENOUGH POINTS', pick.tile.x, pick.tile.z, '#ef4444'); return; }
+            if (placePiece(G.draftSelectedPiece, 'white', pick.tile.x, pick.tile.z)) {
+                G.draftPoints -= G.draftSelectedCost;
+                $('draft-points-left').innerText = G.draftPoints;
+                playSound('click');
+            }
+        }
+        function autoFillCommanderDraft() {
+            if (!G.draftPhase) return;
+            const types = ['p', 'n', 'b', 'r', 'q'].concat(G.chaosPieces ? ['d', 'nec'] : []);
+            let guard = 0;
+            while (G.draftPoints > 0 && guard++ < 200) {
+                const afford = types.filter(t => DRAFT_COSTS[t] <= G.draftPoints);
+                if (!afford.length) break;
+                const spots = Object.values(G.boardGrid).filter(draftEligible);
+                if (!spots.length) break;
+                const t = afford[Math.floor(Math.random() * afford.length)];
+                const s = spots[Math.floor(Math.random() * spots.length)];
+                if (placePiece(t, 'white', s.x, s.z)) G.draftPoints -= DRAFT_COSTS[t];
+            }
+            $('draft-points-left').innerText = G.draftPoints;
+        }
+        function clearCommanderDraft() {
+            if (!G.draftPhase) return;
+            G.pieces.filter(p => p.team === 'white' && p.type !== 'k').forEach(p => {
+                scene.remove(p.mesh); G.boardGrid[keyOf(p.x, p.z)].piece = null;
+            });
+            G.pieces = G.pieces.filter(p => !(p.team === 'white' && p.type !== 'k'));
+            G.draftPoints = 35;
+            $('draft-points-left').innerText = G.draftPoints;
+        }
+        function finishCommanderDraft() {
+            if (!G.draftPhase) return;
+            G.pieces.filter(p => p.team === 'white').forEach(p => {
+                const spot = nearestFreeBaseTile('black', -p.x, -p.z);
+                if (spot) placePiece(p.type, 'black', spot.x, spot.z);
+            });
+            G.draftPhase = false;
+            $('commander-draft-bar').classList.add('hidden');
+            updateTurnUI();
+            setPrompt(defaultPrompt());
+        }
+
+        /* =====================================================================
+           GOD-AI ENGINE (LEVEL 1 TO 25) WITH LOOP PREVENTION
+           ===================================================================== */
+        function aiBaseCenter(team) {
+            const b = bedOf(team);
+            if (b) return { x: b.x, z: b.z };
+            const k = G.pieces.find(p => p.team === team && p.type === 'k');
+            return k ? { x: k.x, z: k.z } : { x: 0, z: 0 };
+        }
+
+        function otherTeam(team) {
+            return G.teams.find(t => t !== team) || 'white';
+        }
+
+        function aiTarget(piece) {
+            const team = piece.team;
+            if (G.mode === 'bedwars') {
+                if (piece.carriedEm >= 2 || piece.carriedDia >= 4) return aiBaseCenter(team);
+                if (piece.role === 'guard') return aiBaseCenter(team);
+                if (piece.role === 'gather') {
+                    let best = null, bd = Infinity;
+                    G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bd) { bd = d; best = g; } } });
+                    if (best) return best;
+                }
+                const enemyBed = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
+                if (enemyBed) return enemyBed;
+            }
+            const enemyKing = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'k');
+            if (enemyKing) return enemyKing;
+            const anyEnemy = G.pieces.find(p => p.team !== team && p.team !== 'neutral');
+            return anyEnemy || null;
+        }
+
+        function aiShop(team) {
+            if (G.mode !== 'bedwars') return;
+            const mine = G.pieces.filter(p => p.team === team && inBase(p));
+            if (!mine.length) return;
+            for (let round = 0; round < 12; round++) {
+                let bought = false;
+                const res = G.resources[team];
+                if (!res) break;
+                const bed = bedOf(team);
+                if (bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) bought = buyItem(mine[0], 'obsidian');
+                if (!bought) {
+                    const teamBlocks = G.pieces.filter(p => p.team === team).reduce((s, p) => s + p.blocks, 0);
+                    const raider = mine.find(p => p.blocks === 0);
+                    if (raider && teamBlocks < 8 && res.iron >= WOOL_COST) bought = buyItem(raider, 'wool');
+                }
+                if (!bought) {
+                    const order = mine.slice().sort((a, b) => getAtk(b) - getAtk(a));
+                    for (const p of order) { if (buyItem(p, 'sword') || buyItem(p, 'armor')) { bought = true; break; } }
+                }
+                if (!bought) break;
+            }
+        }
+
+        function aiTryBridge(team) {
+            G.pieces.filter(p => p.team === team && p.blocks > 0 && p.type !== 'bed').forEach(p => {
+                if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) return;
+                const target = aiTarget(p);
+                if (!target) return;
+                const cur = cheb(p, target);
+                let walkable = false;
+                for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) {
+                    if (!dx && !dz) continue;
+                    const t = G.boardGrid[keyOf(p.x + dx, p.z + dz)];
+                    if (t && !t.isVoid && !t.piece && cheb(t, target) < cur) walkable = true;
+                }
+                if (walkable) return;
+                let best = null;
+                calculateGhostBridgeTiles(p).forEach(g => { const d = cheb(g, target); if (d < cur && (!best || d < best.d)) best = { g, d }; });
+                if (best) placeBridgeTile(p, best.g.x, best.g.z);
+            });
+        }
+
+        function evaluateMoveScore(piece, move, attackTarget, aiLevel) {
+            let score = 0;
+            const target = aiTarget(piece);
+
+            if (attackTarget) {
+                score += 50 + getAtk(attackTarget) * 4;
+                if (attackTarget.type === 'bed') score += 180;
+                if (attackTarget.type === 'k') score += 120;
+                if (attackTarget.type === 'guardian') score += 90;
+                score += Math.max(0, 15 - attackTarget.hp) * 3;
+            } else if (move) {
+                if (target) score += (cheb(piece, target) - cheb(move, target)) * 6;
+                if (piece.type === 'k' && G.mode === 'bedwars') score -= 8;
+                if (move.isCastle) score += 40; // Bonus score for castling
+            }
+
+            // Move Oscillation / Ping-pong Loop Prevention Penalty
+            if (move && piece.moveHistory && piece.moveHistory.length >= 2) {
+                const recentMatch = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
+                if (recentMatch > 0) score -= (recentMatch * 40 * (aiLevel / 10));
+            }
+
+            if (aiLevel < 25) {
+                const noiseFactor = (25 - aiLevel) * 3;
+                score += (Math.random() - 0.5) * noiseFactor;
+            }
+
+            return score;
+        }
+
+        function calculateBestMoveForTeam(team) {
+            let best = null, bestScore = -Infinity;
+            const teamPieces = G.pieces.filter(p => p.team === team && p.type !== 'bed');
+
+            teamPieces.forEach(piece => {
+                const { moves, attacks } = getPieceMoves(piece);
+
+                attacks.forEach(a => {
+                    const s = evaluateMoveScore(piece, null, a.target, 25);
+                    if (s > bestScore) { bestScore = s; best = { piece, kind: 'attack', target: a.target, score: s }; }
+                });
+
+                moves.forEach(m => {
+                    const s = evaluateMoveScore(piece, m, null, 25);
+                    if (s > bestScore) { bestScore = s; best = { piece, kind: 'move', m, score: s }; }
+                });
+            });
+            return best;
+        }
+
+        function runAITurn() {
+            if (G.gameOver || !isCurrentAI() || G.draftPhase) return;
+            const team = G.turn;
+            const ctrl = G.teamControllers[team] || { level: 10 };
+            const aiLevel = ctrl.level;
+
+            if (G.mode === 'bedwars') { aiShop(team); aiTryBridge(team); }
+
+            const tpCandidates = G.pieces.filter(p => p.team === team && p.type !== 'bed' && !inBase(p) && p.tpLeft === 0);
+            for (const p of tpCandidates) {
+                if (p.carriedEm >= 3 || p.carriedDia >= 5 || (p.hp / p.maxHp < 0.3)) {
+                    startTpToHome();
+                    if (p.tpLeft > 0) { endTurn(); return; }
+                }
+            }
+
+            if (G.mode === 'bedwars' && aiLevel >= 12) {
+                const pearlPiece = G.pieces.find(p => p.team === team && p.pearls > 0);
+                if (pearlPiece) {
+                    const enemyBeds = G.pieces.filter(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
+                    for (const eb of enemyBeds) {
+                        if (cheb(pearlPiece, eb) <= PEARL_RANGE + 1) {
+                            const freeTile = nearestFreeBaseTile(otherTeam(team), eb.x, eb.z);
+                            if (freeTile && cheb(pearlPiece, freeTile) <= PEARL_RANGE) {
+                                executePearl(pearlPiece, freeTile.x, freeTile.z);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            const best = calculateBestMoveForTeam(team);
+            if (!best) { endTurn(); return; }
+            if (best.kind === 'attack') initiateD20Combat(best.piece, best.target);
+            else executeMove(best.piece, best.m.x, best.m.z, best.m);
+        }
+
+        /* =====================================================================
+           FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS (8 BADGES) & REPLAY
+           ===================================================================== */
+        function evaluateMoveBadge(piece, target, actionType, bestMove) {
+            if (actionType.includes('Castling')) {
+                return { tag: '!!', class: 'badge-brilliant', label: 'Brilliant' };
+            }
+            if (target && (target.type === 'bed' || target.type === 'guardian')) {
+                return { tag: '!!', class: 'badge-brilliant', label: 'Brilliant' };
+            }
+            if (actionType === 'Telepearl Jump') {
+                return { tag: '!', class: 'badge-excellent', label: 'Excellent' };
+            }
+            if (target && target.type === 'q') {
+                return { tag: '⭐', class: 'badge-best', label: 'Best' };
+            }
+            if (bestMove && bestMove.target && (bestMove.target.type === 'bed' || bestMove.target.type === 'k')) {
+                if (!target || (target !== bestMove.target)) {
+                    return { tag: '💔', class: 'badge-missed', label: 'Missed Win' };
+                }
+            }
+            if (target) {
+                return { tag: '👍', class: 'badge-good', label: 'Good' };
+            }
+            return { tag: '👍', class: 'badge-good', label: 'Good' };
+        }
+
+        function logGameMove(piece, from, to, target, actionType) {
+            const best = calculateBestMoveForTeam(piece.team);
+            const badge = evaluateMoveBadge(piece, target, actionType, best);
+
+            const entry = {
+                turn: G.turnCount,
+                team: piece.team,
+                pieceType: piece.type,
+                from: { x: from.x, z: from.z },
+                to: { x: to.x, z: to.z },
+                action: actionType,
+                badge: badge
+            };
+
+            G.moveHistoryLog.push(entry);
+            G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
+        }
+
+        function openAnalysisModal() {
+            G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
+            renderAnalysisLogUI();
+            $('modal-analysis').classList.remove('hidden');
+        }
+
+        function renderAnalysisLogUI() {
+            const container = $('analysis-log-container');
+            container.innerHTML = '';
+            const total = G.moveHistoryLog.length;
+            $('analysis-step-idx').innerText = total > 0 ? `${G.analysisCurrentIndex + 1} / ${total}` : '0 / 0';
+
+            if (total === 0) {
+                container.innerHTML = `<div class="text-slate-400 text-center py-6 font-mono">No moves recorded yet in this match. Launch a match to view real-time engine evaluation logs.</div>`;
+            } else {
+                G.moveHistoryLog.forEach((log, idx) => {
+                    const cfg = TEAM_CONFIGS[log.team] || TEAM_CONFIGS.white;
+                    const isSelected = (idx === G.analysisCurrentIndex);
+                    const div = document.createElement('div');
+                    div.className = `p-2.5 rounded-xl border cursor-pointer transition flex items-center justify-between ${isSelected ? 'bg-amber-950/60 border-amber-500 shadow-md ring-1 ring-amber-400' : 'bg-slate-900 border-slate-800 hover:border-cyan-500'}`;
+                    div.onclick = () => selectAnalysisMove(idx);
+                    div.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-500 text-[10px]">#${idx + 1}</span>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${log.badge.class}">${log.badge.tag} ${log.badge.label}</span>
+                            <span class="font-orbitron font-bold text-xs" style="color: ${cfg.color}">${log.team.toUpperCase()} ${TYPE_NAMES[log.pieceType]}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-300 font-mono">
+                            ${log.action} (${log.from.x},${log.from.z} ➔ ${log.to.x},${log.to.z})
+                        </div>`;
+                    container.appendChild(div);
+                });
+            }
+            highlightAnalysisMoveOnBoard();
+        }
+
+        function selectAnalysisMove(idx) {
+            if (idx < 0 || idx >= G.moveHistoryLog.length) return;
+            G.analysisCurrentIndex = idx;
+            renderAnalysisLogUI();
+        }
+
+        function analysisStepFirst() { if (G.moveHistoryLog.length) selectAnalysisMove(0); }
+        function analysisStepPrev() { if (G.analysisCurrentIndex > 0) selectAnalysisMove(G.analysisCurrentIndex - 1); }
+        function analysisStepNext() { if (G.analysisCurrentIndex < G.moveHistoryLog.length - 1) selectAnalysisMove(G.analysisCurrentIndex + 1); }
+        function analysisStepLatest() { if (G.moveHistoryLog.length) selectAnalysisMove(G.moveHistoryLog.length - 1); }
+
+        function highlightAnalysisMoveOnBoard() {
+            if (G.analysisCurrentIndex < 0 || G.analysisCurrentIndex >= G.moveHistoryLog.length) return;
+            const log = G.moveHistoryLog[G.analysisCurrentIndex];
+            G.bestMoveHint = { fromX: log.from.x, fromZ: log.from.z, toX: log.to.x, toZ: log.to.z };
+            renderTargetHighlights();
+        }
+
+        /* =====================================================================
+           HUD & UI MANAGERS
+           ===================================================================== */
+        function renderHUDTeamCards() {
+            const container = $('hud-team-cards-bar');
+            container.innerHTML = '';
+
+            G.teams.forEach(team => {
+                const cfg = TEAM_CONFIGS[team];
+                const res = G.resources[team] || newTeamRes(G.mode === 'bedwars');
+                const ctrl = G.teamControllers[team] || { type: 'human', level: 10 };
+                const isTurn = (G.turn === team);
+
+                const card = document.createElement('div');
+                card.className = `glass-panel rounded-xl p-2.5 border ${isTurn ? 'border-cyan-400 ring-2 ring-cyan-400/40' : cfg.borderClass} pointer-events-auto flex-1 min-w-[200px] max-w-[260px] transition-all`;
+                card.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${cfg.color}"></span>
+                            <span class="font-orbitron font-bold text-xs" style="color: ${cfg.color}">${cfg.name.toUpperCase()}</span>
+                        </div>
+                        <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300">
+                            ${ctrl.type === 'human' ? '👤 HUMAN' : `🤖 AI L${ctrl.level}`}
+                        </span>
+                    </div>
+                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-300">
+                        <span id="${team}-bed-tag" class="text-emerald-400 font-bold">🛏️ ALIVE</span>
+                        <span>⚪${res.iron} 💎${res.dia} 🟢${res.em}</span>
+                    </div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function renderTeamControllerOptions() {
+            const container = $('team-controllers-container');
+            container.innerHTML = '';
+            const activeTeams = G.teams;
+
+            activeTeams.forEach(team => {
+                const cfg = TEAM_CONFIGS[team];
+                const ctrl = G.teamControllers[team];
+                const box = document.createElement('div');
+                box.className = "p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5";
+                box.innerHTML = `
+                    <div class="flex items-center justify-between text-xs font-orbitron font-bold" style="color: ${cfg.color}">
+                        <span>${cfg.name.toUpperCase()} TEAM</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="setTeamControllerType('${team}', 'human')" class="px-2 py-0.5 rounded text-[10px] font-mono ${ctrl.type === 'human' ? 'bg-cyan-600 text-white font-bold' : 'bg-slate-800 text-slate-400'}">HUMAN</button>
+                            <button onclick="setTeamControllerType('${team}', 'ai')" class="px-2 py-0.5 rounded text-[10px] font-mono ${ctrl.type === 'ai' ? 'bg-purple-600 text-white font-bold' : 'bg-slate-800 text-slate-400'}">AI</button>
+                        </div>
+                    </div>
+                    ${ctrl.type === 'ai' ? `
+                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                        <span>AI SMARTNESS: <strong class="text-cyan-300">LVL ${ctrl.level}</strong></span>
+                        <input type="range" min="1" max="25" value="${ctrl.level}" oninput="setTeamAILevel('${team}', this.value)" class="w-24 accent-cyan-400 h-1 bg-slate-800 rounded cursor-pointer">
+                    </div>` : ''}`;
+                container.appendChild(box);
+            });
+        }
+
+        function setTeamFormat(fmt) {
+            G.teamFormat = fmt;
+            G.teams = TEAM_FORMATS[fmt];
+            $('team-format-2').className = (fmt === '2-team') ? "p-2.5 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-orbitron text-xs font-bold text-center transition" : "p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-orbitron text-xs font-bold text-center transition hover:border-cyan-500";
+            $('team-format-4').className = (fmt === '4-team') ? "p-2.5 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-orbitron text-xs font-bold text-center transition" : "p-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-orbitron text-xs font-bold text-center transition hover:border-cyan-500";
+            ensureValidMap();
+            renderTeamControllerOptions();
+            renderMapCards();
+        }
+
+        function setTeamControllerType(team, type) {
+            G.teamControllers[team].type = type;
+            renderTeamControllerOptions();
+        }
+        function setTeamAILevel(team, val) {
+            G.teamControllers[team].level = parseInt(val);
+            renderTeamControllerOptions();
+        }
+
+        function selectGameMode(m) {
+            G.mode = m;
+            ['bedwars', 'standard', 'commander'].forEach(id => {
+                $(`mode-btn-${id}`).className = (id === m)
+                    ? "w-full p-2.5 rounded-xl border bg-cyan-950/80 border-cyan-500 text-cyan-300 font-orbitron text-xs font-bold flex items-center justify-between transition"
+                    : "w-full p-2.5 rounded-xl border bg-slate-900 border-slate-700 text-slate-400 font-orbitron text-xs font-bold flex items-center justify-between transition hover:border-cyan-500";
+            });
+            ensureValidMap();
+            renderMapCards();
+        }
+
+        function toggleChaosPieces(val) { G.chaosPieces = val; }
+
+        function renderMapCards() {
+            ensureValidMap();
+            const container = $('map-cards-container');
+            container.innerHTML = "";
+            const maps = MAP_CATALOG.filter(m => isMapAllowed(m.id, G.mode, G.teamFormat));
+            $('map-count-badge').innerText = `${maps.length} MAPS AVAILABLE`;
+
+            maps.forEach(m => {
+                const card = document.createElement('div');
+                const isSel = (G.selectedMapId === m.id);
+                card.className = `p-3 rounded-2xl bg-slate-900 border ${isSel ? 'map-card-active border-cyan-400' : 'border-slate-800'} cursor-pointer hover:border-cyan-500 transition`;
+                card.onclick = () => { G.selectedMapId = m.id; renderMapCards(); };
+                const dims = m.W ? `${m.W}x${m.H}` : `${m.size}x${m.size}`;
+                card.innerHTML = `
+                    <div class="font-orbitron font-bold text-xs text-slate-200 mb-1 flex items-center justify-between">
+                        <span>${m.name}</span>
+                        <span class="text-cyan-400 font-mono text-[9px]">${dims}</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono leading-tight">${m.desc}</div>`;
+                container.appendChild(card);
+            });
+        }
+
+        function updateTurnUI() {
+            $('turn-counter').innerText = G.turnCount;
+            const text = $('turn-text'), dot = $('turn-dot');
+            const cfg = TEAM_CONFIGS[G.turn] || TEAM_CONFIGS.white;
+            text.innerText = isCurrentAI() ? `${cfg.name.toUpperCase()} (AI L${G.teamControllers[G.turn].level}) THINKING...` : `${cfg.name.toUpperCase()}'S TURN`;
+            text.style.color = cfg.color;
+            dot.style.backgroundColor = cfg.color;
+            renderHUDTeamCards();
+            updateBedBadges();
+            if (!G.spellMode && !G.pearlMode) setPrompt(isHumanTurn() ? defaultPrompt() : 'The AI is taking its turn...');
+        }
+
+        function updateHUDCounters() {
+            renderHUDTeamCards();
+            if (!$('modal-item-shop').classList.contains('hidden')) refreshShop();
+            if ($('spell-mana-avail') && G.resources[G.turn]) $('spell-mana-avail').innerText = G.resources[G.turn].mana;
+        }
+
+        function updateBedBadges() {
+            G.teams.forEach(team => {
+                const badge = $(`${team}-bed-tag`);
+                if (!badge) return;
+                const bed = bedOf(team);
+                const q = G.resources[team] ? G.resources[team].respawnQueue.length : 0;
+                const qTxt = q ? ` • ☠${q}` : '';
+                if (G.mode === 'bedwars' && G.resources[team] && G.resources[team].bedAlive && bed) {
+                    badge.innerText = `🛏️ ${bed.hp}/${bed.maxHp} HP${qTxt}`;
+                    badge.className = "text-[10px] text-emerald-400 font-bold";
+                } else if (G.mode === 'bedwars') {
+                    badge.innerText = `💀 BROKEN${qTxt}`;
+                    badge.className = "text-[10px] text-red-400 font-bold";
+                } else {
+                    badge.innerText = `⚔️ CLASSIC`;
+                    badge.className = "text-[10px] text-cyan-400 font-bold";
+                }
+            });
+        }
+
+        function updatePieceInspector(piece, readonly) {
+            const card = $('piece-inspector-card');
+            card.classList.remove('hidden');
+            const cfg = TEAM_CONFIGS[piece.team] || TEAM_CONFIGS.white;
+            $('inspector-icon-box').innerHTML = `<i class="fa-solid ${TYPE_ICONS[piece.type] || 'fa-chess-pawn'}"></i>`;
+            $('inspector-icon-box').className = `w-8 h-8 rounded-lg bg-slate-900 border flex items-center justify-center text-lg`;
+            $('inspector-icon-box').style.borderColor = cfg.color;
+            $('inspector-icon-box').style.color = cfg.color;
+            $('inspector-name').innerText = `${piece.team} ${TYPE_NAMES[piece.type]}`;
+            $('inspector-team-tag').innerText = readonly ? 'INSPECTING' : (piece.team === G.turn ? 'YOUR PIECE' : 'ENEMY');
+            $('inspector-hp-text').innerText = `${piece.hp} / ${piece.maxHp} HP`;
+            $('inspector-hp-bar').style.width = `${Math.max(0, Math.min(100, (piece.hp / piece.maxHp) * 100))}%`;
+            $('inspector-atk-val').innerText = getAtk(piece);
+            $('inspector-def-val').innerText = getDef(piece);
+
+            $('inspector-gear-sword').innerText = `🗡️ ${SWORD_TIERS[piece.swordTier] ? SWORD_TIERS[piece.swordTier].name : 'Sword'}`;
+            $('inspector-gear-armor').innerText = `🛡️ ${ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].name : 'Armor'}`;
+            $('inspector-wool-cnt').innerText = piece.blocks || 0;
+            $('inspector-dia-cnt').innerText = piece.carriedDia || 0;
+            $('inspector-em-cnt').innerText = piece.carriedEm || 0;
+            $('inspector-pearl-cnt-badge').innerText = piece.pearls || 0;
+            $('inspector-pearl-cnt').innerText = piece.pearls || 0;
+
+            const bw = (G.mode === 'bedwars');
+            const baseNow = inBase(piece);
+            $('inspector-in-base-badge').classList.toggle('hidden', !bw || piece.type === 'bed');
+            $('inspector-in-base-badge').innerText = baseNow ? '📍 IN HOME BASE (SHOP OPEN)' : '🌍 OUT IN THE FIELD';
+
+            const actions = $('inspector-bedwars-actions');
+            actions.classList.toggle('hidden', !bw || piece.type === 'bed');
+            const mine = !readonly && piece === G.selectedPiece && piece.team === G.turn && isHumanTurn();
+            setBtn('btn-toggle-bridge-mode', mine);
+            setBtn('btn-start-tp-home', mine && !baseNow && piece.tpLeft === 0);
+            setBtn('btn-use-telepearl', mine && piece.pearls > 0);
+            setBtn('btn-inspector-shop-quick', mine && baseNow);
+        }
+
+        function showFloatingText(text, x, z, color) {
+            const container = $('floating-text-container');
+            const el = document.createElement('div');
+            el.className = 'floating-text';
+            el.innerText = text;
+            el.style.color = color || '#38bdf8';
+            let left = window.innerWidth / 2, top = window.innerHeight * 0.4;
+            if (typeof x === 'number' && typeof z === 'number' && camera) {
+                const t = G.boardGrid[keyOf(x, z)];
+                const v = new THREE.Vector3(x, ((t && t.height) || 0) + 1.8, z).project(camera);
+                if (v.z < 1) { left = (v.x * 0.5 + 0.5) * window.innerWidth; top = (-v.y * 0.5 + 0.5) * window.innerHeight; }
+            }
+            el.style.left = `${left}px`;
+            el.style.top = `${top}px`;
+            el.style.fontSize = '0.95rem';
+            el.style.textShadow = '0 0 8px #000';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 1300);
+        }
+
+        function setCameraPreset(preset) {
+            const S = camScale;
+            if (preset === 'orbit') camera.position.set(0, 30 * S, 35 * S);
+            else if (preset === 'top') camera.position.set(0, 50 * S, 0.1);
+            else if (preset === 'iso') camera.position.set(30 * S, 30 * S, 30 * S);
+            controls.target.set(0, 0, 0);
+        }
+
+        function resetMatchState() {
+            clearTimeout(G.aiTimer);
+            G.matchId++;
+            G.turnIndex = 0; G.turn = G.teams[0]; G.turnCount = 1;
+            G.selectedPiece = null; G.validMoves = []; G.attackTargets = []; G.ghostBridgeTiles = [];
+            G.bridgeModeActive = false; G.bridgesThisTurn = 0;
+            G.pearlMode = false; G.pearlTargets = []; G.spellMode = null; G.bestMoveHint = null;
+            G.gameOver = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
+            G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
+            initResources();
+            closeModals();
+            syncBridgeButton();
+            $('piece-inspector-card').classList.add('hidden');
+            $('commander-draft-bar').classList.add('hidden');
+        }
+
+        function launchGameMatch() {
+            ensureValidMap();
+            resetMatchState();
+            $('main-menu').classList.add('hidden');
+            $('hud-header').classList.remove('hidden');
+            $('persistent-controls-bar').classList.remove('hidden');
+            $('hud-sidebar').classList.remove('hidden');
+            $('bottom-hud-bar').classList.remove('hidden');
+
+            const bw = (G.mode === 'bedwars');
+            $('btn-sidebar-spellbook').classList.toggle('hidden', bw);
+            $('btn-sidebar-itemshop').classList.toggle('hidden', !bw);
+
+            buildMapBoard(G.selectedMapId);
+            updateTurnUI();
+            updateHUDCounters();
+        }
+
+        function returnToMainMenu() {
+            clearTimeout(G.aiTimer);
+            G.matchId++;
+            G.activeBattle = null;
+            closeModals();
+            $('main-menu').classList.remove('hidden');
+            $('hud-header').classList.add('hidden');
+            $('persistent-controls-bar').classList.add('hidden');
+            $('hud-sidebar').classList.add('hidden');
+            $('bottom-hud-bar').classList.add('hidden');
+            $('piece-inspector-card').classList.add('hidden');
+            $('commander-draft-bar').classList.add('hidden');
+        }
+
+        function openSpellbookModal() {
+            if (G.mode === 'bedwars' || inputBlocked()) return;
+            if ($('spell-mana-avail') && G.resources[G.turn]) $('spell-mana-avail').innerText = G.resources[G.turn].mana;
+            $('modal-spellbook').classList.remove('hidden');
+        }
+        function openCodexModal() { $('modal-codex').classList.remove('hidden'); }
+        function closeModals() {
+            ['modal-spellbook', 'modal-item-shop', 'modal-codex', 'modal-game-over', 'modal-analysis'].forEach(id => $(id).classList.add('hidden'));
+            if (!G.activeBattle) $('modal-d20-combat').classList.add('hidden');
+        }
+
+        function triggerGameOver(winnerTeam, reason) {
+            G.gameOver = true;
+            clearTimeout(G.aiTimer);
+            $('winner-title').innerText = `${winnerTeam.toUpperCase()} VICTORY!`;
+            $('winner-subtitle').innerText = reason || 'The enemy team has been obliterated.';
+            $('modal-d20-combat').classList.add('hidden');
+            $('modal-game-over').classList.remove('hidden');
+        }
+
+        window.onload = function () {
+            initThreeEngine();
+            renderTeamControllerOptions();
+            renderMapCards();
+        };
+    </script>
+</body>
+</html>
