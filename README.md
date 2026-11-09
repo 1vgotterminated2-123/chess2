@@ -1,2 +1,2 @@
 # chess2
-chess 2
+They dropped the sequel to chess...
