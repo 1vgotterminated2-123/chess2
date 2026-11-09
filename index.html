@@ -93,7 +93,7 @@
     <!-- Floating Text Overlay Container -->
     <div id="floating-text-container" class="w-full h-full absolute top-0 left-0 pointer-events-none z-70 overflow-hidden"></div>
 
-    <!-- PERSISTENT TOP-LEVEL CONTROL BAR (Z-INDEX 60 - ALWAYS ON TOP) -->
+    <!-- PERSISTENT TOP-LEVEL CONTROL BAR -->
     <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-4 py-2 rounded-2xl flex items-center justify-between gap-3 border-cyan-500/40 pointer-events-auto shadow-2xl hidden max-w-4xl w-[95%]">
         
         <!-- Turn & Map Status -->
@@ -154,7 +154,7 @@
                 <h1 class="font-orbitron font-black text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-emerald-400 text-glow-cyan tracking-wider">
                     CHESS 2: GOD-AI &amp; 4-TEAM REALMS
                 </h1>
-                <p class="text-xs md:text-sm text-slate-400 font-mono">15 MASSIVE MAPS (UP TO 60x60) • CASTLING &amp; PAWN DOUBLE MOVES • AI LVL 1-25 • FULL ENGINE EVALUATION</p>
+                <p class="text-xs md:text-sm text-slate-400 font-mono">15 DISTINCT MAPS (UP TO 60x60) • CASTLING &amp; PAWN DOUBLE MOVES • AI LVL 1-25 • FULL ENGINE EVALUATION</p>
             </div>
 
             <!-- Configuration Grid -->
@@ -219,7 +219,7 @@
                         <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
                             • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns can leap 2 tiles on first move!<br>
                             • <strong>🏰 Castling:</strong> O-O / O-O-O castling between unmoved King &amp; Rook.<br>
-                            • <strong>💎 Diamond Bosses:</strong> Neutral 15 HP boss spawns every 50 turns for +10 Diamonds.<br>
+                            • <strong>💎 Diamond Bosses:</strong> Spawn on Diamond Generators and stay tethered within 2 tiles!<br>
                             • <strong>🧠 AI Loop Shield:</strong> Level 1-25 engine penalizes move oscillations.
                         </p>
                     </div>
@@ -231,17 +231,17 @@
 
             </div>
 
-            <!-- MAP SELECTOR (ALL 15 MAPS) -->
+            <!-- MAP SELECTOR -->
             <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
                 <div class="flex items-center justify-between">
                     <h3 class="font-orbitron text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 MAPS • UP TO 60x60 MASSIVE REALMS)
+                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 DISTINCT MAPS • UP TO 60x60 MASSIVE REALMS)
                     </h3>
                     <span id="map-count-badge" class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono">15 MAPS AVAILABLE</span>
                 </div>
                 
                 <div id="map-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-56 overflow-y-auto pr-1">
-                    <!-- 15 maps dynamically rendered here -->
+                    <!-- Dynamic map cards rendered here -->
                 </div>
             </div>
 
@@ -297,7 +297,7 @@
 
     <!-- DIAMOND GUARDIAN / EVENT BANNER -->
     <div id="event-alert-banner" class="absolute top-[145px] left-1/2 -translate-x-1/2 z-20 px-6 py-2 rounded-full bg-sky-950/95 border-2 border-sky-400 text-sky-200 font-orbitron text-xs font-bold shadow-2xl animate-pulse hidden pointer-events-none text-center glow-diamond">
-        💎 DIAMOND GUARDIANS HAVE SPAWNED AT THE CENTER SHRINE!
+        💎 DIAMOND GUARDIANS HAVE SPAWNED AT THE DIAMOND GENERATORS!
     </div>
 
     <!-- RIGHT SIDE ACTION HUD BUTTONS -->
@@ -673,7 +673,7 @@
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-amber-300 text-sm mb-1">💎 DIAMOND GUARDIANS (EVERY 50 TURNS)</h4>
-                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn on shrine tiles! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
+                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn directly on Diamond Generators! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement restricted to a 2-tile radius around their home generator. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
                 </div>
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
@@ -710,7 +710,7 @@
     <!-- JAVASCRIPT GAME ENGINE -->
     <script>
         /* =====================================================================
-           CHESS 2: ULTIMATE EXPANSION ENGINE WITH PAWN 2-STEP & CASTLING
+           CHESS 2: ULTIMATE EXPANSION ENGINE - COMPLETE BUG-FIXED EDITION
            ===================================================================== */
         const ALL_TEAMS = ['white', 'black', 'red', 'blue', 'green', 'yellow'];
         const TEAM_FORMATS = {
@@ -813,7 +813,7 @@
             moveHistoryLog: [],
             analysisCurrentIndex: 0,
 
-            selectedMapId: 'quad_archipelago',
+            selectedMapId: 'archipelago',
             mapData: null,
             boardGrid: {},
             pieces: [],
@@ -849,12 +849,12 @@
         };
 
         /* =====================================================================
-           FULL MAP CATALOG (ALL 15 MAPS INCLUDING 5 MASSIVE 50x50+ ARENAS)
+           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - NO DUPLICATES)
            ===================================================================== */
         const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
 
         const MAP_CATALOG = [
-            /* --- 4-TEAM & 50x50+ MASSIVE MAPS (5 MAPS) --- */
+            /* --- 4-TEAM MASSIVE ARENAS (5 DISTINCT MAPS) --- */
             {
                 id: 'quad_archipelago', kind: 'bedwars', teams: 4, name: "55x55 Quad Realm Archipelago", W: 55, H: 55, theme: 'sky', fwd: FWD_NS,
                 desc: "55x55 4-Team Mega Arena. 4 Floating corner fortresses, central Emerald structure, outer Diamond shrines.",
@@ -884,15 +884,15 @@
                     { x: 14, z: 14, type: 'dia' }, { x: -14, z: 14, type: 'dia' }
                 ],
                 spawns: {
-                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['b', -21, -19], ['b', -19, -21], ['n', -22, -19], ['n', -19, -22], ['p', -20, -19], ['p', -19, -20], ['p', -21, -18], ['p', -18, -21]],
-                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['b', 21, -19], ['b', 19, -21], ['n', 22, -19], ['n', 19, -22], ['p', 20, -19], ['p', 19, -20], ['p', 21, -18], ['p', 18, -21]],
-                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['b', 21, 19], ['b', 19, 21], ['n', 22, 19], ['n', 19, 22], ['p', 20, 19], ['p', 19, 20], ['p', 21, 18], ['p', 18, 21]],
-                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['b', -21, 19], ['b', -19, 21], ['n', -22, 19], ['n', -19, 22], ['p', -20, 19], ['p', -19, 20], ['p', -21, 18], ['p', -18, 21]]
+                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['b', -21, -19], ['b', -19, -21], ['n', -22, -19], ['n', -19, -22], ['p', -20, -19], ['p', -19, -20]],
+                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['b', 21, -19], ['b', 19, -21], ['n', 22, -19], ['n', 19, -22], ['p', 20, -19], ['p', 19, -20]],
+                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['b', 21, 19], ['b', 19, 21], ['n', 22, 19], ['n', 19, 22], ['p', 20, 19], ['p', 19, 20]],
+                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['b', -21, 19], ['b', -19, 21], ['n', -22, 19], ['n', -19, 22], ['p', -20, 19], ['p', -19, 20]]
                 }
             },
             {
                 id: 'cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic 4-Team Crossroads", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
-                desc: "60x60 Sprawling 4-Arm Fortress Matrix. Central Obsidian Void Rift with elevated diamond shrines and boss platforms.",
+                desc: "60x60 Sprawling 4-Arm Fortress Matrix. Central Obsidian Void Rift with elevated diamond shrines.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (az >= 18 && ax <= 8) return { h: 0 };
@@ -915,127 +915,6 @@
                     { x: 0, z: 5, type: 'dia' }, { x: -5, z: 0, type: 'dia' }
                 ],
                 spawns: {
-                    red:    [['bed', 0, -26], ['k', 0, -25], ['q', 1, -25], ['r', -3, -25], ['r', 3, -25], ['b', -2, -24], ['b', 2, -24], ['n', -1, -24], ['n', 1, -24], ['p', 0, -23], ['p', -2, -23], ['p', 2, -23], ['p', 0, -22]],
-                    blue:   [['bed', 26, 0], ['k', 25, 0], ['q', 25, 1], ['r', 25, -3], ['r', 25, 3], ['b', 24, -2], ['b', 24, 2], ['n', 24, -1], ['n', 24, 1], ['p', 23, 0], ['p', 23, -2], ['p', 23, 2], ['p', 22, 0]],
-                    green:  [['bed', 0, 26], ['k', 0, 25], ['q', -1, 25], ['r', 3, 25], ['r', -3, 25], ['b', 2, 24], ['b', -2, 24], ['n', 1, 24], ['n', -1, 24], ['p', 0, 23], ['p', 2, 23], ['p', -2, 23], ['p', 0, 22]],
-                    yellow: [['bed', -26, 0], ['k', -25, 0], ['q', -25, -1], ['r', -25, 3], ['r', -25, -3], ['b', -24, 2], ['b', -24, -2], ['n', -24, 1], ['n', -24, -1], ['p', -23, 0], ['p', -23, 2], ['p', -23, -2], ['p', -22, 0]]
-                }
-            },
-            {
-                id: 'dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'lava', fwd: FWD_NS,
-                desc: "50x50 Volcanic Fortress Ring. Concentric lava moats, central dragon egg shrine with high value emerald drops.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 15 && az >= 15) return { h: 0 };
-                    if (ax <= 5 && az <= 5) return { h: 0.8 };
-                    if (Math.abs(ax - 10) <= 3 && Math.abs(az - 10) <= 3) return { h: 0.3 };
-                    if (ax <= 3 || az <= 3) return { h: 0.1 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (x <= -15 && z <= -15) return 'red';
-                    if (x >= 15 && z <= -15) return 'blue';
-                    if (x >= 15 && z >= 15) return 'green';
-                    if (x <= -15 && z >= 15) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: -10, z: -10, type: 'dia' }, { x: 10, z: -10, type: 'dia' },
-                    { x: 10, z: 10, type: 'dia' }, { x: -10, z: 10, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['b', -19, -17], ['b', -17, -19], ['n', -20, -17], ['n', -17, -20], ['p', -18, -17], ['p', -17, -18], ['p', -19, -16], ['p', -16, -19]],
-                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['b', 19, -17], ['b', 17, -19], ['n', 20, -17], ['n', 17, -20], ['p', 18, -17], ['p', 17, -18], ['p', 19, -16], ['p', 16, -19]],
-                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['b', 19, 17], ['b', 17, 19], ['n', 20, 17], ['n', 17, 20], ['p', 18, 17], ['p', 17, 18], ['p', 19, 16], ['p', 16, 19]],
-                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['b', -19, 17], ['b', -17, 19], ['n', -20, 17], ['n', -17, 20], ['p', -18, 17], ['p', -17, 18], ['p', -19, 16], ['p', -16, 19]]
-                }
-            },
-            {
-                id: 'nether_quadrant', kind: 'bedwars', teams: 4, name: "52x52 Nether Fortress Quadrant", W: 52, H: 52, theme: 'crystal', fwd: FWD_NS,
-                desc: "52x52 Nether Obsidian Castle grid with narrow bridges connecting isolated 4-team bases.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 16 && az >= 16) return { h: 0 };
-                    if (ax <= 6 && az <= 6) return { h: 0.4 };
-                    if (ax <= 3 || az <= 3) return { h: 0.1 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (x <= -16 && z <= -16) return 'red';
-                    if (x >= 16 && z <= -16) return 'blue';
-                    if (x >= 16 && z >= 16) return 'green';
-                    if (x <= -16 && z >= 16) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: 0, z: -12, type: 'dia' }, { x: 12, z: 0, type: 'dia' },
-                    { x: 0, z: 12, type: 'dia' }, { x: -12, z: 0, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', -21, -21], ['k', -20, -20], ['q', -19, -20], ['r', -21, -19], ['r', -19, -21], ['b', -20, -18], ['b', -18, -20], ['n', -21, -18], ['n', -18, -21], ['p', -19, -18], ['p', -18, -19], ['p', -20, -17], ['p', -17, -20]],
-                    blue:   [['bed', 21, -21], ['k', 20, -20], ['q', 19, -20], ['r', 21, -19], ['r', 19, -21], ['b', 20, -18], ['b', 18, -20], ['n', 21, -18], ['n', 18, -21], ['p', 19, -18], ['p', 18, -19], ['p', 20, -17], ['p', 17, -20]],
-                    green:  [['bed', 21, 21], ['k', 20, 20], ['q', 19, 20], ['r', 21, 19], ['r', 19, 21], ['b', 20, 18], ['b', 18, 20], ['n', 21, 18], ['n', 18, 21], ['p', 19, 18], ['p', 18, 19], ['p', 20, 17], ['p', 17, 20]],
-                    yellow: [['bed', -21, 21], ['k', -20, 20], ['q', -19, 20], ['r', -21, 19], ['r', -19, 21], ['b', -20, 18], ['b', -18, 20], ['n', -21, 18], ['n', -18, 21], ['p', -19, 18], ['p', -18, 19], ['p', -20, 17], ['p', -17, 20]]
-                }
-            },
-            {
-                id: 'star_temple', kind: 'bedwars', teams: 4, name: "50x50 Celestial Star Temple", W: 50, H: 50, theme: 'celestial', fwd: FWD_NS,
-                desc: "50x50 8-Pointed Star layout. Central celestial altar with double diamond shrines on outer peaks.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 16 && az >= 16) return { h: 0 };
-                    if (ax <= 5 && az <= 5) return { h: 0.7 };
-                    if (ax + az <= 22) return { h: 0.2 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (x <= -16 && z <= -16) return 'red';
-                    if (x >= 16 && z <= -16) return 'blue';
-                    if (x >= 16 && z >= 16) return 'green';
-                    if (x <= -16 && z >= 16) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: -13, z: 0, type: 'dia' }, { x: 13, z: 0, type: 'dia' },
-                    { x: 0, z: -13, type: 'dia' }, { x: 0, z: 13, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['b', -19, -17], ['b', -17, -19], ['n', -20, -17], ['n', -17, -20], ['p', -18, -17], ['p', -17, -18], ['p', -19, -16], ['p', -16, -19]],
-                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['b', 19, -17], ['b', 17, -19], ['n', 20, -17], ['n', 17, -20], ['p', 18, -17], ['p', 17, -18], ['p', 19, -16], ['p', 16, -19]],
-                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['b', 19, 17], ['b', 17, 19], ['n', 20, 17], ['n', 17, 20], ['p', 18, 17], ['p', 17, 18], ['p', 19, 16], ['p', 16, 19]],
-                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['b', -19, 17], ['b', -17, 19], ['n', -20, 17], ['n', -17, 20], ['p', -18, 17], ['p', -17, 18], ['p', -19, 16], ['p', -16, 19]]
-                }
-            },
-            {
-                id: 'cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic 4-Team Crossroads", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
-                desc: "60x60 Sprawling 4-Arm Fortress Matrix. Central Obsidian Void Rift with elevated diamond shrines and boss platforms.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (az >= 18 && ax <= 8) return { h: 0 };
-                    if (ax >= 18 && az <= 8) return { h: 0 };
-                    const r = Math.sqrt(x * x + z * z);
-                    if (r <= 7) return { h: 0.5 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (z <= -18 && Math.abs(x) <= 8) return 'red';
-                    if (x >= 18 && Math.abs(z) <= 8) return 'blue';
-                    if (z >= 18 && Math.abs(x) <= 8) return 'green';
-                    if (x <= -18 && Math.abs(z) <= 8) return 'yellow';
-                    return null;
-                },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: 0, z: -5, type: 'dia' }, { x: 5, z: 0, type: 'dia' },
-                    { x: 0, z: 5, type: 'dia' }, { x: -5, z: 0, type: 'dia' }
-                ],
-                spawns: {
                     red:    [['bed', 0, -26], ['k', 0, -25], ['q', 1, -25], ['r', -3, -25], ['r', 3, -25], ['n', -1, -24], ['p', 0, -23]],
                     blue:   [['bed', 26, 0], ['k', 25, 0], ['q', 25, 1], ['r', 25, -3], ['r', 25, 3], ['n', 24, -1], ['p', 23, 0]],
                     green:  [['bed', 0, 26], ['k', 0, 25], ['q', -1, 25], ['r', 3, 25], ['r', -3, 25], ['n', 1, 24], ['p', 0, 23]],
@@ -1044,7 +923,7 @@
             },
             {
                 id: 'dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'lava', fwd: FWD_NS,
-                desc: "50x50 Volcanic Fortress Ring. Concentric lava moats, central dragon egg shrine with high value emerald drops.",
+                desc: "50x50 Volcanic Fortress Ring. Concentric lava moats, central dragon egg shrine with emerald drops.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (ax >= 15 && az >= 15) return { h: 0 };
@@ -1060,6 +939,7 @@
                     if (x <= -15 && z >= 15) return 'yellow';
                     return null;
                 },
+                baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
                 gens: [
                     { x: 0, z: 0, type: 'em' },
                     { x: -10, z: -10, type: 'dia' }, { x: 10, z: -10, type: 'dia' },
@@ -1089,6 +969,7 @@
                     if (x <= -16 && z >= 16) return 'yellow';
                     return null;
                 },
+                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
                 gens: [
                     { x: 0, z: 0, type: 'em' },
                     { x: 0, z: -12, type: 'dia' }, { x: 12, z: 0, type: 'dia' },
@@ -1118,6 +999,7 @@
                     if (x <= -16 && z >= 16) return 'yellow';
                     return null;
                 },
+                baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
                 gens: [
                     { x: 0, z: 0, type: 'em' },
                     { x: -13, z: 0, type: 'dia' }, { x: 13, z: 0, type: 'dia' },
@@ -1131,10 +1013,10 @@
                 }
             },
 
-            /* --- 2-TEAM BEDWARS EXCLUSIVE MAPS (5 MAPS) --- */
+            /* --- 2-TEAM BEDWARS ARENAS (5 DISTINCT MAPS) --- */
             {
                 id: 'archipelago', kind: 'bedwars', teams: 2, name: "Archipelago Bedwars", W: 19, H: 19, theme: 'sky', fwd: FWD_NS,
-                desc: "19x19. Three isolated island chains: bases, a central EMERALD isle and two side DIAMOND isles.",
+                desc: "19x19. Three isolated island chains: bases, central EMERALD isle and side DIAMOND isles.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (az >= 5 && ax <= 4) return { h: 0 };
@@ -1201,7 +1083,7 @@
                 spawn: [['bed', 0, 6], ['k', 0, 5], ['q', 1, 5], ['r', -3, 5], ['r', 3, 5], ['p', 0, 4]]
             },
 
-            /* --- STANDARD / CLASSIC MAPS (5 MAPS) --- */
+            /* --- STANDARD / CLASSIC MAPS (5 DISTINCT MAPS) --- */
             { id: 'classic', kind: 'classic', teams: 2, name: "Classic 8x8 Arena", size: 8, theme: 'neon', fwd: FWD_NS, desc: "Traditional 8x8 chessboard with Castling, Pawn 2-step & D20 combat.", tile: () => ({ h: 0 }) },
             { id: 'donut', kind: 'classic', teams: 2, name: "The Void Donut 10x10", size: 10, theme: 'celestial', fwd: FWD_NS, desc: "Circular ring board with a hollow void pit in the center.", tile: (x, z) => (Math.sqrt(x * x + z * z) < 2.2) ? null : { h: 0 } },
             { id: 'l_shaped', kind: 'classic', teams: 2, name: "L-Shaped Arena 10x10", size: 10, theme: 'emerald', fwd: FWD_NS, desc: "Asymmetric tactical L-board challenging piece positioning.", tile: (x, z) => (x < 0 && z < 0) ? null : { h: 0 } },
@@ -1221,7 +1103,7 @@
         function ensureValidMap() {
             if (!isMapAllowed(G.selectedMapId, G.mode, G.teamFormat)) {
                 const first = MAP_CATALOG.find(m => isMapAllowed(m.id, G.mode, G.teamFormat));
-                G.selectedMapId = first ? first.id : 'quad_archipelago';
+                G.selectedMapId = first ? first.id : 'archipelago';
             }
         }
 
@@ -1427,6 +1309,137 @@
         }
 
         /* =====================================================================
+           PIECE HELPER FUNCTIONS & SPAWNER
+           ===================================================================== */
+        function getAtk(piece) {
+            if (!piece) return 0;
+            const swordAtk = (SWORD_TIERS[piece.swordTier] ? SWORD_TIERS[piece.swordTier].atk : 0);
+            return (piece.baseAtk || 0) + (piece.bonusAtk || 0) + swordAtk;
+        }
+
+        function getDef(piece) {
+            if (!piece) return 0;
+            const armorDef = (ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].def : 0);
+            return (piece.baseDef || 0) + (piece.bonusDef || 0) + armorDef;
+        }
+
+        function recalcStats(piece) {
+            if (!piece) return;
+            const extraHp = ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].hp : 0;
+            const baseHp = BASE_STATS[piece.type] ? BASE_STATS[piece.type].hp : 10;
+            const prevMax = piece.maxHp;
+            piece.maxHp = baseHp + extraHp;
+            if (piece.maxHp > prevMax) piece.hp += (piece.maxHp - prevMax);
+        }
+
+        function inBase(piece) {
+            if (!piece || piece.type === 'bed') return false;
+            const key = keyOf(piece.x, piece.z);
+            if (G.bases[piece.team] && G.bases[piece.team].has(key)) return true;
+            const tile = G.boardGrid[key];
+            return tile && tile.baseTeam === piece.team;
+        }
+
+        function bedOf(team) {
+            return G.pieces.find(p => p.team === team && p.type === 'bed') || null;
+        }
+
+        function obsLayers(bed) {
+            if (!bed) return 0;
+            return Math.ceil(bed.obsHp / OBSIDIAN_HP);
+        }
+
+        function refreshObsidianMesh(bed) {
+            if (!bed || bed.type !== 'bed') return;
+            if (bed.obsMesh) { bed.mesh.remove(bed.obsMesh); bed.obsMesh = null; }
+            if (bed.obsHp > 0) {
+                const layers = obsLayers(bed);
+                const obsGroup = new THREE.Group();
+                const mat = new THREE.MeshStandardMaterial({ color: 0x581c87, roughness: 0.2, metalness: 0.8 });
+                const shell = new THREE.Mesh(new THREE.BoxGeometry(1.2 + layers * 0.08, 0.45 + layers * 0.05, 1.7 + layers * 0.08), mat);
+                shell.position.set(0, 0.2, 0);
+                obsGroup.add(shell);
+                bed.mesh.add(obsGroup);
+                bed.obsMesh = obsGroup;
+            }
+        }
+
+        function findNearestValidSpawnTile(targetX, targetZ) {
+            const key = keyOf(targetX, targetZ);
+            let tile = G.boardGrid[key];
+            if (tile && !tile.isVoid && !tile.piece) return { x: targetX, z: targetZ };
+
+            for (let r = 1; r <= 12; r++) {
+                for (let dx = -r; dx <= r; dx++) {
+                    for (let dz = -r; dz <= r; dz++) {
+                        const tx = targetX + dx, tz = targetZ + dz;
+                        const t = G.boardGrid[keyOf(tx, tz)];
+                        if (t && !t.isVoid && !t.piece) return { x: tx, z: tz };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function placePiece(type, team, targetX, targetZ) {
+            const spot = findNearestValidSpawnTile(targetX, targetZ);
+            if (!spot) return null;
+            const rx = spot.x, rz = spot.z;
+
+            const tile = G.boardGrid[keyOf(rx, rz)];
+            if (!tile || tile.isVoid || tile.piece) return null;
+
+            const stats = BASE_STATS[type] || { hp: 10, atk: 4, def: 2 };
+            const mesh = createPieceMesh(type, team);
+            mesh.position.set(rx, tile.height + 0.2, rz);
+            scene.add(mesh);
+
+            const piece = {
+                id: 'p_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now(),
+                type: type,
+                team: team,
+                x: rx,
+                z: rz,
+                homeX: rx,
+                homeZ: rz,
+                hp: stats.hp,
+                maxHp: stats.hp,
+                baseAtk: stats.atk,
+                bonusAtk: 0,
+                baseDef: stats.def,
+                bonusDef: 0,
+                swordTier: 0,
+                armorTier: 0,
+                blocks: (type === 'p' && G.mode === 'bedwars') ? 4 : 0,
+                carriedEm: 0,
+                carriedDia: 0,
+                pearls: 0,
+                hasMoved: false,
+                tpLeft: 0,
+                tpFresh: false,
+                tpMarker: null,
+                obsHp: 0,
+                obsLock: 0,
+                obsBroken: false,
+                obsMesh: null,
+                homeGen: null,
+                role: 'guard',
+                mesh: mesh
+            };
+
+            mesh.userData = { pieceId: piece.id };
+            tile.piece = piece;
+            G.pieces.push(piece);
+
+            if (type === 'bed') {
+                G.bedPos[team] = { x: rx, z: rz };
+                if (G.resources[team]) G.resources[team].bedAlive = true;
+            }
+
+            return piece;
+        }
+
+        /* =====================================================================
            MAP & BOARD BUILDER
            ===================================================================== */
         function clearBoard() {
@@ -1506,24 +1519,6 @@
             gen.gems.forEach((m, i) => { m.visible = i < gen.stock; m.scale.set(big, big, big); });
         }
 
-        /* GUARANTEED NON-VOID TILE FINDER FOR SPAWNING */
-        function findNearestValidSpawnTile(targetX, targetZ) {
-            const key = keyOf(targetX, targetZ);
-            let tile = G.boardGrid[key];
-            if (tile && !tile.isVoid && !tile.piece) return { x: targetX, z: targetZ };
-
-            for (let r = 1; r <= 10; r++) {
-                for (let dx = -r; dx <= r; dx++) {
-                    for (let dz = -r; dz <= r; dz++) {
-                        const tx = targetX + dx, tz = targetZ + dz;
-                        const t = G.boardGrid[keyOf(tx, tz)];
-                        if (t && !t.isVoid && !t.piece) return { x: tx, z: tz };
-                    }
-                }
-            }
-            return { x: targetX, z: targetZ };
-        }
-
         function spawnTeamSquad(team, cx, cz, isBedwars) {
             const dirX = cx === 0 ? 1 : -Math.sign(cx);
             const dirZ = cz === 0 ? 1 : -Math.sign(cz);
@@ -1587,7 +1582,7 @@
                 return;
             }
 
-            // Standard classic setup with King, Queen, Rooks, Bishops, Knights, Pawns
+            // Standard classic setup
             const maxZ = map.dims.maxZ;
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
             for (let c = 0; c < 8; c++) {
@@ -1688,10 +1683,10 @@
         }
 
         /* =====================================================================
-           MOVE CALCULATION (PAWN DOUBLE STEP & CASTLING MECHANICS INCLUDED)
+           MOVE CALCULATION (PAWN DOUBLE STEP, CASTLING, GUARDIAN 2-TILE RADIUS)
            ===================================================================== */
         function getPieceMoves(piece) {
-            const moves = [], attacks = [];
+            let moves = [], attacks = [];
             const x = piece.x, z = piece.z;
             if (piece.type === 'bed') return { moves, attacks };
 
@@ -1736,6 +1731,14 @@
             else if (type === 'q') slide(ORTHO.concat(DIAG), 8);
             else if (type === 'k' || type === 'guardian') {
                 slide(ORTHO.concat(DIAG), 1);
+                
+                // GUARDIAN MOVEMENT RESTRICTION: STRICTLY WITHIN 2-TILE RADIUS OF HOME GENERATOR
+                if (type === 'guardian') {
+                    const home = piece.homeGen || { x: piece.homeX, z: piece.homeZ };
+                    moves = moves.filter(m => cheb(m, home) <= 2);
+                    attacks = attacks.filter(a => cheb(a, home) <= 2);
+                }
+
                 // CASTLING MECHANICS (O-O and O-O-O)
                 if (type === 'k' && !piece.hasMoved) {
                     const rooks = G.pieces.filter(p => p.team === piece.team && p.type === 'r' && !p.hasMoved);
@@ -1897,7 +1900,7 @@
         }
 
         function defaultPrompt() {
-            if (G.draftPhase) return `Draft: click your back rows to place ${TYPE_NAMES[G.draftSelectedPiece]} (${G.draftSelectedCost}pt). Click a drafted piece to refund it.`;
+            if (G.draftPhase) return `Draft Phase: Click back rows to place ${TYPE_NAMES[G.draftSelectedPiece]} (${G.draftSelectedCost}pt). Click placed white piece to refund.`;
             if (G.selectedPiece) return 'Click a cyan circle to move (amber for Castle), or a red circle to attack.';
             return 'Select a piece to move across valid tiles.';
         }
@@ -1993,7 +1996,7 @@
         }
 
         /* =====================================================================
-           DIAMOND GUARDIAN BOSS EVENT (EVERY 50 TURNS)
+           DIAMOND GUARDIAN BOSS EVENT (SPAWNS DIRECTLY ON DIAMOND GENERATORS)
            ===================================================================== */
         function checkDiamondGuardianSpawn() {
             if (G.turnCount % 50 === 0 && G.turnIndex === 0) {
@@ -2002,20 +2005,23 @@
         }
 
         function spawnDiamondGuardians() {
-            const spawns = [{ x: 0, z: 0 }, { x: -8, z: 0 }, { x: 8, z: 0 }];
+            const diaGens = G.gens.filter(g => g.type === 'dia');
             let spawnedCount = 0;
 
-            spawns.forEach(s => {
-                const tile = G.boardGrid[keyOf(s.x, s.z)];
+            diaGens.forEach(g => {
+                const tile = G.boardGrid[keyOf(g.x, g.z)];
                 if (tile && !tile.isVoid && !tile.piece) {
-                    placePiece('guardian', 'neutral', s.x, s.z);
-                    spawnedCount++;
+                    const boss = placePiece('guardian', 'neutral', g.x, g.z);
+                    if (boss) {
+                        boss.homeGen = { x: g.x, z: g.z };
+                        spawnedCount++;
+                    }
                 }
             });
 
             if (spawnedCount > 0) {
                 const banner = $('event-alert-banner');
-                banner.innerText = `💎 DIAMOND GUARDIAN BOSS SPAWNED! (15 HP - SLAIN REWARD: 10 DIAMONDS)`;
+                banner.innerText = `💎 DIAMOND GUARDIAN BOSSES SPAWNED AT DIAMOND GENERATORS! (15 HP - REWARD: 10 DIAMONDS)`;
                 banner.classList.remove('hidden');
                 setTimeout(() => banner.classList.add('hidden'), 5000);
                 playSound('boss');
@@ -2165,7 +2171,6 @@
             checkWin();
         }
 
-        /* GUARANTEED ACCURATE WIN CONDITION DETECTOR */
         function checkWin() {
             if (G.gameOver) return;
             const isBedwars = (G.mode === 'bedwars');
@@ -2598,18 +2603,38 @@
         /* =====================================================================
            COMMANDER DRAFT
            ===================================================================== */
-        function draftEligible(tile) { return tile && !tile.isVoid && !tile.piece && tile.z >= G.mapData.dims.maxZ - 2; }
+        function draftEligible(tile) {
+            if (!tile || tile.isVoid || tile.piece) return false;
+            const maxZ = G.mapData.dims.maxZ;
+            return tile.z >= maxZ - 2;
+        }
+
         function startCommanderDraft() {
             G.draftPhase = true; G.draftPoints = 35;
             const maxZ = G.mapData.dims.maxZ;
             let kt = null;
-            for (const k in G.boardGrid) { const t = G.boardGrid[k]; if (!t.isVoid && t.z === maxZ && (!kt || Math.abs(t.x) < Math.abs(kt.x))) kt = t; }
+            for (const k in G.boardGrid) {
+                const t = G.boardGrid[k];
+                if (!t.isVoid && !t.piece && t.z === maxZ) {
+                    if (!kt || Math.abs(t.x) < Math.abs(kt.x)) kt = t;
+                }
+            }
+            if (!kt) {
+                for (const k in G.boardGrid) {
+                    const t = G.boardGrid[k];
+                    if (!t.isVoid && !t.piece && t.z >= maxZ - 2) {
+                        if (!kt || t.z > kt.z) kt = t;
+                    }
+                }
+            }
             if (kt) placePiece('k', 'white', kt.x, kt.z);
+            
             $('commander-draft-bar').classList.remove('hidden');
             selectDraftPieceType('p', 1);
             $('draft-points-left').innerText = G.draftPoints;
             setPrompt(defaultPrompt());
         }
+
         function selectDraftPieceType(type, cost) {
             G.draftSelectedPiece = type; G.draftSelectedCost = cost;
             ['p', 'n', 'b', 'r', 'q', 'd', 'nec'].forEach(t => {
@@ -2621,6 +2646,7 @@
             });
             if (G.draftPhase) setPrompt(defaultPrompt());
         }
+
         function handleDraftClick(pick) {
             if (pick.piece) {
                 const p = pick.piece;
@@ -2630,6 +2656,7 @@
                     G.boardGrid[keyOf(p.x, p.z)].piece = null;
                     G.pieces = G.pieces.filter(q => q.id !== p.id);
                     $('draft-points-left').innerText = G.draftPoints;
+                    playSound('click');
                 }
                 return;
             }
@@ -2641,6 +2668,7 @@
                 playSound('click');
             }
         }
+
         function autoFillCommanderDraft() {
             if (!G.draftPhase) return;
             const types = ['p', 'n', 'b', 'r', 'q'].concat(G.chaosPieces ? ['d', 'nec'] : []);
@@ -2656,6 +2684,7 @@
             }
             $('draft-points-left').innerText = G.draftPoints;
         }
+
         function clearCommanderDraft() {
             if (!G.draftPhase) return;
             G.pieces.filter(p => p.team === 'white' && p.type !== 'k').forEach(p => {
@@ -2665,12 +2694,22 @@
             G.draftPoints = 35;
             $('draft-points-left').innerText = G.draftPoints;
         }
+
         function finishCommanderDraft() {
             if (!G.draftPhase) return;
-            G.pieces.filter(p => p.team === 'white').forEach(p => {
-                const spot = nearestFreeBaseTile('black', -p.x, -p.z);
-                if (spot) placePiece(p.type, 'black', spot.x, spot.z);
+            const whitePieces = G.pieces.filter(p => p.team === 'white');
+            
+            const enemyTeams = G.teams.filter(t => t !== 'white');
+            enemyTeams.forEach(enemyTeam => {
+                whitePieces.forEach(p => {
+                    let mx = -p.x, mz = -p.z;
+                    if (enemyTeam === 'blue') { mx = p.z; mz = -p.x; }
+                    else if (enemyTeam === 'yellow') { mx = -p.z; mz = p.x; }
+                    const spot = findNearestValidSpawnTile(mx, mz);
+                    if (spot) placePiece(p.type, enemyTeam, spot.x, spot.z);
+                });
             });
+
             G.draftPhase = false;
             $('commander-draft-bar').classList.add('hidden');
             updateTurnUI();
@@ -2765,10 +2804,10 @@
             } else if (move) {
                 if (target) score += (cheb(piece, target) - cheb(move, target)) * 6;
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 8;
-                if (move.isCastle) score += 40; // Bonus score for castling
+                if (move.isCastle) score += 40;
             }
 
-            // Move Oscillation / Ping-pong Loop Prevention Penalty
+            // Move Oscillation Loop Prevention Penalty
             if (move && piece.moveHistory && piece.moveHistory.length >= 2) {
                 const recentMatch = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
                 if (recentMatch > 0) score -= (recentMatch * 40 * (aiLevel / 10));
@@ -2841,7 +2880,7 @@
         }
 
         /* =====================================================================
-           FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS (8 BADGES) & REPLAY
+           FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS & REPLAY STEPPER
            ===================================================================== */
         function evaluateMoveBadge(piece, target, actionType, bestMove) {
             if (actionType.includes('Castling')) {
