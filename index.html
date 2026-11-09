@@ -311,6 +311,12 @@
         <button onclick="setCameraPreset('iso')" title="Isometric View" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
             <i class="fa-solid fa-layer-group"></i>
         </button>
+
+        <!-- Camera Reset Button -->
+        <button onclick="resetCamera()" title="Reset Camera Center & Position" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+            <i class="fa-solid fa-arrows-to-dot"></i>
+        </button>
+
         <div class="w-full h-[1px] bg-slate-800 my-1"></div>
         
         <!-- Spellbook Button -->
@@ -683,7 +689,7 @@
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-purple-300 text-sm mb-1">🧠 GOD-AI ENGINE (LEVEL 1-25) &amp; MOVE LOOP PREVENTION</h4>
-                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with -120pt loop prevention penalties.</p>
+                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with -200pt loop prevention penalties.</p>
                 </div>
             </div>
         </div>
@@ -728,7 +734,7 @@
             neutral:{ name: 'Guardian', color: '#38bdf8', hex: 0x38bdf8, accent: 0x38bdf8, borderClass: 'border-sky-500/40' }
         };
 
-        const keyOf = (x, z) => `${x},${z}`;
+        const keyOf = (x, z) => `${Math.round(x)},${Math.round(z)}`;
         const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
         const $ = id => document.getElementById(id);
 
@@ -849,7 +855,7 @@
         };
 
         /* =====================================================================
-           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - NO DUPLICATES)
+           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - ALL INTEGER GRID POSITIONS)
            ===================================================================== */
         const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
 
@@ -1179,6 +1185,9 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
+            controls.enablePan = true;
+            controls.panSpeed = 1.0;
+            controls.screenSpacePanning = true;
             controls.maxPolarAngle = Math.PI / 2.05;
             controls.minDistance = 6;
             controls.maxDistance = 180;
@@ -1365,17 +1374,19 @@
         }
 
         function findNearestValidSpawnTile(targetX, targetZ) {
-            const key = keyOf(targetX, targetZ);
+            const tx = Math.round(targetX);
+            const tz = Math.round(targetZ);
+            const key = keyOf(tx, tz);
             let tile = G.boardGrid[key];
-            if (tile && !tile.isVoid && !tile.piece) return { x: targetX, z: targetZ };
+            if (tile && !tile.isVoid && !tile.piece) return { x: tx, z: tz };
 
-            for (let r = 1; r <= 25; r++) {
+            for (let r = 1; r <= 30; r++) {
                 for (let dx = -r; dx <= r; dx++) {
                     for (let dz = -r; dz <= r; dz++) {
                         if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
-                        const tx = targetX + dx, tz = targetZ + dz;
-                        const t = G.boardGrid[keyOf(tx, tz)];
-                        if (t && !t.isVoid && !t.piece) return { x: tx, z: tz };
+                        const rx = tx + dx, rz = tz + dz;
+                        const t = G.boardGrid[keyOf(rx, rz)];
+                        if (t && !t.isVoid && !t.piece) return { x: rx, z: rz };
                     }
                 }
             }
@@ -1442,7 +1453,7 @@
         }
 
         /* =====================================================================
-           MAP & BOARD BUILDER
+           MAP & BOARD BUILDER (INTEGER COORDINATE FIX FOR EVEN/ODD DIMENSIONS)
            ===================================================================== */
         function clearBoard() {
             for (const key in G.boardGrid) { if (G.boardGrid[key].tileMesh) scene.remove(G.boardGrid[key].tileMesh); }
@@ -1472,7 +1483,7 @@
             $('map-name-tag').innerText = map.name;
 
             const W = map.W || map.size, H = map.H || map.size;
-            const offX = (W - 1) / 2, offZ = (H - 1) / 2;
+            const offX = Math.floor(W / 2), offZ = Math.floor(H / 2);
             map.dims = { W, H, offX, offZ, maxZ: offZ };
             const bedwars = (G.mode === 'bedwars');
 
@@ -1597,16 +1608,16 @@
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
             for (let c = 0; c < 8; c++) {
                 const x = c - 3.5;
-                placePiece(order[c], 'white', x, maxZ);
-                placePiece('p', 'white', x, maxZ - 1);
-                placePiece(order[c], 'black', x, -maxZ);
-                placePiece('p', 'black', x, -maxZ + 1);
+                placePiece(order[c], 'white', Math.round(x), maxZ);
+                placePiece('p', 'white', Math.round(x), maxZ - 1);
+                placePiece(order[c], 'black', Math.round(x), -maxZ);
+                placePiece('p', 'black', Math.round(x), -maxZ + 1);
             }
             if (G.chaosPieces) {
-                placePiece('d', 'white', -3.5, maxZ - 2);
-                placePiece('nec', 'white', 3.5, maxZ - 2);
-                placePiece('d', 'black', -3.5, -maxZ + 2);
-                placePiece('nec', 'black', 3.5, -maxZ + 2);
+                placePiece('d', 'white', -3, maxZ - 2);
+                placePiece('nec', 'white', 3, maxZ - 2);
+                placePiece('d', 'black', -3, -maxZ + 2);
+                placePiece('nec', 'black', 3, -maxZ + 2);
             }
         }
 
@@ -2434,7 +2445,7 @@
         }
 
         /* =====================================================================
-           TURN SYSTEM & ACCELERATED PLAYBACK
+           TURN SYSTEM & ACCELERATED PLAYBACK (AUTO-PLAY HUMAN AUTO-PAUSE)
            ===================================================================== */
         function manualEndTurn() {
             if (inputBlocked() || G.draftPhase) return;
@@ -2500,7 +2511,7 @@
                 if (G.autoPlayActive) {
                     G.autoPlayActive = false;
                     updateAutoPlayButtonUI();
-                    showFloatingText('AUTO-PLAY PAUSED FOR YOUR TURN', null, null, '#38bdf8');
+                    showFloatingText('⏸️ AUTO-PLAY PAUSED FOR YOUR TURN', null, null, '#38bdf8');
                 }
             }
 
@@ -2785,13 +2796,15 @@
                 let bought = false;
                 const res = G.resources[team];
                 if (!res) break;
-                const bed = bedOf(team);
-                if (bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) bought = buyItem(mine[0], 'obsidian');
-                if (!bought) {
-                    const teamBlocks = G.pieces.filter(p => p.team === team).reduce((s, p) => s + p.blocks, 0);
-                    const raider = mine.find(p => p.blocks === 0);
-                    if (raider && teamBlocks < 8 && res.iron >= WOOL_COST) bought = buyItem(raider, 'wool');
+
+                // Ensure AI buys wool whenever it has >= 4 iron and piece carries less than 4 wool
+                const lowWoolPiece = G.pieces.find(p => p.team === team && p.blocks < 4);
+                if (lowWoolPiece && inBase(lowWoolPiece) && res.iron >= WOOL_COST) {
+                    bought = buyItem(lowWoolPiece, 'wool');
                 }
+
+                const bed = bedOf(team);
+                if (!bought && bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) bought = buyItem(mine[0], 'obsidian');
                 if (!bought) {
                     const order = mine.slice().sort((a, b) => getAtk(b) - getAtk(a));
                     for (const p of order) { if (buyItem(p, 'sword') || buyItem(p, 'armor')) { bought = true; break; } }
@@ -2818,7 +2831,7 @@
 
                 ghosts.forEach(g => {
                     const d = cheb(g, target);
-                    if (d < bestDist) {
+                    if (d <= bestDist) {
                         bestDist = d;
                         bestGhost = g;
                     }
@@ -2836,22 +2849,26 @@
 
             if (attackTarget) {
                 score += 80 + getAtk(attackTarget) * 5;
-                if (attackTarget.type === 'bed') score += 250;
-                if (attackTarget.type === 'k') score += 200;
+                if (attackTarget.type === 'bed') score += 180;
+                if (attackTarget.type === 'k') score += 120;
                 if (attackTarget.type === 'guardian') score += 110;
                 score += Math.max(0, 15 - attackTarget.hp) * 4;
             } else if (move) {
-                if (target) score += (cheb(piece, target) - cheb(move, target)) * 12;
+                if (target) {
+                    const currD = cheb(piece, target);
+                    const nextD = cheb(move, target);
+                    score += (currD - nextD) * 15; // Reward moving closer to target
+                }
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
                 if (move.isCastle) score += 50;
-                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 30;
+                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
             }
 
-            // Move Oscillation Loop Prevention Penalty (-120 pts per match)
+            // HEAVY LOOP PREVENTION PENALTY (-200 pts per repeat)
             if (move && piece.moveHistory && piece.moveHistory.length > 0) {
                 const matches = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
                 if (matches > 0) {
-                    score -= (matches * 120 * (aiLevel / 10));
+                    score -= (matches * 200 * (aiLevel / 10));
                 }
             }
 
@@ -3247,6 +3264,12 @@
             else if (preset === 'top') camera.position.set(0, 50 * S, 0.1);
             else if (preset === 'iso') camera.position.set(30 * S, 30 * S, 30 * S);
             controls.target.set(0, 0, 0);
+        }
+
+        function resetCamera() {
+            controls.target.set(0, 0, 0);
+            setCameraPreset('orbit');
+            playSound('click');
         }
 
         function resetMatchState() {
