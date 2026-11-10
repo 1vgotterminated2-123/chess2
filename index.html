@@ -133,7 +133,9 @@
           <button onclick="signInWithGoogle()" class="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-center gap-3">
             <span class="text-lg font-black">G</span> Continue with Google
           </button>
-          <p class="text-[10px] text-slate-500 text-center mt-3">Accounts use Firebase Authentication. Your public profile and ratings are stored in Firestore.</p>
+          <button id="anonymous-signin-button" type="button" onclick="playAnonymously()" class="w-full mt-2 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 border border-cyan-500/40 text-cyan-200 font-bold text-sm">👤 Play Anonymously</button>
+          <p class="text-[10px] text-slate-500 text-center mt-3">Anonymous play creates a guest profile for this browser. Clearing browser data can lose access; it is not a permanent cross-device account.</p>
+          <p class="text-[10px] text-slate-500 text-center mt-2">Accounts use Firebase Authentication. Your public profile and ratings are stored in Firestore.</p>
         </div>
         <div id="google-username-panel" class="hidden space-y-3">
           <h3 class="font-orbitron text-sm text-emerald-300 text-center">CHOOSE YOUR USERNAME</h3>
@@ -4008,7 +4010,7 @@
             const call = firebaseFunctions.httpsCallable('createProfile');
             const result = await call({ username });
             const profile = result.data?.profile || (await firestoreDB.doc('users/' + user.uid).get()).data();
-            if (!profile) throw new Error('Firebase profile was not returned. Deploy the createProfile function.');
+            if (!profile) throw new Error('Your Firebase login was created, but your player profile was not returned. Deploy the createProfile Cloud Function, then sign in again to finish setup.');
             renderCloudProfile(profile, user);
         }
 
@@ -4050,7 +4052,12 @@
                     'auth/invalid-credential': 'Email or password is incorrect.',
                     'functions/not-found': 'The Firebase createProfile function is not deployed yet.'
                 };
-                accountStatus(messages[err.code] || err.message || 'Authentication failed.', true);
+                const detail = messages[err.code] || err.message || 'Authentication failed.';
+                if (accountTab === 'signup' && firebaseAuth && firebaseAuth.currentUser) {
+                    accountStatus('Your Firebase login was created, but player-profile setup failed. Do NOT create another account. Switch to SIGN IN with this same email/password; the game will let you finish your username/profile. Details: ' + detail, true);
+                } else {
+                    accountStatus(detail, true);
+                }
             }
         });
 
@@ -4073,6 +4080,34 @@
             } catch (err) {
                 console.error(err);
                 accountStatus(err.message || 'Google sign-in failed.', true);
+            }
+        }
+
+        async function playAnonymously() {
+            if (!initFirebase()) return;
+            const button = $('anonymous-signin-button');
+            if (button) { button.disabled = true; button.textContent = 'CREATING GUEST...'; }
+            try {
+                // Firebase must have Authentication > Sign-in method > Anonymous enabled.
+                const credential = await firebaseAuth.signInAnonymously();
+                const guestName = 'Guest_' + Math.random().toString(36).slice(2, 8).toUpperCase();
+                await ensureCloudProfile(credential.user, guestName);
+                if (currentAccount) {
+                    currentAccount.isAnonymous = true;
+                    $('account-current-name').textContent = currentAccount.username + ' (GUEST)';
+                    $('account-email-display').textContent = 'Temporary guest account • this browser';
+                }
+                accountStatus('Guest profile ready! Have fun playing.');
+            } catch (err) {
+                console.error('Anonymous sign-in/profile setup failed:', err);
+                const messages = {
+                    'auth/operation-not-allowed': 'Anonymous sign-in is not enabled yet. In Firebase Console, open Authentication → Sign-in method → Anonymous → Enable, then try again.',
+                    'functions/not-found': 'Your guest login was created, but the createProfile Cloud Function is missing. Deploy the Firebase Functions, then refresh and choose Play Anonymously again.',
+                    'permission-denied': 'Your guest login was created, but Firestore denied profile access. Check the deployed createProfile function and Firestore rules.'
+                };
+                accountStatus(messages[err.code] || ('Guest login could not finish: ' + (err.message || err)), true);
+            } finally {
+                if (button) { button.disabled = false; button.textContent = '👤 Play Anonymously'; }
             }
         }
 
