@@ -3224,50 +3224,26 @@
             return G.teams.find(t => t !== team) || 'white';
         }
 
-        // INTERMEDIATE WAYPOINT RESOLVER FOR SQUAD MAPS
+        // Stable squad routing: keep each unit focused on one enemy objective.
+        // Dynamically swapping between nearby generators caused units to orbit their base.
         function getSquadWaypoint(piece, finalTarget) {
             if (!finalTarget) return { x: 0, z: 0 };
-            const distToFinal = cheb(piece, finalTarget);
-            
-            // If close enough to final target, aim directly
-            if (distToFinal <= 5) return finalTarget;
+            return { x: finalTarget.x, z: finalTarget.z };
+        }
 
-            // Collect available map waypoints (Diamond Generators & Center Emerald Generator)
-            const waypoints = [];
-            
-            // 1. Center Emerald Altar (0, 0)
-            const centerGen = G.gens.find(g => g.type === 'em') || { x: 0, z: 0 };
-            waypoints.push({ x: centerGen.x, z: centerGen.z, weight: 1.5 });
-
-            // 2. Diamond Generators (side islands)
-            G.gens.filter(g => g.type === 'dia').forEach(g => {
-                waypoints.push({ x: g.x, z: g.z, weight: 1.2 });
-            });
-
-            // 3. Enemy Base approach points
-            const enemyBed = G.pieces.find(p => p.team !== piece.team && p.team !== 'neutral' && p.type === 'bed');
-            if (enemyBed) {
-                waypoints.push({ x: enemyBed.x, z: enemyBed.z, weight: 2.0 });
+        function nearestEnemyObjective(piece) {
+            const enemies = G.teams.filter(t => t !== piece.team);
+            const beds = G.pieces.filter(p => enemies.includes(p.team) && p.type === 'bed');
+            const kings = G.pieces.filter(p => enemies.includes(p.team) && p.type === 'k');
+            const candidates = beds.length ? beds : (kings.length ? kings : G.pieces.filter(p => enemies.includes(p.team) && p.type !== 'bed'));
+            if (!candidates.length) return null;
+            // Keep attacking the same enemy team until its objective is gone.
+            let target = candidates.find(p => p.team === piece.aiObjectiveTeam);
+            if (!target) {
+                target = candidates.slice().sort((a, b) => cheb(piece, a) - cheb(piece, b))[0];
+                if (target) piece.aiObjectiveTeam = target.team;
             }
-
-            // Find best stepping-stone waypoint closer to target than current position
-            let bestWp = finalTarget;
-            let bestScore = Infinity;
-
-            waypoints.forEach(wp => {
-                const distFromPiece = cheb(piece, wp);
-                const distToTarget = cheb(wp, finalTarget);
-                // Prefer waypoints that make forward progress
-                if (distToTarget < distToFinal) {
-                    const score = distFromPiece + (distToTarget * 0.8) / wp.weight;
-                    if (score < bestScore) {
-                        bestScore = score;
-                        bestWp = wp;
-                    }
-                }
-            });
-
-            return bestWp;
+            return target || null;
         }
 
         function aiTarget(piece) {
@@ -3287,17 +3263,8 @@
                 if (best) return best;
             }
 
-            let primaryTarget = null;
-            if (role === 'RUSH') {
-                primaryTarget = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
-            }
-
-            if (!primaryTarget) {
-                primaryTarget = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'k')
-                             || G.pieces.find(p => p.team !== team && p.team !== 'neutral');
-            }
-
-            // Return intermediate squad waypoint to prevent corner-huddling
+            const primaryTarget = nearestEnemyObjective(piece);
+            // Aim directly at a stable enemy objective. Bridge planning handles void gaps.
             return getSquadWaypoint(piece, primaryTarget);
         }
 
@@ -3383,7 +3350,7 @@
 
                     // Queen & Major Piece Aimless Base Shuffling Penalty (-150 pts)
                     if ((piece.type === 'q' || piece.type === 'r' || piece.type === 'b') && inBase(piece) && distDiff <= 0) {
-                        score -= 150;
+                        score -= 350;
                     }
                 }
 
@@ -3391,12 +3358,12 @@
                 const wasInBase = isPosInBase(piece.x, piece.z, piece.team);
                 const willBeInBase = isPosInBase(move.x, move.z, piece.team);
                 if (wasInBase && !willBeInBase && role !== 'GUARD' && role !== 'CLUTCH_DEFEND') {
-                    score += 90;
+                    score += 260;
                 }
 
                 // Non-guard unit in-base idle movement penalty (-50 pts)
                 if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && inBase(piece) && willBeInBase) {
-                    score -= 50;
+                    score -= 220;
                 }
 
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
@@ -3409,7 +3376,7 @@
                 const recentMoves = piece.moveHistory.slice(-6);
                 const repeats = recentMoves.filter(h => h.x === move.x && h.z === move.z).length;
                 if (repeats > 0) {
-                    score -= (repeats * 300 * (aiLevel / 10));
+                    score -= (repeats * 700 * (aiLevel / 10));
                 }
             }
 
