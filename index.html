@@ -419,14 +419,12 @@
                                 <option value="public">Public — listed for everyone</option><option value="private">Private — code only</option>
                             </select>
                         </label>
-                        <label class="space-y-1 text-[10px] text-slate-400">PLAYER LIMIT
-                            <select id="online-max-players" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
-                                <option value="2">2 Players</option><option value="4">4 Players</option><option value="8" selected>8 Players</option>
-                            </select>
-                        </label>
+                        <div class="space-y-1 text-[10px] text-slate-400">PLAYER COUNT
+                            <div id="online-player-count" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-cyan-200 px-3 py-2.5 text-xs font-bold">2 PLAYERS</div>
+                        </div>
                     </div>
                     <p id="online-visibility-hint" class="text-[10px] text-slate-400">Public rooms appear in the browser below. Anyone signed in can join while the room is waiting.</p>
-                    <button onclick="createLobby()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-700 hover:from-cyan-500 hover:to-purple-600 text-white font-orbitron font-black text-xs"><i class="fa-solid fa-plus mr-2"></i>CREATE ROOM</button>
+                    <button id="create-lobby-button" onclick="createLobby()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-700 hover:from-cyan-500 hover:to-purple-600 text-white font-orbitron font-black text-xs"><i class="fa-solid fa-plus mr-2"></i>CREATE ROOM</button>
                     <div class="border-t border-slate-800 pt-3 space-y-2">
                         <div class="text-[10px] text-slate-400 font-mono">JOIN A PRIVATE ROOM BY CODE</div>
                         <div class="flex gap-2"><input id="lobby-join-code" maxlength="6" autocomplete="off" placeholder="6-CHAR CODE" class="min-w-0 flex-1 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2.5 text-center font-mono tracking-[0.2em] text-white uppercase outline-none focus:border-purple-400"><button onclick="joinLobbyByCode()" class="px-4 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold">JOIN</button></div>
@@ -447,8 +445,9 @@
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-2"><span id="lobby-status-badge" class="text-[9px] rounded-full px-2 py-1 bg-slate-900 border border-slate-700 text-slate-300">WAITING</span><span id="lobby-message" class="text-[10px] text-slate-400" role="status">Waiting for players...</span></div>
                 <div><div class="text-[10px] text-slate-400 font-mono mb-2">PLAYERS IN ROOM</div><div id="lobby-player-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div></div>
-                <div class="flex flex-wrap gap-2"><button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button><button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button></div>
-                <p class="text-[10px] text-amber-300/80">This page currently handles room discovery, settings, membership and ready status. Synchronized board gameplay still needs to be implemented separately.</p>
+                <div class="flex flex-wrap gap-2"><button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button><button id="lobby-start-button" onclick="startLobbyWithAIs()" class="hidden px-4 py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold">START MATCH</button><button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button></div>
+                <p id="lobby-ai-info" class="text-[10px] text-slate-400">All human players must be ready before the host can start.</p>
+                <p class="text-[10px] text-amber-300/80">Starting records AI fill-ins and their Elo-scaled difficulty in the room. Live synchronized board moves between different browsers are a separate multiplayer feature and are not implemented yet.</p>
             </section>
             <div id="lobby-feedback" class="text-xs text-slate-400 min-h-5" role="status" aria-live="polite"></div>
         </div>
@@ -4038,6 +4037,8 @@
         let activeLobbyCode = null;
         let activeLobbyIsHost = false;
         let activeLobbyReady = false;
+        let activeLobbyPlayers = [];
+        let activeLobbyStartBusy = false;
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -4129,6 +4130,7 @@
                     ? { classic: 300, draft: 300, bedwars: 300 }
                     : { classic: profile.ratings?.classic ?? 300, draft: profile.ratings?.draft ?? 300, bedwars: profile.ratings?.bedwars ?? 300 },
                 createdAt: profile.createdAt || null,
+                activeLobbyCode: profile.activeLobbyCode || null,
                 provider: user.providerData?.[0]?.providerId || 'password'
             };
             $('account-auth-panel').classList.add('hidden');
@@ -4181,7 +4183,8 @@
                     username: username,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     ratings: { classic: 300, draft: 300, bedwars: 300 },
-                    settings: collectSettings()
+                    settings: collectSettings(),
+                    activeLobbyCode: null
                 };
 
                 transaction.set(usernameRef, { uid: user.uid, username: username });
@@ -4358,6 +4361,8 @@
                 quadOption.disabled = false;
             }
             const teamFormat = teamSelect.value;
+            const countEl = $('online-player-count');
+            if (countEl) countEl.textContent = (mode === 'bedwars' && teamFormat === '4-team' ? '4 PLAYERS' : '2 PLAYERS');
             const select = $('online-map');
             if (!select) return;
             const maps = MAP_CATALOG.filter(m => isMapAllowed(m.id, mode, teamFormat));
@@ -4413,36 +4418,80 @@
         function renderLobbyPlayers(snapshot) {
             const list = $('lobby-player-list'); if (!list) return;
             list.innerHTML = '';
+            activeLobbyPlayers = [];
             snapshot.forEach(doc => {
-                const player = doc.data();
+                const player = doc.data(); activeLobbyPlayers.push({ uid: doc.id, ...player });
+                if (firebaseAuth && firebaseAuth.currentUser && doc.id === firebaseAuth.currentUser.uid) {
+                    activeLobbyReady = player.ready === true;
+                    const readyButton = $('lobby-ready-button');
+                    if (readyButton) readyButton.textContent = activeLobbyReady ? 'NOT READY' : "I'M READY";
+                }
                 const row = document.createElement('div'); row.className = 'flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-xs';
                 const name = document.createElement('span'); name.className = 'text-slate-200 font-bold'; name.textContent = (player.username || 'Player') + (doc.id === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
                 const state = document.createElement('span'); state.className = player.ready ? 'text-emerald-300' : 'text-amber-300'; state.textContent = player.ready ? 'READY' : 'NOT READY';
                 row.append(name, state); list.appendChild(row);
             });
-            if (!snapshot.size) list.textContent = 'No players found.';
-            if (activeLobbyRoomData) activeLobbyRoomData.playerCount = snapshot.size;
+            const aiPlayers = (activeLobbyRoomData && activeLobbyRoomData.aiPlayers) || [];
+            aiPlayers.forEach(ai => {
+                const row = document.createElement('div'); row.className = 'flex items-center justify-between rounded-lg bg-purple-950/50 border border-purple-500/20 px-3 py-2 text-xs';
+                const name = document.createElement('span'); name.className = 'text-purple-200 font-bold'; name.textContent = ai.name || 'AI Opponent';
+                const level = document.createElement('span'); level.className = 'text-purple-300'; level.textContent = 'AI LEVEL ' + ai.level;
+                row.append(name, level); list.appendChild(row);
+            });
+            if (!snapshot.size && !aiPlayers.length) list.textContent = 'No players found.';
+            const allReady = activeLobbyPlayers.length > 0 && activeLobbyPlayers.every(p => p.ready === true);
+            const startBtn = $('lobby-start-button');
+            if (startBtn) {
+                const canStart = activeLobbyIsHost && activeLobbyRoomData && activeLobbyRoomData.status === 'waiting' && allReady;
+                startBtn.classList.toggle('hidden', !activeLobbyIsHost);
+                startBtn.disabled = !canStart || activeLobbyStartBusy;
+                startBtn.classList.toggle('opacity-40', startBtn.disabled);
+                startBtn.textContent = activeLobbyStartBusy ? 'STARTING...' : 'START MATCH';
+            }
+            const readyBtn = $('lobby-ready-button');
+            if (readyBtn) readyBtn.disabled = !!(activeLobbyRoomData && activeLobbyRoomData.status !== 'waiting');
+            const aiInfo = $('lobby-ai-info');
+            if (aiInfo && activeLobbyRoomData) {
+                const cap = Number(activeLobbyRoomData.maxPlayers || 2);
+                aiInfo.textContent = activeLobbyRoomData.status === 'started'
+                    ? 'Match started • ' + aiPlayers.length + ' AI fill-in(s) • AI difficulty is based on the real players’ average Elo.'
+                    : allReady ? 'Everyone is ready. The host can start now; any empty seats will be filled by Elo-scaled AIs (' + Math.max(0, cap - activeLobbyPlayers.length) + ' possible).'
+                    : 'All human players must be ready before the host can start.';
+            }
         }
         function watchLobby(code) {
             stopLobbyListeners(); activeLobbyCode = code;
+            if (currentAccount) currentAccount.activeLobbyCode = code;
+            const createButton = $('create-lobby-button'); if (createButton) { createButton.disabled = true; createButton.classList.add('opacity-40'); createButton.textContent = 'ALREADY IN A ROOM'; }
             $('lobby-room-panel').classList.remove('hidden');
             $('lobby-room-code').textContent = code;
             $('lobby-status-badge').textContent = 'IN ROOM';
             const roomRef = firestoreDB.collection('lobbies').doc(code);
             lobbyUnsubscribe = roomRef.onSnapshot(doc => {
-                if (!doc.exists) { setLobbyStatus('This room was closed by its host.', true); resetLobbyUI(); return; }
+                if (!doc.exists) {
+                    setLobbyStatus('This room was closed by its host.', true);
+                    if (currentAccount) currentAccount.activeLobbyCode = null;
+                    if (firebaseAuth && firebaseAuth.currentUser) firestoreDB.doc('users/' + firebaseAuth.currentUser.uid).update({ activeLobbyCode: null }).catch(() => {});
+                    resetLobbyUI(); return;
+                }
                 activeLobbyRoomData = doc.data();
                 const room = activeLobbyRoomData;
                 $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : String(room.status || 'WAITING').toUpperCase();
+                if (room.status === 'started') setLobbyStatus('Match started with ' + ((room.aiPlayers || []).length) + ' AI fill-in(s).');
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard Chess 2', commander: 'Commander Draft' };
                 $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • Host: ' + (room.hostName || 'Player');
                 setLobbyStatus('Room is open. Share the code with friends or get ready.');
             }, err => setLobbyStatus('Lobby update failed: ' + err.message, true));
             lobbyPlayersUnsubscribe = roomRef.collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
         }
+        function currentLobbyElo(mode) {
+            const key = mode === 'bedwars' ? 'bedwars' : (mode === 'commander' ? 'draft' : 'classic');
+            return { elo: Number(currentAccount && currentAccount.ratings && currentAccount.ratings[key] || 300), eloType: key };
+        }
         async function createLobby() {
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before creating a room.', true);
             if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
+            if (activeLobbyCode) return setLobbyStatus('You are already in a room. Leave it before creating another.', true);
             try {
                 const mode = $('online-mode').value;
                 const teamFormat = $('online-team-format').value;
@@ -4450,25 +4499,27 @@
                 const map = mapById(mapId);
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
-                const maxPlayers = Number($('online-max-players').value);
-                let code = lobbyCode();
-                let roomRef = firestoreDB.collection('lobbies').doc(code);
-                for (let i = 0; i < 8 && (await roomRef.get()).exists; i++) { code = lobbyCode(); roomRef = firestoreDB.collection('lobbies').doc(code); }
-                if ((await roomRef.get()).exists) throw new Error('Could not generate a unique room code. Try again.');
+                const maxPlayers = mode === 'bedwars' && teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
+                const userRef = firestoreDB.doc('users/' + user.uid);
+                const code = lobbyCode();
+                const roomRef = firestoreDB.collection('lobbies').doc(code);
                 const playerRef = roomRef.collection('players').doc(user.uid);
-                await roomRef.set({
-                    code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
-                    visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                await firestoreDB.runTransaction(async tx => {
+                    const profileSnap = await tx.get(userRef);
+                    const roomSnap = await tx.get(roomRef);
+                    if (!profileSnap.exists) throw new Error('Your player profile is missing. Sign out and sign back in.');
+                    if (profileSnap.data().activeLobbyCode) throw new Error('You are already in room ' + profileSnap.data().activeLobbyCode + '. Leave it first.');
+                    if (roomSnap.exists) throw new Error('Room code collision. Please try again.');
+                    tx.set(roomRef, {
+                        code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
+                        visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
+                        aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.update(userRef, { activeLobbyCode: code });
                 });
-                try {
-                    await playerRef.set({ uid: user.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                } catch (playerError) {
-                    await roomRef.delete().catch(() => {});
-                    throw playerError;
-                }
-                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username };
+                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, status: 'waiting' };
                 watchLobby(code);
                 setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
@@ -4483,31 +4534,40 @@
         async function joinLobbyCode(code) {
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before joining a room.', true);
             if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
+            if (activeLobbyCode) return setLobbyStatus('You are already in a room. Leave it before joining another.', true);
             code = String(code || '').trim().toUpperCase();
             if (!/^[A-Z0-9]{6}$/.test(code)) return setLobbyStatus('Enter the 6-character room code.', true);
             try {
                 const user = firebaseAuth.currentUser;
+                const userRef = firestoreDB.doc('users/' + user.uid);
                 const roomRef = firestoreDB.collection('lobbies').doc(code);
-                const roomSnap = await roomRef.get();
-                if (!roomSnap.exists) return setLobbyStatus('Room not found. Check the code and try again.', true);
-                const room = roomSnap.data();
-                if (room.status !== 'waiting') return setLobbyStatus('This room is no longer accepting players.', true);
                 const playerRef = roomRef.collection('players').doc(user.uid);
-                const existingPlayer = await playerRef.get();
-                const players = await roomRef.collection('players').get();
-                const maxPlayers = Number(room.maxPlayers || 8);
-                if (!existingPlayer.exists && players.size >= maxPlayers) return setLobbyStatus('This room is full (' + maxPlayers + ' players max).', true);
-                const playerData = { uid: user.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() };
-                // Rejoining an existing player document uses update(), not set(), so Firestore rules can explicitly permit it.
-                if (existingPlayer.exists) await playerRef.update({ username: playerData.username, ready: false, joinedAt: playerData.joinedAt });
-                else await playerRef.set(playerData);
+                let room;
+                await firestoreDB.runTransaction(async tx => {
+                    const profileSnap = await tx.get(userRef);
+                    const roomSnap = await tx.get(roomRef);
+                    const playerSnap = await tx.get(playerRef);
+                    if (!profileSnap.exists) throw new Error('Your player profile is missing. Sign out and sign back in.');
+                    const currentRoom = profileSnap.data().activeLobbyCode;
+                    if (currentRoom && currentRoom !== code) throw new Error('You are already in room ' + currentRoom + '. Leave it before joining another.');
+                    if (!roomSnap.exists) throw new Error('Room not found. Check the code and try again.');
+                    room = roomSnap.data();
+                    if (room.status !== 'waiting') throw new Error('This room is no longer accepting players.');
+                    const cap = Number(room.maxPlayers || 2);
+                    const playersQuery = roomRef.collection('players');
+                    const playerQuerySnap = await tx.get(playersQuery);
+                    if (!playerSnap.exists && playerQuerySnap.size >= cap) throw new Error('This room is full (' + cap + ' players max).');
+                    if (playerSnap.exists) tx.update(playerRef, { username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    else tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.update(userRef, { activeLobbyCode: code });
+                });
                 activeLobbyIsHost = room.hostUid === user.uid; activeLobbyReady = false; activeLobbyRoomData = room;
                 watchLobby(code);
                 setLobbyStatus('Joined ' + (room.visibility === 'private' ? 'private' : 'public') + ' room successfully.');
             } catch (err) {
                 console.error('Join room failed:', err);
                 const msg = err.code === 'permission-denied'
-                    ? 'Firestore denied the join. Publish the updated lobby rules from the new rules file, then try again.'
+                    ? 'Firestore denied the join. Publish the newest Firestore rules file, including activeLobbyCode permissions.'
                     : 'Could not join room: ' + err.message;
                 setLobbyStatus(msg, true);
             }
@@ -4521,6 +4581,44 @@
                 $('lobby-ready-button').textContent = activeLobbyReady ? 'NOT READY' : "I'M READY";
             } catch (err) { setLobbyStatus('Could not update ready status: ' + err.message, true); }
         }
+        function eloForLobbyPlayer() {
+            const room = activeLobbyRoomData || {};
+            const key = room.mode === 'bedwars' ? 'bedwars' : (room.mode === 'commander' ? 'draft' : 'classic');
+            return Math.max(100, Number(currentAccount && currentAccount.ratings && currentAccount.ratings[key] || 300));
+        }
+        function aiLevelFromAverageElo(averageElo) {
+            // Approximate mapping: 300 Elo -> level 6; 1000 -> level 20; capped to the game's 1–50 AI scale.
+            return Math.max(1, Math.min(50, Math.round(averageElo / 50)));
+        }
+        async function startLobbyWithAIs() {
+            if (!activeLobbyCode || !activeLobbyIsHost || activeLobbyStartBusy) return;
+            activeLobbyStartBusy = true;
+            const roomRef = firestoreDB.collection('lobbies').doc(activeLobbyCode);
+            try {
+                await firestoreDB.runTransaction(async tx => {
+                    const roomSnap = await tx.get(roomRef);
+                    const playersSnap = await tx.get(roomRef.collection('players'));
+                    if (!roomSnap.exists || roomSnap.data().status !== 'waiting') throw new Error('This room is no longer waiting.');
+                    const room = roomSnap.data();
+                    const humans = [];
+                    playersSnap.forEach(d => humans.push({ uid: d.id, ...d.data() }));
+                    if (!humans.length || !humans.every(p => p.ready === true)) throw new Error('Every human player must be ready first.');
+                    const capacity = Number(room.maxPlayers || 2);
+                    if (humans.length > capacity) throw new Error('The room has more players than its allowed capacity.');
+                    const key = room.mode === 'bedwars' ? 'bedwars' : (room.mode === 'commander' ? 'draft' : 'classic');
+                    const elos = humans.map(p => Number(p.eloType === key && p.elo ? p.elo : 300));
+                    const averageElo = elos.reduce((a,b) => a+b, 0) / elos.length;
+                    const level = aiLevelFromAverageElo(averageElo);
+                    const aiPlayers = Array.from({ length: capacity - humans.length }, (_, i) => ({
+                        id: 'ai_' + (i + 1), name: 'AI Opponent ' + (i + 1), level,
+                        basedOnAverageElo: Math.round(averageElo), ratingType: key
+                    }));
+                    tx.update(roomRef, { status: 'started', aiPlayers, startedAt: firebase.firestore.FieldValue.serverTimestamp(), startedBy: firebaseAuth.currentUser.uid });
+                });
+                setLobbyStatus('Room started. Empty seats were filled with AI opponents scaled to the average real-player Elo.');
+            } catch (err) { setLobbyStatus('Could not start match: ' + err.message, true); }
+            finally { activeLobbyStartBusy = false; }
+        }
         function copyLobbyCode() {
             if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true));
         }
@@ -4528,18 +4626,29 @@
             stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null;
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
             const ready = $('lobby-ready-button'); if (ready) ready.textContent = "I'M READY";
+            activeLobbyPlayers = [];
+            const start = $('lobby-start-button'); if (start) start.classList.add('hidden');
+            const createButton = $('create-lobby-button'); if (createButton) { createButton.disabled = false; createButton.classList.remove('opacity-40'); createButton.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>CREATE ROOM'; }
         }
         async function leaveLobby() {
             if (!activeLobbyCode || !firebaseAuth || !firebaseAuth.currentUser) return;
-            const code = activeLobbyCode; const roomRef = firestoreDB.collection('lobbies').doc(code);
+            const code = activeLobbyCode; const user = firebaseAuth.currentUser;
+            const roomRef = firestoreDB.collection('lobbies').doc(code);
+            const userRef = firestoreDB.doc('users/' + user.uid);
             try {
+                const batch = firestoreDB.batch();
                 if (activeLobbyIsHost) {
                     const players = await roomRef.collection('players').get();
-                    const batch = firestoreDB.batch(); players.forEach(d => batch.delete(d.ref)); batch.delete(roomRef); await batch.commit();
+                    players.forEach(d => batch.delete(d.ref));
+                    batch.delete(roomRef);
                 } else {
-                    await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).delete();
+                    batch.delete(roomRef.collection('players').doc(user.uid));
                 }
+                batch.update(userRef, { activeLobbyCode: null });
+                await batch.commit();
+                if (currentAccount) currentAccount.activeLobbyCode = null;
                 resetLobbyUI(); setLobbyStatus('You left the room.');
+                refreshPublicLobbyList();
             } catch (err) { setLobbyStatus('Could not leave room: ' + err.message, true); }
         }
 
@@ -4570,6 +4679,28 @@
             accountStatus('Signed out.');
         }
 
+        async function restoreActiveLobbyFromProfile(profile, user) {
+            const code = profile && profile.activeLobbyCode;
+            if (!code) return;
+            try {
+                const roomRef = firestoreDB.collection('lobbies').doc(code);
+                const roomSnap = await roomRef.get();
+                const playerSnap = await roomRef.collection('players').doc(user.uid).get();
+                if (!roomSnap.exists || !playerSnap.exists) {
+                    await firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }).catch(() => {});
+                    if (currentAccount) currentAccount.activeLobbyCode = null;
+                    return;
+                }
+                activeLobbyIsHost = roomSnap.data().hostUid === user.uid;
+                activeLobbyReady = !!playerSnap.data().ready;
+                activeLobbyRoomData = roomSnap.data();
+                watchLobby(code);
+                $('main-menu').classList.add('hidden');
+                $('online-multiplayer-page').classList.remove('hidden');
+                refreshPublicLobbyList();
+            } catch (err) { console.warn('Could not restore active room:', err); }
+        }
+
         async function restoreAccountSession() {
             if (!initFirebase()) return;
             firebaseAuth.onAuthStateChanged(async user => {
@@ -4584,6 +4715,7 @@
                         renderCloudProfile(snap.data(), user);
                         $('account-gate').classList.add('hidden');
                         $('main-menu').classList.remove('hidden');
+                        await restoreActiveLobbyFromProfile(snap.data(), user);
                     } else {
                         pendingGoogleUser = user;
                         $('account-gate').classList.remove('hidden');
