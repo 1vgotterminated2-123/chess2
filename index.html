@@ -454,6 +454,19 @@
     </div>
 
     <!-- PLAYER PROFILE PAGE -->
+    <div id="guest-account-required-modal" class="fixed inset-0 z-[120] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+        <div class="glass-panel max-w-sm w-full rounded-2xl border border-cyan-500/40 p-5 text-center shadow-2xl">
+            <div class="text-3xl mb-2">👤</div>
+            <h3 class="font-orbitron text-lg font-black text-cyan-200">ACCOUNT REQUIRED</h3>
+            <p class="text-xs text-slate-300 mt-2">You are playing with a temporary anonymous account. Create an account or sign in to use <strong id="guest-account-required-feature">this feature</strong>.</p>
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button onclick="continueToPermanentAccount('signup')" class="py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold">CREATE ACCOUNT</button>
+                <button onclick="continueToPermanentAccount('login')" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold">SIGN IN</button>
+            </div>
+            <button onclick="closeGuestAccountRequired()" class="mt-3 text-[11px] text-slate-400 hover:text-white">NOT NOW</button>
+        </div>
+    </div>
+
     <div id="player-profile-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
         <div class="glass-panel w-full max-w-lg rounded-3xl border-cyan-500/40 p-6 shadow-2xl space-y-5">
             <div class="flex items-center justify-between"><div><div class="text-[10px] text-cyan-400 font-mono tracking-widest">CHESS 2 PLAYER CARD</div><h2 class="font-orbitron text-xl font-black text-white">MY PROFILE</h2></div><button onclick="closePlayerProfile()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300">✕</button></div>
@@ -575,6 +588,15 @@
             </div>
             <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700">
                 <div id="inspector-hp-bar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full w-[100%] transition-all"></div>
+            </div>
+            <div id="inspector-bed-shield" class="hidden space-y-1">
+                <div class="flex justify-between items-center text-[10px] text-purple-200 font-mono">
+                    <span>🪨 OBSIDIAN SHIELD HP</span>
+                    <span id="inspector-bed-shield-text" class="font-bold text-purple-300">0 / 80 SHIELD</span>
+                </div>
+                <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-purple-900">
+                    <div id="inspector-bed-shield-bar" class="bg-gradient-to-r from-purple-700 to-fuchsia-400 h-full w-0 transition-all"></div>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
@@ -708,10 +730,11 @@
             <!-- Interactive Stepper Controls -->
             <div class="flex items-center justify-between bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 text-xs font-mono mb-2">
                 <div class="flex items-center gap-1.5">
-                    <button onclick="analysisStepFirst()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏮ FIRST</button>
+                    <button onclick="analysisStepFirst()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏮ START</button>
                     <button onclick="analysisStepPrev()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">◀ PREV</button>
+                    <button id="btn-analysis-play" onclick="toggleAnalysisPlayback()" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-bold transition"><i class="fa-solid fa-play mr-1"></i> PLAY</button>
                     <button onclick="analysisStepNext()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">NEXT ▶</button>
-                    <button onclick="analysisStepLatest()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏭ LATEST</button>
+                    <button onclick="analysisStepLatest()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏭ END</button>
                 </div>
                 <div class="text-slate-300 text-[11px]">
                     MOVE: <strong id="analysis-step-idx" class="text-amber-400 font-bold">0 / 0</strong>
@@ -838,6 +861,47 @@
                 <button id="btn-transfer-em" onclick="transferEmeraldToPiece()" class="px-3 py-1 rounded-xl bg-emerald-950 border border-emerald-500 hover:bg-emerald-900 text-emerald-300 font-orbitron font-bold text-[10px] uppercase transition">
                     📥 GIVE 1 TEAM EM TO PIECE
                 </button>
+            </div>
+
+            <div id="shop-team-upgrades" class="mb-3 p-3 rounded-2xl border border-sky-700/60 bg-sky-950/30 text-left">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-orbitron text-xs font-bold text-sky-300">💎 TEAM DIAMOND UPGRADES</h4>
+                    <span class="text-[9px] text-slate-400">TEAM-WIDE • PERMANENT</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div class="rounded-xl bg-slate-900/90 p-2 border border-slate-800">
+                        <div class="text-[11px] font-bold text-rose-300">⚔️ Sharpened Blades</div>
+                        <p id="shop-upgrade-sharpness-desc" class="text-[9px] text-slate-400">+1 team ATK per level</p>
+                        <button id="btn-upgrade-sharpness" onclick="buyTeamUpgrade('sharpness')" class="w-full mt-1 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-[10px] font-bold">UPGRADE</button>
+                    </div>
+                    <div class="rounded-xl bg-slate-900/90 p-2 border border-slate-800">
+                        <div class="text-[11px] font-bold text-blue-300">🛡️ Reinforced Armor</div>
+                        <p id="shop-upgrade-protection-desc" class="text-[9px] text-slate-400">+1 team DEF per level</p>
+                        <button id="btn-upgrade-protection" onclick="buyTeamUpgrade('protection')" class="w-full mt-1 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-[10px] font-bold">UPGRADE</button>
+                    </div>
+                    <div class="rounded-xl bg-slate-900/90 p-2 border border-slate-800">
+                        <div class="text-[11px] font-bold text-amber-300">🔥 Team Forge</div>
+                        <p id="shop-upgrade-forge-desc" class="text-[9px] text-slate-400">+1 bonus iron per turn per level</p>
+                        <button id="btn-upgrade-forge" onclick="buyTeamUpgrade('forge')" class="w-full mt-1 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-[10px] font-bold">UPGRADE</button>
+                    </div>
+                    <div class="rounded-xl bg-slate-900/90 p-2 border border-slate-800">
+                        <div class="text-[11px] font-bold text-emerald-300">💚 Heal Pool</div>
+                        <p id="shop-upgrade-healPool-desc" class="text-[9px] text-slate-400">+1 base regeneration per level</p>
+                        <button id="btn-upgrade-healPool" onclick="buyTeamUpgrade('healPool')" class="w-full mt-1 py-1 rounded-lg bg-sky-700 hover:bg-sky-600 text-white text-[10px] font-bold">UPGRADE</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="shop-enchanting" class="mb-3 p-3 rounded-2xl border border-fuchsia-600/50 bg-fuchsia-950/25 text-left">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                    <h4 class="font-orbitron text-xs font-bold text-fuchsia-200">✨ ENCHANTING TABLE</h4>
+                    <span class="text-[10px] text-emerald-300 font-bold">10 💎 TO BUILD</span>
+                </div>
+                <p id="shop-enchant-status" class="text-[10px] text-slate-300 mb-2">Build a team enchanting table, then spend 2 emeralds to roll a random enchant.</p>
+                <div class="flex items-center gap-2">
+                    <button id="btn-build-enchanting-table" onclick="buildEnchantingTable()" class="flex-1 py-2 rounded-lg bg-fuchsia-700 hover:bg-fuchsia-600 text-white text-[10px] font-bold">BUILD TABLE • 10 💎</button>
+                    <button id="btn-roll-enchant" onclick="rollTeamEnchant()" class="flex-1 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold" disabled>ROLL ENCHANT • 2 🟢</button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left max-h-[52vh] overflow-y-auto pr-1 font-mono">
@@ -984,11 +1048,13 @@
 
         const TYPE_NAMES = { p: 'Pawn', n: 'Knight', b: 'Bishop', r: 'Rook', q: 'Queen', k: 'King', d: 'Dragon', nec: 'Necromancer', skele: 'Skele-Pawn', bed: 'Bed', guardian: 'Diamond Guardian' };
         const TYPE_ICONS = { p: 'fa-chess-pawn', n: 'fa-chess-knight', b: 'fa-chess-bishop', r: 'fa-chess-rook', q: 'fa-chess-queen', k: 'fa-chess-king', d: 'fa-dragon', nec: 'fa-skull', skele: 'fa-skull-crossbones', bed: 'fa-bed', guardian: 'fa-shield-halved' };
+        // Rebalanced combat values: specialists retain an edge without one piece
+        // dominating every engagement. Movement/range still provide their identity.
         const BASE_STATS = {
-            k: { hp: 25, atk: 6, def: 4 }, q: { hp: 18, atk: 9, def: 3 }, r: { hp: 14, atk: 5, def: 5 },
-            b: { hp: 12, atk: 5, def: 2 }, n: { hp: 12, atk: 6, def: 3 }, p: { hp: 8, atk: 3, def: 1 },
-            d: { hp: 20, atk: 8, def: 4 }, nec: { hp: 14, atk: 6, def: 2 }, skele: { hp: 6, atk: 3, def: 1 },
-            bed: { hp: 30, atk: 0, def: 6 }, guardian: { hp: 15, atk: 5, def: 3 }
+            k: { hp: 22, atk: 5, def: 4 }, q: { hp: 16, atk: 7, def: 2 }, r: { hp: 15, atk: 4, def: 5 },
+            b: { hp: 11, atk: 5, def: 2 }, n: { hp: 12, atk: 5, def: 3 }, p: { hp: 9, atk: 3, def: 1 },
+            d: { hp: 18, atk: 7, def: 3 }, nec: { hp: 13, atk: 5, def: 2 }, skele: { hp: 7, atk: 2, def: 1 },
+            bed: { hp: 30, atk: 0, def: 5 }, guardian: { hp: 14, atk: 4, def: 3 }
         };
 
         const SWORD_TIERS = [
@@ -1005,6 +1071,18 @@
             { name: 'Diamond Armor', def: 3, hp: 12, cost: { em: 8 } },
             { name: 'Emerald Armor', def: 4, hp: 16, cost: { em: 25 } }
         ];
+        const TEAM_UPGRADE_COSTS = {
+            sharpness: [4, 8, 12],
+            protection: [4, 8, 12],
+            forge: [4, 8, 12],
+            healPool: [4, 8, 12]
+        };
+        const TEAM_UPGRADE_NAMES = {
+            sharpness: 'Sharpened Blades',
+            protection: 'Reinforced Armor',
+            forge: 'Team Forge',
+            healPool: 'Heal Pool'
+        };
         const WOOL_COST = 4, WOOL_QTY = 4;
         const OBSIDIAN_MAX = 8, OBSIDIAN_COST = { em: 1 }, OBSIDIAN_HP = 10, OBSIDIAN_LOCK_TURNS = 3;
         const PEARL_COST_EM = 2, PEARL_RANGE = 6;
@@ -1053,6 +1131,7 @@
             matchId: 0,
             aiTimer: null,
             autoPlayActive: false,
+            paused: false,
             speedMultiplier: 1.0,
 
             draftPhase: false,
@@ -1085,7 +1164,7 @@
             return Math.max(10, Math.floor(ms / G.speedMultiplier));
         }
 
-        function newTeamRes(isBedwars) { return { iron: 10, dia: 0, em: 0, mana: 3, bedAlive: isBedwars, respawnQueue: [] }; }
+        function newTeamRes(isBedwars) { return { iron: 10, dia: 0, em: 0, mana: 3, bedAlive: isBedwars, respawnQueue: [], upgrades: { sharpness: 0, protection: 0, forge: 0, healPool: 0 }, enchantingTable: false, enchant: null }; }
         function initResources() {
             G.resources = {};
             G.teamProfiles = {};
@@ -1602,13 +1681,17 @@
         function getAtk(piece) {
             if (!piece) return 0;
             const swordAtk = (SWORD_TIERS[piece.swordTier] ? SWORD_TIERS[piece.swordTier].atk : 0);
-            return (piece.baseAtk || 0) + (piece.bonusAtk || 0) + swordAtk;
+            const teamUpgrades = G.resources && G.resources[piece.team] && G.resources[piece.team].upgrades;
+            const sharpness = G.mode === 'bedwars' && teamUpgrades ? teamUpgrades.sharpness : 0;
+            return (piece.baseAtk || 0) + (piece.bonusAtk || 0) + swordAtk + sharpness;
         }
 
         function getDef(piece) {
             if (!piece) return 0;
             const armorDef = (ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].def : 0);
-            return (piece.baseDef || 0) + (piece.bonusDef || 0) + armorDef;
+            const teamUpgrades = G.resources && G.resources[piece.team] && G.resources[piece.team].upgrades;
+            const protection = G.mode === 'bedwars' && teamUpgrades ? teamUpgrades.protection : 0;
+            return (piece.baseDef || 0) + (piece.bonusDef || 0) + armorDef + protection;
         }
 
         function recalcStats(piece) {
@@ -2254,8 +2337,8 @@
            INPUT & INTERACTION
            ===================================================================== */
         const isCurrentAI = () => G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai';
-        const isHumanTurn = () => !isCurrentAI() && !G.autoPlayActive;
-        const inputBlocked = () => G.gameOver || !!G.activeBattle || !isHumanTurn();
+        const isHumanTurn = () => !G.paused && !isCurrentAI() && !G.autoPlayActive;
+        const inputBlocked = () => G.paused || G.gameOver || !!G.activeBattle || !isHumanTurn();
 
         function pickAt(event) {
             const rect = renderer.domElement.getBoundingClientRect();
@@ -2531,7 +2614,7 @@
             $('modal-d20-combat').classList.remove('hidden');
             playSound('dice');
 
-            if (isCurrentAI() || G.autoPlayActive || G.speedMultiplier >= 5.0) {
+            if (!G.paused && (isCurrentAI() || G.autoPlayActive || G.speedMultiplier >= 5.0)) {
                 const mid = G.matchId;
                 const delay = getSpeedDelay(300);
                 setTimeout(() => { if (mid === G.matchId) resolveD20Combat(); }, delay);
@@ -2591,6 +2674,9 @@
                     damage = Math.max(1, roll + getAtk(attacker) - getDef(defender));
                     banner = `ROLLED ${roll}! DEALT ${damage} DAMAGE!`;
                 }
+                const baseDamage = damage;
+                damage = applyTeamEnchant(attacker, defender, damage, roll);
+                if (damage > baseDamage) banner += ` ENCHANT +${damage - baseDamage}!`;
                 applyDamage(defender, damage);
                 const rb = $('d20-result-banner');
                 rb.innerText = banner;
@@ -2852,6 +2938,139 @@
             return true;
         }
 
+        function buyTeamUpgrade(kind) {
+            if (G.mode !== 'bedwars' || !isHumanTurn()) return;
+            const res = G.resources[G.turn];
+            if (!res) return;
+            if (!res.upgrades) res.upgrades = { sharpness: 0, protection: 0, forge: 0, healPool: 0 };
+            const level = res.upgrades[kind] || 0;
+            const costs = TEAM_UPGRADE_COSTS[kind];
+            if (!costs || level >= costs.length) return;
+            const cost = costs[level];
+            if (res.dia < cost) {
+                showFloatingText('NOT ENOUGH DIAMONDS', null, null, '#38bdf8');
+                return;
+            }
+            res.dia -= cost;
+            res.upgrades[kind] = level + 1;
+            if (kind === 'sharpness' || kind === 'protection') {
+                G.pieces.filter(piece => piece.team === G.turn && piece.type !== 'bed').forEach(piece => {
+                    if (G.selectedPiece === piece) updatePieceInspector(piece);
+                });
+            }
+            showFloatingText(`${TEAM_UPGRADE_NAMES[kind].toUpperCase()} LEVEL ${level + 1}`, null, null, '#38bdf8');
+            playSound('buy');
+            updateHUDCounters();
+            refreshShop();
+            if (G.selectedPiece) updatePieceInspector(G.selectedPiece);
+        }
+
+        function refreshTeamUpgradeShop(res) {
+            if (!res) return;
+            if (!res.upgrades) res.upgrades = { sharpness: 0, protection: 0, forge: 0, healPool: 0 };
+            Object.keys(TEAM_UPGRADE_COSTS).forEach(kind => {
+                const level = res.upgrades[kind] || 0;
+                const costs = TEAM_UPGRADE_COSTS[kind];
+                const nextCost = costs[level];
+                const desc = {
+                    sharpness: `Level ${level}/3 • +${level} team ATK • Next: ${nextCost == null ? 'MAX' : nextCost + ' diamonds'}`,
+                    protection: `Level ${level}/3 • +${level} team DEF • Next: ${nextCost == null ? 'MAX' : nextCost + ' diamonds'}`,
+                    forge: `Level ${level}/3 • +${level} iron each turn • Next: ${nextCost == null ? 'MAX' : nextCost + ' diamonds'}`,
+                    healPool: `Level ${level}/3 • +${level} base regen • Next: ${nextCost == null ? 'MAX' : nextCost + ' diamonds'}`
+                };
+                const descEl = $('shop-upgrade-' + kind + '-desc');
+                if (descEl) descEl.innerText = desc[kind];
+                setBtn('btn-upgrade-' + kind, nextCost != null && res.dia >= nextCost);
+                const btn = $('btn-upgrade-' + kind);
+                if (btn) btn.innerText = nextCost == null ? 'MAX LEVEL' : `BUY • ${nextCost} 💎`;
+            });
+        }
+
+        function tryAIBuyTeamUpgrade(team) {
+            const res = G.resources[team];
+            if (!res || G.mode !== 'bedwars') return;
+            if (!res.upgrades) res.upgrades = { sharpness: 0, protection: 0, forge: 0, healPool: 0 };
+            // Spend only when affordable; prioritize combat upgrades, then sustain and economy.
+            const order = ['sharpness', 'protection', 'healPool', 'forge'];
+            for (const kind of order) {
+                const level = res.upgrades[kind] || 0;
+                const cost = TEAM_UPGRADE_COSTS[kind][level];
+                if (cost != null && res.dia >= cost) {
+                    res.dia -= cost;
+                    res.upgrades[kind] = level + 1;
+                    showFloatingText(`${team.toUpperCase()} BOUGHT ${TEAM_UPGRADE_NAMES[kind].toUpperCase()}`, null, null, '#38bdf8');
+                    break;
+                }
+            }
+        }
+
+        const BEDWARS_ENCHANTS = [
+            { id: 'fire', name: 'Fire', icon: '🔥', desc: 'Attacks deal +2 bonus damage.' },
+            { id: 'static', name: 'Static', icon: '⚡', desc: 'Successful attacks zap for +3 damage.' },
+            { id: 'critical', name: 'Critical Strike', icon: '💥', desc: '20% chance to deal +5 damage.' },
+            { id: 'lifesteal', name: 'Lifesteal', icon: '🩸', desc: 'Restore 2 HP after damaging an enemy.' },
+            { id: 'execute', name: 'Execute', icon: '☠️', desc: 'Deal +4 damage to enemies below 35% HP.' },
+            { id: 'plunder', name: 'Plunder', icon: '🪙', desc: 'Earn 2 iron after a successful hit.' },
+            { id: 'frost', name: 'Frost', icon: '❄️', desc: 'Attacks deal +1 bonus damage.' }
+        ];
+        function refreshEnchantingShop(res) {
+            if (!res) return;
+            const status = $('shop-enchant-status');
+            const build = $('btn-build-enchanting-table');
+            const roll = $('btn-roll-enchant');
+            if (res.enchantingTable) {
+                if (build) { build.textContent = 'TABLE BUILT'; build.disabled = true; }
+                const current = BEDWARS_ENCHANTS.find(e => e.id === (res.enchant && res.enchant.id));
+                if (status) status.textContent = current ? `${current.icon} ${current.name} • ${current.desc} Roll again for a different random enchant.` : 'Table ready! Spend 2 emeralds to roll your first team enchant.';
+                if (roll) { roll.disabled = res.em < 2; roll.textContent = 'ROLL ENCHANT • 2 🟢'; }
+            } else {
+                if (build) { build.disabled = res.dia < 10; build.textContent = 'BUILD TABLE • 10 💎'; }
+                if (roll) { roll.disabled = true; }
+                if (status) status.textContent = 'Build a team enchanting table, then spend 2 emeralds to roll a random enchant.';
+            }
+        }
+        function buildEnchantingTable() {
+            const p = shopPiece();
+            if (!p || !inBase(p)) return showFloatingText('BUILD FROM YOUR BASE', null, null, '#f0abfc');
+            const res = G.resources[p.team];
+            if (!res || res.enchantingTable || res.dia < 10) return showFloatingText(res && res.enchantingTable ? 'TABLE ALREADY BUILT' : 'NEED 10 DIAMONDS', p.x, p.z, '#f0abfc');
+            res.dia -= 10; res.enchantingTable = true;
+            showFloatingText('ENCHANTING TABLE BUILT!', p.x, p.z, '#e879f9');
+            playSound('buy'); updateHUDCounters(); refreshShop(); refreshEnchantingShop(res);
+        }
+        function rollTeamEnchant() {
+            const p = shopPiece();
+            if (!p || !inBase(p)) return showFloatingText('ROLL FROM YOUR BASE', null, null, '#f0abfc');
+            const res = G.resources[p.team];
+            if (!res || !res.enchantingTable) return showFloatingText('BUILD THE ENCHANTING TABLE FIRST', p.x, p.z, '#f0abfc');
+            if (res.em < 2) return showFloatingText('NEED 2 EMERALDS', p.x, p.z, '#34d399');
+            res.em -= 2;
+            let choices = BEDWARS_ENCHANTS.filter(e => !res.enchant || e.id !== res.enchant.id);
+            if (!choices.length) choices = BEDWARS_ENCHANTS;
+            const enchant = choices[Math.floor(Math.random() * choices.length)];
+            res.enchant = { id: enchant.id, rolledAtTurn: G.turnCount };
+            showFloatingText(`${enchant.icon} ${enchant.name.toUpperCase()} ENCHANT!`, p.x, p.z, '#e879f9');
+            playSound('buy'); updateHUDCounters(); refreshShop(); refreshEnchantingShop(res);
+        }
+        function applyTeamEnchant(attacker, defender, damage, roll) {
+            if (!damage || !attacker || !defender || defender.type === 'bed' || G.mode !== 'bedwars') return damage;
+            const res = G.resources && G.resources[attacker.team];
+            const enchant = res && res.enchant && res.enchant.id;
+            if (!enchant) return damage;
+            if (enchant === 'fire') damage += 2;
+            else if (enchant === 'static') damage += 3;
+            else if (enchant === 'critical' && Math.random() < 0.20) damage += 5;
+            else if (enchant === 'execute' && defender.hp <= defender.maxHp * 0.35) damage += 4;
+            else if (enchant === 'frost') damage += 1;
+            if (enchant === 'lifesteal') {
+                const healed = Math.min(2, attacker.maxHp - attacker.hp);
+                if (healed > 0) { attacker.hp += healed; if (attacker === G.selectedPiece) updatePieceInspector(attacker); showFloatingText(`+${healed} LIFESTEAL`, attacker.x, attacker.z, '#fb7185'); }
+            } else if (enchant === 'plunder') {
+                res.iron += 2; showFloatingText('+2 PLUNDER IRON', attacker.x, attacker.z, '#fbbf24');
+            }
+            return damage;
+        }
+
         function shopButton(item) {
             const p = shopPiece();
             if (!p || !isHumanTurn()) return;
@@ -2892,6 +3111,8 @@
             $('shop-dia-val').innerText = res.dia;
             $('shop-em-val').innerText = res.em;
             $('shop-piece-em-val').innerText = p ? p.carriedEm : 0;
+            refreshTeamUpgradeShop(res);
+            refreshEnchantingShop(res);
             $('shop-base-warning').classList.toggle('hidden', ok);
 
             const sNext = p ? SWORD_TIERS[p.swordTier + 1] : SWORD_TIERS[1];
@@ -2928,14 +3149,15 @@
         function updateAutoPlayButtonUI() {
             const btn = $('btn-autoplay-toggle');
             if (!btn) return;
-            $('autoplay-icon').className = G.autoPlayActive ? 'fa-solid fa-pause' : 'fa-solid fa-play';
-            $('autoplay-text').innerText = G.autoPlayActive ? 'PAUSE' : 'AUTO-PLAY';
-            btn.classList.toggle('bg-amber-950', G.autoPlayActive);
-            btn.classList.toggle('border-amber-500', G.autoPlayActive);
-            btn.classList.toggle('text-amber-300', G.autoPlayActive);
-            btn.classList.toggle('bg-emerald-950', !G.autoPlayActive);
-            btn.classList.toggle('border-emerald-500', !G.autoPlayActive);
-            btn.classList.toggle('text-emerald-300', !G.autoPlayActive);
+            $('autoplay-icon').className = G.paused ? 'fa-solid fa-play' : 'fa-solid fa-pause';
+            $('autoplay-text').innerText = G.paused ? 'RESUME' : 'PAUSE';
+            btn.title = G.paused ? 'Resume the match' : 'Pause the match';
+            btn.classList.toggle('bg-amber-950', !G.paused);
+            btn.classList.toggle('border-amber-500', !G.paused);
+            btn.classList.toggle('text-amber-300', !G.paused);
+            btn.classList.toggle('bg-emerald-950', G.paused);
+            btn.classList.toggle('border-emerald-500', G.paused);
+            btn.classList.toggle('text-emerald-300', G.paused);
         }
 
         function endTurn() {
@@ -2971,8 +3193,37 @@
             const res = G.resources[G.turn];
             if (G.mode === 'bedwars') {
                 const count = G.pieces.filter(p => p.team === G.turn && inBase(p)).length;
-                if (count > 0 && res) { res.iron += count; showFloatingText(`+${count} IRON`, null, null, '#e2e8f0'); }
+                const forgeBonus = res && res.upgrades ? (res.upgrades.forge || 0) : 0;
+                if (count > 0 && res) {
+                    const ironGain = count + forgeBonus;
+                    res.iron += ironGain;
+                    showFloatingText(`+${ironGain} IRON`, null, null, '#e2e8f0');
+                } else if (forgeBonus > 0 && res) {
+                    res.iron += forgeBonus;
+                    showFloatingText(`+${forgeBonus} FORGE IRON`, null, null, '#e2e8f0');
+                }
+                const regenBonus = res && res.upgrades ? (res.upgrades.healPool || 0) : 0;
+                const healing = 2 + regenBonus;
+                G.pieces.filter(piece => piece.team === G.turn && piece.type !== 'bed' && inBase(piece) && piece.hp < piece.maxHp).forEach(piece => {
+                    const healed = Math.min(healing, piece.maxHp - piece.hp);
+                    piece.hp += healed;
+                    if (healed > 0) {
+                        showFloatingText(`+${healed} HP`, piece.x, piece.z, '#34d399');
+                        if (piece === G.selectedPiece) updatePieceInspector(piece);
+                    }
+                });
                 processRespawns(G.turn);
+                if (G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai') {
+                    tryAIBuyTeamUpgrade(G.turn);
+                    const aiRes = G.resources[G.turn];
+                    if (aiRes && !aiRes.enchantingTable && aiRes.dia >= 10) { aiRes.dia -= 10; aiRes.enchantingTable = true; }
+                    if (aiRes && aiRes.enchantingTable && aiRes.em >= 2 && (!aiRes.enchant || Math.random() < 0.25)) {
+                        aiRes.em -= 2;
+                        const pool = BEDWARS_ENCHANTS.filter(e => !aiRes.enchant || e.id !== aiRes.enchant.id);
+                        const pick = pool[Math.floor(Math.random() * pool.length)];
+                        aiRes.enchant = { id: pick.id, rolledAtTurn: G.turnCount };
+                    }
+                }
             } else if (res) {
                 res.mana = Math.min(10, res.mana + 1);
             }
@@ -2994,7 +3245,7 @@
             updateTurnUI();
             updateHUDCounters();
 
-            if (!G.gameOver && (isCurrentAI() || G.autoPlayActive)) {
+            if (!G.gameOver && !G.paused && (isCurrentAI() || G.autoPlayActive)) {
                 triggerAITurnDelay();
             }
         }
@@ -3007,7 +3258,7 @@
         }
 
         function triggerAITurnDelay() {
-            if (G.isReviewing) return;
+            if (G.paused || G.isReviewing || G.gameOver) return;
             const mid = G.matchId;
             clearTimeout(G.aiTimer);
             const delay = getSpeedDelay(750);
@@ -3017,9 +3268,16 @@
         }
 
         function toggleAutoPlay() {
-            G.autoPlayActive = !G.autoPlayActive;
+            G.paused = !G.paused;
+            if (G.paused) {
+                clearTimeout(G.aiTimer);
+                G.aiTimer = null;
+                deselectPiece();
+            } else if (!G.gameOver && (isCurrentAI() || G.autoPlayActive)) {
+                triggerAITurnDelay();
+            }
             updateAutoPlayButtonUI();
-            if (G.autoPlayActive && !G.gameOver) triggerAITurnDelay();
+            updateTurnUI();
         }
 
         function changeAutoPlaySpeed(val) { G.speedMultiplier = parseFloat(val); }
@@ -3445,7 +3703,7 @@
         }
 
         function runAITurn() {
-            if (G.gameOver || G.isReviewing || !isCurrentAI() || G.draftPhase) return;
+            if (G.paused || G.gameOver || G.isReviewing || !isCurrentAI() || G.draftPhase) return;
             const team = G.turn;
             const ctrl = G.teamControllers[team] || { level: 10 };
             const aiLevel = ctrl.level;
@@ -3633,6 +3891,35 @@
             captureReviewSnapshot();
         }
 
+        let analysisPlaybackTimer = null;
+        function stopAnalysisPlayback() {
+            if (analysisPlaybackTimer !== null) {
+                clearInterval(analysisPlaybackTimer);
+                analysisPlaybackTimer = null;
+            }
+            const button = $('btn-analysis-play');
+            if (button) button.innerHTML = '<i class="fa-solid fa-play mr-1"></i> PLAY';
+        }
+
+        function toggleAnalysisPlayback() {
+            if (analysisPlaybackTimer !== null) {
+                stopAnalysisPlayback();
+                return;
+            }
+            if (!G.reviewSnapshots || G.reviewSnapshots.length < 2) return;
+            if (G.analysisCurrentIndex >= G.moveHistoryLog.length - 1) analysisStepFirst();
+            const button = $('btn-analysis-play');
+            if (button) button.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> PAUSE';
+            analysisPlaybackTimer = setInterval(() => {
+                if (!G.isReviewing || G.analysisCurrentIndex >= G.moveHistoryLog.length - 1) {
+                    stopAnalysisPlayback();
+                    return;
+                }
+                analysisStepNext();
+                if (G.analysisCurrentIndex >= G.moveHistoryLog.length - 1) stopAnalysisPlayback();
+            }, 1100);
+        }
+
         function openAnalysisModal() {
             if (G.gameOver) {
                 $('modal-game-over').classList.add('hidden');
@@ -3640,14 +3927,17 @@
             } else {
                 $('btn-analysis-back-gameover').classList.add('hidden');
             }
+            stopAnalysisPlayback();
             G.isReviewing = true;
-            G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
-            if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false);
+            // Replay always opens at the untouched starting position (snapshot zero).
+            G.analysisCurrentIndex = -1;
+            if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[0], false);
             renderAnalysisLogUI();
             $('modal-analysis').classList.remove('hidden');
         }
 
         function returnToGameOverFromAnalysis() {
+            stopAnalysisPlayback();
             if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false);
             G.isReviewing = false;
             $('modal-analysis').classList.add('hidden');
@@ -3710,7 +4000,7 @@
             const container = $('analysis-log-container');
             container.innerHTML = '';
             const total = G.moveHistoryLog.length;
-            $('analysis-step-idx').innerText = total > 0 ? `${G.analysisCurrentIndex + 1} / ${total}` : '0 / 0';
+            $('analysis-step-idx').innerText = `${Math.max(0, G.analysisCurrentIndex + 1)} / ${total}`;
 
             if (total === 0) {
                 container.innerHTML = `<div class="text-slate-400 text-center py-6 font-mono">No moves recorded yet in this match. Launch a match to view real-time engine evaluation logs.</div>`;
@@ -3738,15 +4028,38 @@
 
         function selectAnalysisMove(idx) {
             if (idx < 0 || idx >= G.moveHistoryLog.length) return;
+            stopAnalysisPlayback();
             G.analysisCurrentIndex = idx;
             selectReviewPosition(idx);
             renderAnalysisLogUI();
         }
 
-        function analysisStepFirst() { if (G.moveHistoryLog.length) selectAnalysisMove(0); }
-        function analysisStepPrev() { if (G.analysisCurrentIndex > 0) selectAnalysisMove(G.analysisCurrentIndex - 1); }
-        function analysisStepNext() { if (G.analysisCurrentIndex < G.moveHistoryLog.length - 1) selectAnalysisMove(G.analysisCurrentIndex + 1); }
-        function analysisStepLatest() { if (G.moveHistoryLog.length) selectAnalysisMove(G.moveHistoryLog.length - 1); }
+        function analysisStepFirst() {
+            stopAnalysisPlayback();
+            G.analysisCurrentIndex = -1;
+            if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[0], true);
+            renderAnalysisLogUI();
+        }
+        function analysisStepPrev() {
+            if (G.analysisCurrentIndex > -1) {
+                const next = G.analysisCurrentIndex - 1;
+                if (next === -1) analysisStepFirst(); else selectAnalysisMove(next);
+            }
+        }
+        function analysisStepNext() {
+            if (G.analysisCurrentIndex < G.moveHistoryLog.length - 1) {
+                const next = G.analysisCurrentIndex + 1;
+                // Playback owns the timer; don't stop it when advancing automatically.
+                G.analysisCurrentIndex = next;
+                selectReviewPosition(next);
+                renderAnalysisLogUI();
+            }
+        }
+        function analysisStepLatest() {
+            stopAnalysisPlayback();
+            if (G.moveHistoryLog.length) selectAnalysisMove(G.moveHistoryLog.length - 1);
+            else analysisStepFirst();
+        }
 
         function highlightAnalysisMoveOnBoard() {
             if (G.analysisCurrentIndex < 0 || G.analysisCurrentIndex >= G.moveHistoryLog.length) return;
@@ -3929,6 +4242,16 @@
             $('inspector-team-tag').innerText = readonly ? 'INSPECTING' : (piece.team === G.turn ? 'YOUR PIECE' : 'ENEMY');
             $('inspector-hp-text').innerText = `${piece.hp} / ${piece.maxHp} HP`;
             $('inspector-hp-bar').style.width = `${Math.max(0, Math.min(100, (piece.hp / piece.maxHp) * 100))}%`;
+            const shieldRow = $('inspector-bed-shield');
+            if (shieldRow) {
+                const isBed = piece.type === 'bed' && G.mode === 'bedwars';
+                shieldRow.classList.toggle('hidden', !isBed || piece.obsHp <= 0);
+                if (isBed) {
+                    const maxShield = OBSIDIAN_MAX * OBSIDIAN_HP;
+                    $('inspector-bed-shield-text').innerText = `${piece.obsHp} / ${maxShield} SHIELD HP • ${obsLayers(piece)} LAYERS`;
+                    $('inspector-bed-shield-bar').style.width = `${Math.max(0, Math.min(100, (piece.obsHp / maxShield) * 100))}%`;
+                }
+            }
             $('inspector-atk-val').innerText = getAtk(piece);
             $('inspector-def-val').innerText = getDef(piece);
 
@@ -4006,6 +4329,11 @@
         function resetMatchState() {
             clearTimeout(G.aiTimer);
             G.matchId++;
+            G.paused = false;
+            G.speedMultiplier = 1.0;
+            const speedSelect = $('autoplay-speed-select');
+            if (speedSelect) speedSelect.value = '1.0';
+            updateAutoPlayButtonUI();
             G.turnIndex = 0; G.turn = G.teams[0]; G.turnCount = 1;
             G.selectedPiece = null; G.validMoves = []; G.attackTargets = []; G.ghostBridgeTiles = [];
             G.bridgeModeActive = false; G.bridgesThisTurn = 0;
@@ -4044,6 +4372,11 @@
         function returnToMainMenu() {
             clearTimeout(G.aiTimer);
             G.matchId++;
+            G.paused = false;
+            G.speedMultiplier = 1.0;
+            const speedSelect = $('autoplay-speed-select');
+            if (speedSelect) speedSelect.value = '1.0';
+            updateAutoPlayButtonUI();
             G.activeBattle = null;
             closeModals();
             $('main-menu').classList.remove('hidden');
@@ -4062,6 +4395,7 @@
         }
         function openCodexModal() { $('modal-codex').classList.remove('hidden'); }
         function closeModals() {
+            stopAnalysisPlayback();
             const wasReviewing = G.isReviewing;
             if (wasReviewing && G.reviewSnapshots.length) { restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false); G.isReviewing = false; }
             ['modal-spellbook', 'modal-item-shop', 'modal-codex', 'modal-game-over', 'modal-analysis'].forEach(id => $(id).classList.add('hidden'));
@@ -4178,14 +4512,14 @@
             G.soundEnabled = settings.soundEnabled ?? G.soundEnabled;
             G.enableAIStrategy = settings.enableAIStrategy ?? G.enableAIStrategy;
             G.enablePieceRoles = settings.enablePieceRoles ?? G.enablePieceRoles;
-            G.speedMultiplier = Number(settings.speedMultiplier || 1);
+            G.speedMultiplier = 1.0; // AI playback always starts at the normal 1x default.
             setTeamFormat(settings.teamFormat === '4-team' ? '4-team' : '2-team');
             selectGameMode(['bedwars','standard','commander'].includes(settings.mode) ? settings.mode : 'bedwars');
             if (settings.selectedMapId && MAP_CATALOG.some(m => m.id === settings.selectedMapId && isMapAllowed(m.id, G.mode, G.teamFormat))) G.selectedMapId = settings.selectedMapId;
             $('toggle-chaos-pieces').checked = G.chaosPieces;
             $('toggle-ai-strategy').checked = G.enableAIStrategy;
             $('toggle-piece-roles').checked = G.enablePieceRoles;
-            $('autoplay-speed-select').value = String(G.speedMultiplier);
+            $('autoplay-speed-select').value = '1.0';
             renderTeamControllerOptions();
             renderMapCards();
         }
@@ -4201,7 +4535,8 @@
                     : { classic: profile.ratings?.classic ?? 300, draft: profile.ratings?.draft ?? 300, bedwars: profile.ratings?.bedwars ?? 300 },
                 createdAt: profile.createdAt || null,
                 activeLobbyCode: profile.activeLobbyCode || null,
-                provider: user.providerData?.[0]?.providerId || 'password'
+                provider: user.providerData?.[0]?.providerId || 'password',
+                isAnonymous: !!user.isAnonymous
             };
             $('account-auth-panel').classList.add('hidden');
             $('google-username-panel').classList.add('hidden');
@@ -4372,8 +4707,26 @@
             }
         }
 
+        function requirePermanentAccount(feature) {
+            if (!currentAccount || !currentAccount.isAnonymous) return false;
+            const modal = $('guest-account-required-modal');
+            const label = $('guest-account-required-feature');
+            if (label) label.textContent = feature || 'this feature';
+            if (modal) { modal.classList.remove('hidden'); modal.classList.add('flex'); }
+            return true;
+        }
+        function closeGuestAccountRequired() {
+            const modal = $('guest-account-required-modal');
+            if (modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+        }
+        async function continueToPermanentAccount(tab) {
+            closeGuestAccountRequired();
+            // A guest is temporary by design. Delete it before opening the registered-account form.
+            await signOutAccount({ reopenGate: true, tab: tab || 'signup' });
+        }
         function openPlayerProfile() {
             if (!currentAccount) return;
+            if (requirePermanentAccount('your player profile')) return;
             const modal = $('player-profile-modal');
             modal.classList.remove('hidden'); modal.classList.add('flex');
         }
@@ -4402,6 +4755,7 @@
             publicLobbyUnsubscribe = null;
         }
         function openOnlineMultiplayer() {
+            if (!currentAccount || requirePermanentAccount('online multiplayer')) return;
             $('main-menu').classList.add('hidden');
             $('online-multiplayer-page').classList.remove('hidden');
             updateOnlineMapOptions();
@@ -4470,6 +4824,10 @@
             });
         }
         function refreshPublicLobbyList() {
+            if (currentAccount && currentAccount.isAnonymous) {
+                const list = $('public-lobby-list'); if (list) list.textContent = 'Create an account or sign in to browse online rooms.';
+                return;
+            }
             if (!firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) {
                 $('public-lobby-list').textContent = 'Sign in to browse rooms.'; return;
             }
@@ -4559,6 +4917,7 @@
             return { elo: Number(currentAccount && currentAccount.ratings && currentAccount.ratings[key] || 300), eloType: key };
         }
         async function createLobby() {
+            if (currentAccount && requirePermanentAccount('online multiplayer')) return;
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before creating a room.', true);
             if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
             if (activeLobbyCode) return setLobbyStatus('You are already in a room. Leave it before creating another.', true);
@@ -4586,7 +4945,7 @@
                         visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
                         aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(room.mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
                 activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, status: 'waiting' };
@@ -4602,6 +4961,7 @@
         }
         async function joinPublicLobby(code) { await joinLobbyCode(code); }
         async function joinLobbyCode(code) {
+            if (currentAccount && requirePermanentAccount('online multiplayer')) return;
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before joining a room.', true);
             if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
             if (activeLobbyCode) return setLobbyStatus('You are already in a room. Leave it before joining another.', true);
@@ -4731,12 +5091,37 @@
             $('main-menu').classList.remove('hidden');
         }
 
-        async function signOutAccount() {
+        async function signOutAccount(options = {}) {
             if (activeLobbyCode) { try { await leaveLobby(); } catch (_) {} }
             closePlayerProfile();
+            closeGuestAccountRequired();
             stopPublicLobbyListener();
             $('online-multiplayer-page').classList.add('hidden');
-            try { if (firebaseAuth) await firebaseAuth.signOut(); } catch (err) { console.warn(err); }
+            const user = firebaseAuth && firebaseAuth.currentUser;
+            const wasAnonymous = !!(user && user.isAnonymous);
+            if (wasAnonymous) {
+                // Remove the temporary Firestore profile/username, then delete the Firebase guest identity.
+                try {
+                    if (firestoreDB) {
+                        const profileRef = firestoreDB.doc('users/' + user.uid);
+                        const snap = await profileRef.get();
+                        const batch = firestoreDB.batch();
+                        if (snap.exists) {
+                            const profile = snap.data();
+                            if (profile.username) batch.delete(firestoreDB.doc('usernames/' + profile.username));
+                            batch.delete(profileRef);
+                            await batch.commit();
+                        }
+                    }
+                } catch (err) { console.warn('Could not fully remove guest profile documents:', err); }
+                try { await user.delete(); }
+                catch (err) {
+                    console.warn('Could not delete anonymous Firebase identity; signing out instead:', err);
+                    try { await firebaseAuth.signOut(); } catch (_) {}
+                }
+            } else {
+                try { if (firebaseAuth) await firebaseAuth.signOut(); } catch (err) { console.warn(err); }
+            }
             currentAccount = null;
             pendingGoogleUser = null;
             const menuName = $('menu-account-name'); if (menuName) menuName.textContent = 'SIGNED OUT';
@@ -4748,8 +5133,9 @@
             $('account-email').value = '';
             $('account-username').value = '';
             $('account-password').value = '';
-            setAccountTab('login');
-            accountStatus('Signed out.');
+            setAccountTab(options.tab === 'login' ? 'login' : 'signup');
+            accountStatus(wasAnonymous ? 'Temporary guest account deleted. Create an account or sign in to continue.' : 'Signed out.');
+            if (options.reopenGate) $('account-gate').classList.remove('hidden');
         }
 
         async function restoreActiveLobbyFromProfile(profile, user) {
