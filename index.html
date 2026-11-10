@@ -83,6 +83,14 @@
         .badge-mistake { background: #ef4444; color: #ffffff; font-weight: 700; }
         .badge-blunder { background: #881337; color: #fecdd3; font-weight: 900; border: 1px solid #f43f5e; }
         .badge-missed { background: #a855f7; color: #ffffff; font-weight: 700; }
+
+        /* Role Badges */
+        .role-clutch { background: #ef4444; color: #ffffff; border: 1px solid #fca5a5; }
+        .role-bank { background: #f59e0b; color: #020617; border: 1px solid #fef08a; }
+        .role-boss { background: #38bdf8; color: #020617; border: 1px solid #bae6fd; }
+        .role-rush { background: #a855f7; color: #ffffff; border: 1px solid #e9d5ff; }
+        .role-gather { background: #10b981; color: #020617; border: 1px solid #a7f3d0; }
+        .role-guard { background: #64748b; color: #ffffff; border: 1px solid #cbd5e1; }
     </style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
@@ -94,15 +102,21 @@
     <div id="floating-text-container" class="w-full h-full absolute top-0 left-0 pointer-events-none z-70 overflow-hidden"></div>
 
     <!-- PERSISTENT TOP-LEVEL CONTROL BAR -->
-    <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-4 py-2 rounded-2xl flex items-center justify-between gap-3 border-cyan-500/40 pointer-events-auto shadow-2xl hidden max-w-4xl w-[95%]">
+    <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-4 py-2 rounded-2xl flex items-center justify-between gap-3 border-cyan-500/40 pointer-events-auto shadow-2xl hidden max-w-5xl w-[96%]">
         
         <!-- Turn & Map Status -->
         <div class="flex items-center gap-2">
-            <span id="turn-dot" class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span id="turn-dot" class="w-3.5 h-3.5 rounded-full bg-cyan-400 animate-pulse"></span>
             <div class="flex flex-col">
                 <span id="turn-text" class="font-orbitron font-bold text-xs text-cyan-400 leading-tight">WHITE'S TURN</span>
                 <span class="text-[9px] text-slate-400 font-mono">TURN <span id="turn-counter" class="text-white font-bold">1</span> • <span id="map-name-tag" class="text-cyan-300">ARCHIPELAGO</span></span>
             </div>
+        </div>
+
+        <!-- Dynamic AI Learned Strategy Badge Header -->
+        <div id="ai-strategy-badge-container" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-500/60 text-purple-200 text-[11px] font-mono shadow">
+            <span class="animate-pulse text-amber-400">🧠</span>
+            <span id="ai-strategy-text" class="font-bold text-purple-300">AI STRATEGY: INITIALIZING</span>
         </div>
 
         <!-- Playback Speed Controls & Steppers -->
@@ -149,12 +163,12 @@
             
             <div class="text-center space-y-1">
                 <div class="inline-block px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/50 text-cyan-400 text-xs font-orbitron font-bold tracking-widest uppercase mb-1">
-                    CHESS 2.0 • ULTIMATE EXPANSION &amp; BEDWARS REALMS
+                    CHESS 2.0 • ADAPTIVE AI REALMS &amp; ROLE SWAPPING
                 </div>
                 <h1 class="font-orbitron font-black text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-emerald-400 text-glow-cyan tracking-wider">
                     CHESS 2: BEDWARS &amp; SQUAD REALMS
                 </h1>
-                <p class="text-xs md:text-sm text-slate-400 font-mono">15 UNIQUE ARENAS (UP TO 60x60) • SMART AI BRIDGING &amp; PATHFINDING • GUARANTEED PIECE SPAWNS</p>
+                <p class="text-xs md:text-sm text-slate-400 font-mono">ADAPTIVE AI LEARNING • MID-ROUND SCENARIO ROLE SWAPPING • 15 UNIQUE ARENAS</p>
             </div>
 
             <!-- Configuration Grid -->
@@ -210,17 +224,17 @@
                     </div>
                 </div>
 
-                <!-- 3. Rules, Guardians & Audio -->
+                <!-- 3. Rules, Guardians & Adaptive AI Banner -->
                 <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
                     <div>
                         <h3 class="font-orbitron text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 mb-2">
-                            <i class="fa-solid fa-gem"></i> 3. EXPANSION MECHANICS
+                            <i class="fa-solid fa-brain"></i> 3. ADAPTIVE AI &amp; ROLE SWAPPING
                         </h3>
                         <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
-                            • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns leap 2 tiles on first move!<br>
-                            • <strong>🏰 Castling:</strong> O-O / O-O-O castling between unmoved King &amp; Rook.<br>
-                            • <strong>💎 Diamond Guardians:</strong> Spawn on Diamond Gens every 50 turns with 10 Dia reward!<br>
-                            • <strong>🧶 AI Bridging &amp; Anti-Loop:</strong> Smart AI buys wool to bridge void &amp; pathfinds directly!
+                            • <strong>🧠 Behavioral Learning:</strong> AI tracks opponent Rush Aggression, Turtling, &amp; Gem Hoarding to counter-tactic.<br>
+                            • <strong>⚡ Dynamic Role Swapping:</strong> Units swap mid-round (CLUTCH_DEFEND, RETREAT_BANK, BOSS_HUNTER, RUSH).<br>
+                            • <strong>💎 Diamond Guardians:</strong> Neutral bosses spawn every 50 turns with 10 Dia bounty rewards!<br>
+                            • <strong>🧶 AI Bridging &amp; Anti-Loop:</strong> Auto-bridges void chasms &amp; penalizes repetitive moves.
                         </p>
                     </div>
 
@@ -340,10 +354,10 @@
     </div>
 
     <!-- DETAILED PIECE INSPECTOR CARD -->
-    <div id="piece-inspector-card" class="absolute bottom-16 left-3 z-30 pointer-events-auto w-80 glass-panel rounded-2xl p-3 border-cyan-500/40 shadow-2xl flex flex-col gap-2 hidden">
+    <div id="piece-inspector-card" class="absolute bottom-16 left-3 z-30 pointer-events-auto w-84 glass-panel rounded-2xl p-3.5 border-cyan-500/40 shadow-2xl flex flex-col gap-2.5 hidden">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
             <div class="flex items-center gap-2">
-                <span id="inspector-icon-box" class="w-8 h-8 rounded-lg bg-slate-900 border border-cyan-400 flex items-center justify-center text-cyan-400 text-lg">
+                <span id="inspector-icon-box" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-400 flex items-center justify-center text-cyan-400 text-xl">
                     <i class="fa-solid fa-chess-pawn"></i>
                 </span>
                 <div>
@@ -353,6 +367,14 @@
             </div>
             <span id="inspector-tp-status" class="text-[10px] font-mono font-bold text-cyan-300 bg-cyan-950 border border-cyan-800 px-2 py-0.5 rounded hidden">
                 🌀 TP: 3 TURNS
+            </span>
+        </div>
+
+        <!-- DYNAMIC PIECE ROLE BADGE -->
+        <div class="flex items-center justify-between text-xs font-mono bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+            <span class="text-slate-400 text-[10px] font-orbitron uppercase">TACTICAL ROLE:</span>
+            <span id="inspector-role-badge" class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-orbitron role-guard flex items-center gap-1">
+                🛡️ GUARD
             </span>
         </div>
 
@@ -672,24 +694,19 @@
 
             <div class="space-y-4 text-xs font-mono text-slate-300 leading-relaxed">
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-orbitron font-bold text-sky-300 text-sm mb-1">♟️ PAWN DOUBLE MOVE &amp; 🏰 CASTLING MECHANICS</h4>
-                    <p>• <strong>Pawn Double Step:</strong> Unmoved Pawns can leap 2 squares forward along their forward vector on their first move!<br>
-                    • <strong>Castling (O-O / O-O-O):</strong> Kings and friendly Rooks that haven't moved can castle if the rank path between them is unblocked and non-void.</p>
+                    <h4 class="font-orbitron font-bold text-sky-300 text-sm mb-1">🧠 ADAPTIVE AI ENGINE &amp; SCENARIO ROLE SWAPPING</h4>
+                    <p>• <strong>Behavioral Tracking:</strong> The AI measures enemy Rush Aggression, Turtling, and Gem Hoarding. It adapts between <em>COUNTER-RUSH</em>, <em>OUT-RESOURCE</em>, <em>BED-RUSH</em>, and <em>BALANCED-EXPANSION</em> strategies.<br>
+                    • <strong>Dynamic Role Swapping:</strong> Units swap roles mid-round (CLUTCH_DEFEND when Bed is threatened, RETREAT_BANK when holding gems or low HP, BOSS_HUNTER when Guardians spawn, RUSH when enemy Bed is exposed).</p>
                 </div>
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-amber-300 text-sm mb-1">💎 DIAMOND GUARDIANS (EVERY 50 TURNS)</h4>
-                    <p>Every 50 turns (Turn 50, 100, 150, etc.), neutral Diamond Guardians spawn directly on Diamond Generators! Stats: <strong>15 HP</strong>, 5 ATK, 3 DEF, King movement strictly restricted to a 2-tile radius around their home generator. Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
+                    <p>Every 50 turns, neutral Diamond Guardians spawn on Diamond Generators (15 HP, 5 ATK, 3 DEF). Defeating a Guardian awards <strong>10 Diamonds</strong> directly to the killer!</p>
                 </div>
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-cyan-300 text-sm mb-1">🎲 ACCELERATED D20 COMBAT &amp; PLAYBACK CONTROL</h4>
-                    <p>Capturing an enemy piece triggers a D20 Combat encounter! Final Damage = (D20 Roll + Attacker ATK) - Defender DEF. Change round speed dynamically from 0.5x to INSTANT via the persistent top bar overlay!</p>
-                </div>
-
-                <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-orbitron font-bold text-purple-300 text-sm mb-1">🧠 GOD-AI ENGINE (LEVEL 1-25) &amp; MOVE LOOP PREVENTION</h4>
-                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with anti-loop penalties.</p>
+                    <p>Capturing an enemy piece triggers a D20 Combat encounter! Final Damage = (D20 Roll + Attacker ATK) - Defender DEF. Change round speed dynamically from 0.5x to INSTANT via the top bar overlay!</p>
                 </div>
             </div>
         </div>
@@ -716,7 +733,7 @@
     <!-- JAVASCRIPT GAME ENGINE -->
     <script>
         /* =====================================================================
-           CHESS 2: ULTIMATE EXPANSION & ROBLOX BEDWARS - BUG-FIXED EDITION
+           CHESS 2: ULTIMATE EXPANSION & ROBLOX BEDWARS - ADAPTIVE AI & ROLES
            ===================================================================== */
         const ALL_TEAMS = ['white', 'black', 'red', 'blue', 'green', 'yellow'];
         const TEAM_FORMATS = {
@@ -732,6 +749,15 @@
             green:  { name: 'Green',  color: '#10b981', hex: 0x10b981, accent: 0x34d399, borderClass: 'border-emerald-500/40' },
             yellow: { name: 'Yellow', color: '#eab308', hex: 0xeab308, accent: 0xfde047, borderClass: 'border-amber-500/40' },
             neutral:{ name: 'Guardian', color: '#38bdf8', hex: 0x38bdf8, accent: 0x38bdf8, borderClass: 'border-sky-500/40' }
+        };
+
+        const ROLE_CONFIGS = {
+            'CLUTCH_DEFEND': { label: '🛡️ CLUTCH DEFENDER', class: 'role-clutch' },
+            'RETREAT_BANK':  { label: '🏃 RETREAT & BANK',  class: 'role-bank' },
+            'BOSS_HUNTER':   { label: '🐲 BOSS HUNTER',    class: 'role-boss' },
+            'RUSH':          { label: '⚔️ BED RUSHER',      class: 'role-rush' },
+            'GATHER':        { label: '💎 GEM GATHERER',    class: 'role-gather' },
+            'GUARD':         { label: '🛡️ BASE GUARD',      class: 'role-guard' }
         };
 
         const keyOf = (x, z) => `${Math.round(x)},${Math.round(z)}`;
@@ -815,6 +841,7 @@
             draftSelectedCost: 1,
 
             resources: null,
+            teamProfiles: {}, // Behavioral profiles per team
             activeBattle: null,
             moveHistoryLog: [],
             analysisCurrentIndex: 0,
@@ -836,8 +863,19 @@
         function newTeamRes(isBedwars) { return { iron: 10, dia: 0, em: 0, mana: 3, bedAlive: isBedwars, respawnQueue: [] }; }
         function initResources() {
             G.resources = {};
+            G.teamProfiles = {};
             const isB = (G.mode === 'bedwars');
-            ALL_TEAMS.forEach(t => G.resources[t] = newTeamRes(isB));
+            ALL_TEAMS.forEach(t => {
+                G.resources[t] = newTeamRes(isB);
+                G.teamProfiles[t] = {
+                    totalMoves: 0,
+                    forwardMoves: 0,
+                    baseMoves: 0,
+                    bridgesPlaced: 0,
+                    gemsHoarded: 0,
+                    learnedStrategy: 'BALANCED-EXPANSION'
+                };
+            });
         }
         initResources();
 
@@ -855,23 +893,23 @@
         };
 
         /* =====================================================================
-           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - 100% UNIQUE DESIGNS)
+           MAP CATALOG (15 DISTINCT UNIQUE MAPS)
            ===================================================================== */
         const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
 
         const MAP_CATALOG = [
-            /* --- 4-TEAM BEDWARS SQUAD ARENAS (5 DISTINCT UNIQUE MAPS) --- */
+            /* --- 4-TEAM BEDWARS SQUAD ARENAS (5 MAPS) --- */
             {
                 id: 'quad_sky_islands', kind: 'bedwars', teams: 4, name: "50x50 Sky Realm Squads", W: 50, H: 50, theme: 'sky', fwd: FWD_NS,
-                desc: "50x50 Sky Island Quad Arena. 4 Solid Corner Bases (-18,-18), (18,-18), (18,18), (-18,18) with 4 side Diamond islands.",
+                desc: "50x50 Sky Island Quad Arena. 4 Solid Corner Bases with 4 side Diamond islands.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'red' };
                     if (Math.abs(x - (18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'blue' };
                     if (Math.abs(x - (18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'green' };
                     if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'yellow' };
-                    if (ax <= 3 && az <= 3) return { h: 0.6 }; // Center Emerald
-                    if ((ax <= 2 && Math.abs(az - 12) <= 2) || (az <= 2 && Math.abs(ax - 12) <= 2)) return { h: 0.3 }; // Side Diamond Shrines
+                    if (ax <= 3 && az <= 3) return { h: 0.6 };
+                    if ((ax <= 2 && Math.abs(az - 12) <= 2) || (az <= 2 && Math.abs(ax - 12) <= 2)) return { h: 0.3 };
                     return null;
                 },
                 baseTeam: (x, z) => {
@@ -896,15 +934,15 @@
             },
             {
                 id: 'quad_volcanic_fortress', kind: 'bedwars', teams: 4, name: "52x52 Volcanic Fortress Squads", W: 52, H: 52, theme: 'lava', fwd: FWD_NS,
-                desc: "52x52 Nether Lava Trench Arena. Corner obsidian battlements, lava moats, central magma spire.",
+                desc: "52x52 Nether Lava Trench Arena. Corner obsidian battlements, central magma spire.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'red' };
                     if (Math.abs(x - (20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'blue' };
                     if (Math.abs(x - (20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'green' };
                     if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'yellow' };
-                    if (ax <= 4 && az <= 4) return { h: 0.8 }; // Central Emerald Spire
-                    if (Math.abs(ax - 10) <= 2 && Math.abs(az - 10) <= 2) return { h: 0.3 }; // Diagonal Diamond Altars
+                    if (ax <= 4 && az <= 4) return { h: 0.8 };
+                    if (Math.abs(ax - 10) <= 2 && Math.abs(az - 10) <= 2) return { h: 0.3 };
                     return null;
                 },
                 baseTeam: (x, z) => {
@@ -929,7 +967,7 @@
             },
             {
                 id: 'quad_cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic Asteroid Matrix", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
-                desc: "60x60 Sprawling 4-Arm Asteroid Spoke System. Extended void bridges & high-value diamond outposts.",
+                desc: "60x60 Sprawling 4-Arm Asteroid Spoke System with diamond outposts.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (az >= 18 && Math.abs(x - 0) <= 4) return { h: 0 };
@@ -960,7 +998,7 @@
             },
             {
                 id: 'quad_dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'crystal', fwd: FWD_NS,
-                desc: "50x50 Volcanic Dragon Citadel. Concentric void trenches surrounding central dragon altar.",
+                desc: "50x50 Volcanic Dragon Citadel. Concentric void trenches around central dragon altar.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'red' };
@@ -993,7 +1031,7 @@
             },
             {
                 id: 'quad_stepped_ziggurat', kind: 'bedwars', teams: 4, name: "55x55 Stepped Ziggurat Quad", W: 55, H: 55, theme: 'sunset', fwd: FWD_NS,
-                desc: "55x55 Multi-tiered Ziggurat pyramid map. Base corner plateaus with central emerald apex.",
+                desc: "55x55 Multi-tiered Ziggurat pyramid map with central emerald apex.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'red' };
@@ -1026,10 +1064,10 @@
                 }
             },
 
-            /* --- 2-TEAM BEDWARS ARENAS (5 DISTINCT UNIQUE MAPS) --- */
+            /* --- 2-TEAM BEDWARS ARENAS (5 MAPS) --- */
             {
                 id: 'archipelago', kind: 'bedwars', teams: 2, name: "Archipelago 2-Team Dual", W: 19, H: 19, theme: 'sky', fwd: FWD_NS,
-                desc: "19x19. Three isolated island chains: bases, central EMERALD isle and side DIAMOND isles.",
+                desc: "19x19. Three island chains: bases, central EMERALD isle, side DIAMOND isles.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (az >= 5 && ax <= 4) return { h: 0 };
@@ -1043,7 +1081,7 @@
             },
             {
                 id: 'sky_ridge', kind: 'bedwars', teams: 2, name: "Sky Ridge Fortress", W: 21, H: 11, theme: 'tundra', fwd: FWD_NS,
-                desc: "21x11 Narrow sky ridge connecting bases directly across double diamond outposts.",
+                desc: "21x11 Narrow sky ridge connecting bases across double diamond outposts.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (ax <= 9 && az <= 3) return { h: 0.2 };
@@ -1056,7 +1094,7 @@
             },
             {
                 id: 'crossroads', kind: 'bedwars', teams: 2, name: "Crossroads", W: 17, H: 17, theme: 'lava', fwd: FWD_NS,
-                desc: "17x17 aggressive plus-shape. Bases are linked by a 3-wide spine through a DIAMOND hill.",
+                desc: "17x17 aggressive plus-shape. Bases linked by a 3-wide spine through a DIAMOND hill.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
                     if (az >= 5 && ax <= 3) return { h: 0 };
@@ -1096,7 +1134,7 @@
                 spawn: [['bed', 0, 6], ['k', 0, 5], ['q', 1, 5], ['r', -3, 5], ['r', 3, 5], ['p', 0, 4]]
             },
 
-            /* --- STANDARD / CLASSIC MAPS (5 DISTINCT UNIQUE MAPS) --- */
+            /* --- STANDARD / CLASSIC MAPS (5 MAPS) --- */
             { id: 'classic', kind: 'classic', teams: 2, name: "Classic 8x8 Arena", size: 8, theme: 'neon', fwd: FWD_NS, desc: "Traditional 8x8 chessboard with Castling, Pawn 2-step & D20 combat.", tile: () => ({ h: 0 }) },
             { id: 'donut', kind: 'classic', teams: 2, name: "The Void Donut 10x10", size: 10, theme: 'celestial', fwd: FWD_NS, desc: "Circular ring board with a hollow void pit in the center.", tile: (x, z) => (Math.sqrt(x * x + z * z) < 2.2) ? null : { h: 0 } },
             { id: 'l_shaped', kind: 'classic', teams: 2, name: "L-Shaped Arena 10x10", size: 10, theme: 'emerald', fwd: FWD_NS, desc: "Asymmetric tactical L-board challenging piece positioning.", tile: (x, z) => (x < 0 && z < 0) ? null : { h: 0 } },
@@ -1386,10 +1424,8 @@
             const key = keyOf(tx, tz);
             let tile = G.boardGrid[key];
             
-            // If tile exists, is not void, and is unoccupied, return it directly
             if (tile && !tile.isVoid && !tile.piece) return { x: tx, z: tz };
 
-            // Search outward for nearest free non-void tile
             for (let r = 1; r <= 15; r++) {
                 for (let dx = -r; dx <= r; dx++) {
                     for (let dz = -r; dz <= r; dz++) {
@@ -1401,7 +1437,7 @@
                 }
             }
 
-            // Ultimate Fallback: Dynamically generate a solid base platform tile so spawn NEVER fails
+            // Fallback platform generation
             const theme = MAP_THEMES[G.mapData ? G.mapData.theme : 'sky'] || MAP_THEMES.neon;
             const tileMat = new THREE.MeshStandardMaterial({ color: TEAM_CONFIGS[team] ? TEAM_CONFIGS[team].hex : theme.tileA, roughness: 0.4 });
             const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4, 0.95), tileMat);
@@ -1457,7 +1493,7 @@
                 obsBroken: false,
                 obsMesh: null,
                 homeGen: null,
-                role: 'guard',
+                role: 'GUARD',
                 moveHistory: [],
                 mesh: mesh
             };
@@ -1471,7 +1507,122 @@
                 if (G.resources[team]) G.resources[team].bedAlive = true;
             }
 
+            evaluatePieceRole(piece);
             return piece;
+        }
+
+        /* =====================================================================
+           DYNAMIC MID-ROUND SCENARIO-BASED ROLE SWAPPING ENGINE
+           ===================================================================== */
+        function evaluatePieceRole(piece) {
+            if (!piece || piece.type === 'bed') return 'GUARD';
+            
+            const homeBed = bedOf(piece.team);
+            const nearEnemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed');
+            
+            // Trigger 1: CLUTCH_DEFEND (Home Bed under attack / enemy within 4 tiles of home base)
+            if (homeBed) {
+                const enemyThreat = nearEnemies.some(e => cheb(e, homeBed) <= 4);
+                if (enemyThreat) {
+                    piece.role = 'CLUTCH_DEFEND';
+                    return piece.role;
+                }
+            }
+
+            // Trigger 2: RETREAT_BANK (Carrying heavy gems or low HP with gear)
+            if (piece.carriedEm >= 2 || piece.carriedDia >= 4 || (piece.hp / piece.maxHp < 0.35 && (piece.carriedEm > 0 || piece.carriedDia > 0))) {
+                piece.role = 'RETREAT_BANK';
+                return piece.role;
+            }
+
+            // Trigger 3: BOSS_HUNTER (Diamond Guardian Boss alive on board)
+            const guardianBoss = G.pieces.find(p => p.type === 'guardian');
+            if (guardianBoss && (getAtk(piece) >= 5 || piece.type === 'n' || piece.type === 'q' || piece.type === 'd' || piece.type === 'r')) {
+                piece.role = 'BOSS_HUNTER';
+                return piece.role;
+            }
+
+            // Trigger 4: RUSH (Enemy bed exposed or team strategy set to BED_RUSH_EXECUTE)
+            const exposedEnemyBed = G.pieces.find(p => p.team !== piece.team && p.team !== 'neutral' && p.type === 'bed' && obsLayers(p) <= 1);
+            if (exposedEnemyBed || (G.teamProfiles[piece.team] && G.teamProfiles[piece.team].learnedStrategy === 'BED_RUSH_EXECUTE')) {
+                if (piece.type === 'p' || piece.type === 'n' || piece.type === 'd' || piece.type === 'q') {
+                    piece.role = 'RUSH';
+                    return piece.role;
+                }
+            }
+
+            // Trigger 5: GATHER (Unclaimed gems available on generators)
+            const activeGens = G.gens.some(g => g.stock > 0);
+            if (activeGens && (piece.type === 'p' || piece.type === 'n' || piece.type === 'b')) {
+                piece.role = 'GATHER';
+                return piece.role;
+            }
+
+            // Trigger 6: Default GUARD
+            piece.role = 'GUARD';
+            return piece.role;
+        }
+
+        function updateAllPieceRoles() {
+            G.pieces.forEach(p => evaluatePieceRole(p));
+        }
+
+        /* =====================================================================
+           ADAPTIVE AI LEARNING ENGINE (BEHAVIOR TRACKING & COUNTER-TACTICS)
+           ===================================================================== */
+        function adaptAIStrategies() {
+            G.teams.forEach(team => {
+                if (!G.teamControllers[team] || G.teamControllers[team].type !== 'ai') return;
+                
+                // Analyze opponents' metrics
+                const opponents = G.teams.filter(t => t !== team);
+                let highestAggression = 0, highestTurtling = 0, mostBridged = 0;
+                let keyEnemy = null;
+
+                opponents.forEach(opp => {
+                    const prof = G.teamProfiles[opp];
+                    if (!prof || prof.totalMoves === 0) return;
+                    const aggRatio = prof.forwardMoves / prof.totalMoves;
+                    const turtleRatio = prof.baseMoves / prof.totalMoves;
+
+                    if (aggRatio > highestAggression) { highestAggression = aggRatio; keyEnemy = opp; }
+                    if (turtleRatio > highestTurtling) highestTurtling = turtleRatio;
+                    if (prof.bridgesPlaced > mostBridged) mostBridged = prof.bridgesPlaced;
+                });
+
+                // Check for exposed beds
+                const exposedEnemy = opponents.find(opp => {
+                    const bed = bedOf(opp);
+                    return bed && obsLayers(bed) === 0;
+                });
+
+                let newStrategy = 'BALANCED-EXPANSION';
+                if (exposedEnemy) {
+                    newStrategy = 'BED_RUSH_EXECUTE';
+                } else if (highestAggression >= 0.45) {
+                    newStrategy = 'COUNTER-RUSH';
+                } else if (highestTurtling >= 0.55) {
+                    newStrategy = 'OUT-RESOURCE';
+                }
+
+                G.teamProfiles[team].learnedStrategy = newStrategy;
+            });
+
+            updateAIHUDStrategyText();
+        }
+
+        function updateAIHUDStrategyText() {
+            const container = $('ai-strategy-badge-container');
+            const textEl = $('ai-strategy-text');
+            if (!container || !textEl) return;
+
+            if (G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai') {
+                const strat = G.teamProfiles[G.turn] ? G.teamProfiles[G.turn].learnedStrategy : 'BALANCED-EXPANSION';
+                textEl.innerText = `${G.turn.toUpperCase()} AI STRATEGY: ${strat}`;
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+            }
         }
 
         /* =====================================================================
@@ -1624,7 +1775,6 @@
                 return;
             }
 
-            // Standard classic setup
             const maxZ = map.dims.maxZ;
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
             for (let c = 0; c < 8; c++) {
@@ -1725,7 +1875,7 @@
         }
 
         /* =====================================================================
-           MOVE CALCULATION (PAWN DOUBLE STEP, CASTLING, GUARDIAN 2-TILE RADIUS)
+           MOVE CALCULATION & RULES
            ===================================================================== */
         function getPieceMoves(piece) {
             let moves = [], attacks = [];
@@ -1752,7 +1902,6 @@
                 const ft = G.boardGrid[keyOf(fx, fz)];
                 if (ft && !ft.isVoid && !ft.piece) {
                     moves.push({ x: fx, z: fz });
-                    // PAWN DOUBLE STEP ON FIRST MOVE
                     if (!piece.hasMoved) {
                         const f2x = x + f[0] * 2, f2z = z + f[1] * 2;
                         const f2t = G.boardGrid[keyOf(f2x, f2z)];
@@ -1761,7 +1910,6 @@
                         }
                     }
                 }
-                // Diagonal Captures
                 [[-f[1], f[0]], [f[1], -f[0]]].forEach(p => {
                     const t = G.boardGrid[keyOf(fx + p[0], fz + p[1])];
                     if (t && !t.isVoid && t.piece && t.piece.team !== piece.team) {
@@ -1774,14 +1922,12 @@
             else if (type === 'k' || type === 'guardian') {
                 slide(ORTHO.concat(DIAG), 1);
                 
-                // GUARDIAN MOVEMENT RESTRICTION: STRICTLY WITHIN 2-TILE RADIUS OF HOME GENERATOR
                 if (type === 'guardian') {
                     const home = piece.homeGen || { x: piece.homeX, z: piece.homeZ };
                     moves = moves.filter(m => cheb(m, home) <= 2);
                     attacks = attacks.filter(a => cheb(a, home) <= 2);
                 }
 
-                // CASTLING MECHANICS (O-O and O-O-O)
                 if (type === 'k' && !piece.hasMoved) {
                     const rooks = G.pieces.filter(p => p.team === piece.team && p.type === 'r' && !p.hasMoved);
                     rooks.forEach(rook => {
@@ -1949,7 +2095,7 @@
         function setPrompt(t) { $('prompt-text').innerText = t; }
 
         /* =====================================================================
-           MOVEMENT CORE WITH CASTLING SUPPORT & RECENT MOVE TRACKING
+           MOVEMENT CORE WITH BEHAVIORAL PROFILE TRACKING & RECALLS
            ===================================================================== */
         function cancelTeleportChannel(p, msg) {
             if (p.tpLeft > 0) {
@@ -1967,12 +2113,22 @@
             piece.moveHistory.push({ x, z });
             if (piece.moveHistory.length > 8) piece.moveHistory.shift();
 
+            // Track team behavior profiles for AI adaptation
+            const teamProf = G.teamProfiles[piece.team];
+            if (teamProf) {
+                teamProf.totalMoves++;
+                if (inBase(piece)) teamProf.baseMoves++;
+                const home = piece.homeZ;
+                if (Math.abs(z - home) > Math.abs(piece.z - home)) teamProf.forwardMoves++;
+            }
+
             piece.x = x; piece.z = z;
             const tile = G.boardGrid[keyOf(x, z)];
             tile.piece = piece;
             piece.mesh.position.set(x, tile.height + 0.2, z);
             collectFromGenerator(piece, tile);
             depositGems(piece);
+            evaluatePieceRole(piece);
         }
 
         function executeMove(piece, x, z, moveObj) {
@@ -2009,12 +2165,13 @@
             refreshGenVisual(gen);
             if (G.mode === 'bedwars') {
                 if (gen.type === 'em') piece.carriedEm += n; else piece.carriedDia += n;
-                showFloatingText(`+${n} ${gen.type === 'em' ? 'EM' : 'DIA'} CARRIED - RETURN TO BASE!`, piece.x, piece.z, gen.type === 'em' ? '#10b981' : '#38bdf8');
+                showFloatingText(`+${n} ${gen.type === 'em' ? 'EM' : 'DIA'} CARRIED!`, piece.x, piece.z, gen.type === 'em' ? '#10b981' : '#38bdf8');
             } else {
                 G.resources[piece.team].mana = Math.min(10, G.resources[piece.team].mana + n);
                 showFloatingText(`+${n} MANA`, piece.x, piece.z, '#a855f7');
             }
             playSound('gem');
+            evaluatePieceRole(piece);
         }
 
         function depositGems(piece) {
@@ -2027,6 +2184,7 @@
             showFloatingText(`BANKED ${parts.join(' ')}`, piece.x, piece.z, '#fde047');
             playSound('gem');
             updateHUDCounters();
+            evaluatePieceRole(piece);
         }
 
         function tickGenerators() {
@@ -2038,7 +2196,7 @@
         }
 
         /* =====================================================================
-           DIAMOND GUARDIAN BOSS EVENT (SPAWNS DIRECTLY ON DIAMOND GENERATORS)
+           DIAMOND GUARDIAN BOSS EVENT
            ===================================================================== */
         function checkDiamondGuardianSpawn() {
             if (G.turnCount % 50 === 0 && G.turnIndex === 0) {
@@ -2067,11 +2225,12 @@
                 banner.classList.remove('hidden');
                 setTimeout(() => banner.classList.add('hidden'), 5000);
                 playSound('boss');
+                updateAllPieceRoles();
             }
         }
 
         /* =====================================================================
-           ACCELERATED D20 COMBAT WITH INSTANT PLAYBACK SLIDER
+           ACCELERATED D20 COMBAT
            ===================================================================== */
         function initiateD20Combat(attacker, defender) {
             G.activeBattle = { attacker, defender, rolling: false };
@@ -2098,6 +2257,7 @@
             if (piece.type === 'bed') { damageBed(piece, dmg); return; }
             piece.hp -= dmg;
             cancelTeleportChannel(piece, 'RECALL INTERRUPTED!');
+            evaluatePieceRole(piece);
         }
 
         function damageBed(bed, dmg) {
@@ -2113,6 +2273,7 @@
             if (bed.obsBroken) bed.obsLock = OBSIDIAN_LOCK_TURNS;
             refreshObsidianMesh(bed);
             updateBedBadges();
+            updateAllPieceRoles();
         }
 
         function resolveD20Combat() {
@@ -2210,6 +2371,7 @@
                 updateBedBadges();
             }
 
+            updateAllPieceRoles();
             checkWin();
         }
 
@@ -2261,6 +2423,8 @@
             if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) { showFloatingText('WOOL LIMIT: 2 PER TURN', piece.x, piece.z, '#ef4444'); return false; }
             piece.blocks--;
             G.bridgesThisTurn++;
+
+            if (G.teamProfiles[piece.team]) G.teamProfiles[piece.team].bridgesPlaced++;
 
             const cfg = TEAM_CONFIGS[piece.team] || TEAM_CONFIGS.white;
             const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4, 0.95), new THREE.MeshStandardMaterial({ color: cfg.hex, roughness: 0.9 }));
@@ -2466,7 +2630,7 @@
         }
 
         /* =====================================================================
-           TURN SYSTEM & ACCELERATED PLAYBACK (AUTO-PLAY HUMAN AUTO-PAUSE)
+           TURN SYSTEM & ACCELERATED PLAYBACK (AUTO-PAUSE ON HUMAN TURN)
            ===================================================================== */
         function manualEndTurn() {
             if (inputBlocked() || G.draftPhase) return;
@@ -2525,6 +2689,9 @@
                 res.mana = Math.min(10, res.mana + 1);
             }
 
+            // Adapt AI strategies dynamically
+            adaptAIStrategies();
+            updateAllPieceRoles();
             checkWin();
 
             // AUTO-PAUSE WHEN TURN REACHES A HUMAN PLAYER
@@ -2776,7 +2943,7 @@
         }
 
         /* =====================================================================
-           GOD-AI ENGINE (LEVEL 1 TO 25) WITH SMART BRIDGING & ANTI-LOOPING
+           GOD-AI ENGINE WITH ROLE-WEIGHTED EVALUATION & ANTI-LOOPING
            ===================================================================== */
         function aiBaseCenter(team) {
             const b = bedOf(team);
@@ -2791,17 +2958,25 @@
 
         function aiTarget(piece) {
             const team = piece.team;
-            if (G.mode === 'bedwars') {
-                if (piece.carriedEm >= 2 || piece.carriedDia >= 4) return aiBaseCenter(team);
-                if (piece.role === 'guard') return aiBaseCenter(team);
-                if (piece.role === 'gather') {
-                    let best = null, bd = Infinity;
-                    G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bd) { bd = d; best = g; } } });
-                    if (best) return best;
-                }
+            const role = piece.role || evaluatePieceRole(piece);
+
+            if (role === 'RETREAT_BANK' || role === 'CLUTCH_DEFEND') {
+                return aiBaseCenter(team);
+            }
+            if (role === 'BOSS_HUNTER') {
+                const boss = G.pieces.find(p => p.type === 'guardian');
+                if (boss) return boss;
+            }
+            if (role === 'GATHER') {
+                let best = null, bd = Infinity;
+                G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bd) { bd = d; best = g; } } });
+                if (best) return best;
+            }
+            if (role === 'RUSH') {
                 const enemyBed = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
                 if (enemyBed) return enemyBed;
             }
+
             const enemyKing = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'k');
             if (enemyKing) return enemyKing;
             const anyEnemy = G.pieces.find(p => p.team !== team && p.team !== 'neutral');
@@ -2817,7 +2992,6 @@
                 const res = G.resources[team];
                 if (!res) break;
 
-                // Ensure AI buys wool whenever it has >= 4 iron and piece carries less than 4 wool
                 const lowWoolPiece = G.pieces.find(p => p.team === team && p.blocks < 4);
                 if (lowWoolPiece && inBase(lowWoolPiece) && res.iron >= WOOL_COST) {
                     bought = buyItem(lowWoolPiece, 'wool');
@@ -2865,26 +3039,27 @@
 
         function evaluateMoveScore(piece, move, attackTarget, aiLevel) {
             let score = 0;
+            const role = piece.role || evaluatePieceRole(piece);
             const target = aiTarget(piece);
 
             if (attackTarget) {
                 score += 80 + getAtk(attackTarget) * 5;
                 if (attackTarget.type === 'bed') score += 180;
                 if (attackTarget.type === 'k') score += 120;
-                if (attackTarget.type === 'guardian') score += 110;
+                if (attackTarget.type === 'guardian') score += 130;
                 score += Math.max(0, 15 - attackTarget.hp) * 4;
             } else if (move) {
                 if (target) {
                     const currD = cheb(piece, target);
                     const nextD = cheb(move, target);
-                    score += (currD - nextD) * 15; // Reward moving closer to target
+                    score += (currD - nextD) * (role === 'RUSH' ? 25 : 15);
                 }
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
                 if (move.isCastle) score += 50;
                 if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
             }
 
-            // HEAVY ANTI-LOOPING PENALTY (-350 per recent repeat position to end base shuffling)
+            // Heavy anti-looping penalty
             if (move && piece.moveHistory && piece.moveHistory.length > 0) {
                 const recentMoves = piece.moveHistory.slice(-6);
                 const repeats = recentMoves.filter(h => h.x === move.x && h.z === move.z).length;
@@ -2934,7 +3109,7 @@
 
             const tpCandidates = G.pieces.filter(p => p.team === team && p.type !== 'bed' && !inBase(p) && p.tpLeft === 0);
             for (const p of tpCandidates) {
-                if (p.carriedEm >= 3 || p.carriedDia >= 5 || (p.hp / p.maxHp < 0.3)) {
+                if (p.carriedEm >= 3 || p.carriedDia >= 5 || (p.hp / p.maxHp < 0.35)) {
                     startTpToHome();
                     if (p.tpLeft > 0) { endTurn(); return; }
                 }
@@ -3193,6 +3368,7 @@
             renderHUDTeamCards();
             updateBedBadges();
             updateHintButtonState();
+            updateAIHUDStrategyText();
             if (!G.spellMode && !G.pearlMode) setPrompt(isHumanTurn() ? defaultPrompt() : 'The AI is taking its turn...');
         }
 
@@ -3227,7 +3403,7 @@
             card.classList.remove('hidden');
             const cfg = TEAM_CONFIGS[piece.team] || TEAM_CONFIGS.white;
             $('inspector-icon-box').innerHTML = `<i class="fa-solid ${TYPE_ICONS[piece.type] || 'fa-chess-pawn'}"></i>`;
-            $('inspector-icon-box').className = `w-8 h-8 rounded-lg bg-slate-900 border flex items-center justify-center text-lg`;
+            $('inspector-icon-box').className = `w-9 h-9 rounded-xl bg-slate-900 border flex items-center justify-center text-xl`;
             $('inspector-icon-box').style.borderColor = cfg.color;
             $('inspector-icon-box').style.color = cfg.color;
             $('inspector-name').innerText = `${piece.team} ${TYPE_NAMES[piece.type]}`;
@@ -3236,6 +3412,13 @@
             $('inspector-hp-bar').style.width = `${Math.max(0, Math.min(100, (piece.hp / piece.maxHp) * 100))}%`;
             $('inspector-atk-val').innerText = getAtk(piece);
             $('inspector-def-val').innerText = getDef(piece);
+
+            // Update Dynamic Scenario Role Badge
+            const currentRole = evaluatePieceRole(piece);
+            const roleCfg = ROLE_CONFIGS[currentRole] || ROLE_CONFIGS.GUARD;
+            const roleBadge = $('inspector-role-badge');
+            roleBadge.innerText = roleCfg.label;
+            roleBadge.className = `px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-orbitron ${roleCfg.class} flex items-center gap-1`;
 
             $('inspector-gear-sword').innerText = `🗡️ ${SWORD_TIERS[piece.swordTier] ? SWORD_TIERS[piece.swordTier].name : 'Sword'}`;
             $('inspector-gear-armor').innerText = `🛡️ ${ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].name : 'Armor'}`;
