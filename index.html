@@ -234,6 +234,48 @@
                 <p class="text-xs md:text-sm text-slate-400 font-mono">ADAPTIVE AI LEARNING • MID-ROUND SCENARIO ROLE SWAPPING • 15 UNIQUE ARENAS</p>
             </div>
 
+            <!-- ACCOUNT SHORTCUTS -->
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-cyan-500/30 bg-slate-950/70 p-3">
+                <div class="min-w-0">
+                    <div class="text-[9px] text-slate-500 font-mono">SIGNED IN</div>
+                    <div id="menu-account-name" class="font-orbitron text-sm font-bold text-emerald-300 truncate">Loading account...</div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="openPlayerProfile()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-cyan-950 border border-cyan-500/50 text-cyan-200 text-xs font-bold"><i class="fa-solid fa-user mr-1"></i> MY PROFILE</button>
+                    <button onclick="signOutAccount()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs font-bold"><i class="fa-solid fa-right-from-bracket mr-1"></i> LOG OUT</button>
+                </div>
+            </div>
+
+            <!-- ONLINE LOBBY -->
+            <section class="rounded-2xl border border-purple-500/40 bg-purple-950/20 p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="font-orbitron text-sm font-black text-purple-300"><i class="fa-solid fa-users mr-2"></i>ONLINE LOBBY</h2>
+                        <p class="text-[10px] text-slate-400">Create a private room or join a friend's room code.</p>
+                    </div>
+                    <span id="lobby-status-badge" class="text-[9px] rounded-full px-2 py-1 bg-slate-900 border border-slate-700 text-slate-400">NOT IN A ROOM</span>
+                </div>
+                <div id="lobby-entry-controls" class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2">
+                    <input id="lobby-join-code" maxlength="6" autocomplete="off" placeholder="ENTER 6-CHAR ROOM CODE" class="min-w-0 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2.5 text-center font-mono tracking-[0.2em] text-white uppercase outline-none focus:border-purple-400">
+                    <button onclick="joinLobbyByCode()" class="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold">JOIN ROOM</button>
+                    <button onclick="createLobby()" class="px-4 py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold">CREATE ROOM</button>
+                </div>
+                <div id="lobby-feedback" class="text-[10px] text-slate-400" role="status" aria-live="polite">Create a room to get an invite code, or enter a friend's code to join.</div>
+                <div id="lobby-room-panel" class="hidden rounded-xl bg-slate-950/80 border border-purple-500/30 p-3 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div><div class="text-[9px] text-slate-500 font-mono">ROOM CODE · SHARE WITH FRIENDS</div><div id="lobby-room-code" class="font-orbitron text-2xl font-black tracking-[0.25em] text-purple-200">------</div></div>
+                        <button onclick="copyLobbyCode()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-200"><i class="fa-solid fa-copy mr-1"></i> COPY CODE</button>
+                    </div>
+                    <div><div class="text-[10px] text-slate-400 font-mono mb-2">PLAYERS IN ROOM</div><div id="lobby-player-list" class="space-y-1"></div></div>
+                    <div id="lobby-message" class="text-[10px] text-slate-400" role="status">Waiting for players...</div>
+                    <div class="flex flex-wrap gap-2">
+                        <button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button>
+                        <button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button>
+                    </div>
+                </div>
+                <p class="text-[10px] text-amber-300/80">Room creation, joining, presence and ready status are online. Live synchronized board gameplay is not connected yet.</p>
+            </section>
+
             <!-- Configuration Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 
@@ -358,6 +400,16 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+
+    <!-- PLAYER PROFILE PAGE -->
+    <div id="player-profile-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
+        <div class="glass-panel w-full max-w-lg rounded-3xl border-cyan-500/40 p-6 shadow-2xl space-y-5">
+            <div class="flex items-center justify-between"><div><div class="text-[10px] text-cyan-400 font-mono tracking-widest">CHESS 2 PLAYER CARD</div><h2 class="font-orbitron text-xl font-black text-white">MY PROFILE</h2></div><button onclick="closePlayerProfile()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300">✕</button></div>
+            <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800"><div class="text-[9px] text-slate-500 font-mono">USERNAME</div><div id="profile-page-username" class="text-2xl font-black text-emerald-300">Player</div><div id="profile-page-email" class="text-xs text-slate-400 mt-1 break-all"></div><div id="profile-page-account-type" class="text-[10px] text-cyan-300 mt-2"></div></div>
+            <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">1000</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">1000</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">1000</div></div></div>
+            <div class="flex gap-2"><button onclick="closePlayerProfile()" class="flex-1 py-3 rounded-xl bg-cyan-700 text-white text-xs font-bold">BACK TO GAME</button><button onclick="signOutAccount()" class="px-4 py-3 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LOG OUT</button></div>
         </div>
     </div>
 
@@ -2295,6 +2347,8 @@
 
         function executeMove(piece, x, z, moveObj) {
             const fromX = piece.x, fromZ = piece.z;
+            // Evaluate against this piece's legal options BEFORE changing the board.
+            const moveEvaluation = captureMoveEvaluation(piece, moveObj || { x, z }, null);
             cancelTeleportChannel(piece, 'RECALL CANCELLED');
             
             const isCastle = moveObj && moveObj.isCastle;
@@ -2307,9 +2361,9 @@
                 moveObj.rook.hasMoved = true;
                 const isKingside = moveObj.rookTargetX > fromX;
                 showFloatingText(isKingside ? 'O-O CASTLING!' : 'O-O-O CASTLING!', x, z, '#f59e0b');
-                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, isKingside ? 'O-O Castling' : 'O-O-O Castling');
+                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, isKingside ? 'O-O Castling' : 'O-O-O Castling', moveEvaluation);
             } else {
-                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, 'Move');
+                logGameMove(piece, { x: fromX, z: fromZ }, { x, z }, null, 'Move', moveEvaluation);
             }
             
             playSound('move');
@@ -3381,7 +3435,44 @@
         /* =====================================================================
            FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS & REPLAY STEPPER
            ===================================================================== */
-        function evaluateMoveBadge(piece, from, to, target, actionType, bestMove) {
+        // Compare a move only with the alternatives available to the SAME piece,
+        // using the board position before the move is executed.
+        function captureMoveEvaluation(piece, chosenMove, attackTarget) {
+            const { moves, attacks } = getPieceMoves(piece);
+            let bestScore = -Infinity;
+            let bestTarget = null;
+            let bestKind = 'move';
+
+            attacks.forEach(a => {
+                const score = evaluateMoveScore(piece, null, a.target, 25);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestTarget = a.target;
+                    bestKind = 'attack';
+                }
+            });
+            moves.forEach(m => {
+                const score = evaluateMoveScore(piece, m, null, 25);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestTarget = null;
+                    bestKind = 'move';
+                }
+            });
+
+            const chosenScore = attackTarget
+                ? evaluateMoveScore(piece, null, attackTarget, 25)
+                : evaluateMoveScore(piece, chosenMove, null, 25);
+
+            return {
+                bestScore: Number.isFinite(bestScore) ? bestScore : chosenScore,
+                chosenScore,
+                bestTarget,
+                bestKind
+            };
+        }
+
+        function evaluateMoveBadge(piece, from, to, target, actionType, evaluation) {
             if (actionType.includes('Castling')) {
                 return { tag: '!!', class: 'badge-brilliant', label: 'Brilliant' };
             }
@@ -3392,46 +3483,32 @@
                 return { tag: '!', class: 'badge-excellent', label: 'Excellent' };
             }
 
-            // Delta-Based Evaluation against Top Engine Score
-            const chosenMove = { x: to.x, z: to.z };
-            const chosenScore = evaluateMoveScore(piece, chosenMove, target, 25);
-            const bestScore = bestMove ? bestMove.score : chosenScore;
-            const delta = bestScore - chosenScore;
+            // Some actions (such as completed D20 combat) do not yet have a
+            // trustworthy before-move snapshot. Never label those as blunders.
+            if (!evaluation) {
+                return { tag: '👍', class: 'badge-good', label: 'Good' };
+            }
 
-            // Missed Win Check
-            if (bestMove && bestMove.target && (bestMove.target.type === 'bed' || bestMove.target.type === 'k')) {
-                if (!target || (target !== bestMove.target)) {
+            const delta = Math.max(0, evaluation.bestScore - evaluation.chosenScore);
+
+            if (evaluation.bestKind === 'attack' && evaluation.bestTarget &&
+                (evaluation.bestTarget.type === 'bed' || evaluation.bestTarget.type === 'k')) {
+                if (target !== evaluation.bestTarget) {
                     return { tag: '💔', class: 'badge-missed', label: 'Missed Win' };
                 }
             }
 
-            // Queen Aimless Base Shuffling check
-            const targetObj = aiTarget(piece);
-            const currD = cheb(piece, targetObj || { x: to.x, z: to.z });
-            const nextD = cheb(to, targetObj || { x: to.x, z: to.z });
-            const isAimlessQueenShuffle = (piece.type === 'q' && inBase(piece) && !target && nextD >= currD);
-
-            if (isAimlessQueenShuffle || delta > 100) {
-                return { tag: '??', class: 'badge-blunder', label: 'Blunder' };
-            }
-            if (delta > 50) {
-                return { tag: '?', class: 'badge-mistake', label: 'Mistake' };
-            }
-            if (delta > 20) {
-                return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
-            }
-            if (target && target.type === 'q') {
-                return { tag: '⭐', class: 'badge-best', label: 'Best' };
-            }
-            if (delta <= 5) {
-                return { tag: '⭐', class: 'badge-best', label: 'Best' };
-            }
+            // This is a heuristic review, not a full chess engine. Keep the
+            // thresholds conservative to avoid marking ordinary moves as blunders.
+            if (delta > 180) return { tag: '??', class: 'badge-blunder', label: 'Blunder' };
+            if (delta > 100) return { tag: '?', class: 'badge-mistake', label: 'Mistake' };
+            if (delta > 45) return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
+            if (delta <= 5) return { tag: '⭐', class: 'badge-best', label: 'Best' };
             return { tag: '👍', class: 'badge-good', label: 'Good' };
         }
 
-        function logGameMove(piece, from, to, target, actionType) {
-            const best = calculateBestMoveForTeam(piece.team);
-            const badge = evaluateMoveBadge(piece, from, to, target, actionType, best);
+        function logGameMove(piece, from, to, target, actionType, evaluation = null) {
+            const badge = evaluateMoveBadge(piece, from, to, target, actionType, evaluation);
 
             const entry = {
                 turn: G.turnCount,
@@ -3902,6 +3979,11 @@
         let firebaseAuth = null;
         let firestoreDB = null;
         let profileUnsubscribe = null;
+        let lobbyUnsubscribe = null;
+        let lobbyPlayersUnsubscribe = null;
+        let activeLobbyCode = null;
+        let activeLobbyIsHost = false;
+        let activeLobbyReady = false;
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -3921,6 +4003,7 @@
                 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
                 firebaseAuth = firebase.auth();
                 firestoreDB = firebase.firestore();
+                firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err => console.warn('Could not set local auth persistence:', err));
                 return true;
             } catch (err) {
                 console.error('Firebase initialization failed:', err);
@@ -3978,7 +4061,6 @@
             $('toggle-ai-strategy').checked = G.enableAIStrategy;
             $('toggle-piece-roles').checked = G.enablePieceRoles;
             $('autoplay-speed-select').value = String(G.speedMultiplier);
-            toggleAudioButtonDisplay();
             renderTeamControllerOptions();
             renderMapCards();
         }
@@ -4002,6 +4084,14 @@
             $('rating-draft').textContent = currentAccount.ratings.draft ?? 1000;
             $('rating-bedwars').textContent = currentAccount.ratings.bedwars ?? 1000;
             applyAccountSettings(currentAccount.settings);
+            const menuName = $('menu-account-name');
+            if (menuName) menuName.textContent = currentAccount.username + (currentAccount.isAnonymous ? ' · GUEST' : '');
+            const pu = $('profile-page-username'); if (pu) pu.textContent = currentAccount.username;
+            const pe = $('profile-page-email'); if (pe) pe.textContent = currentAccount.email || 'Guest account';
+            const pt = $('profile-page-account-type'); if (pt) pt.textContent = currentAccount.isAnonymous ? 'TEMPORARY GUEST ACCOUNT' : 'REGISTERED ACCOUNT';
+            const pc = $('profile-page-classic'); if (pc) pc.textContent = currentAccount.ratings.classic ?? 1000;
+            const pd = $('profile-page-draft'); if (pd) pd.textContent = currentAccount.ratings.draft ?? 1000;
+            const pb = $('profile-page-bedwars'); if (pb) pb.textContent = currentAccount.ratings.bedwars ?? 1000;
             $('account-gate').classList.remove('hidden');
             accountStatus('Signed in. Your profile and ratings are loaded from Firebase.');
         }
@@ -4149,6 +4239,102 @@
             }
         }
 
+        function openPlayerProfile() {
+            if (!currentAccount) return;
+            const modal = $('player-profile-modal');
+            modal.classList.remove('hidden'); modal.classList.add('flex');
+        }
+        function closePlayerProfile() {
+            const modal = $('player-profile-modal');
+            modal.classList.add('hidden'); modal.classList.remove('flex');
+        }
+        function setLobbyStatus(message, isError = false) {
+            const el = $('lobby-message');
+            if (el) { el.textContent = message; el.className = 'text-[10px] ' + (isError ? 'text-red-300' : 'text-slate-400'); }
+            const feedback = $('lobby-feedback');
+            if (feedback) { feedback.textContent = message; feedback.className = 'text-[10px] ' + (isError ? 'text-red-300' : 'text-slate-400'); }
+        }
+        function lobbyCode() { return Math.random().toString(36).slice(2, 8).toUpperCase().replace(/[^A-Z0-9]/g, 'X').padEnd(6, 'X'); }
+        function stopLobbyListeners() {
+            if (lobbyUnsubscribe) lobbyUnsubscribe();
+            if (lobbyPlayersUnsubscribe) lobbyPlayersUnsubscribe();
+            lobbyUnsubscribe = lobbyPlayersUnsubscribe = null;
+        }
+        function renderLobbyPlayers(snapshot) {
+            const list = $('lobby-player-list'); if (!list) return;
+            list.innerHTML = '';
+            snapshot.forEach(doc => {
+                const player = doc.data();
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-xs';
+                const name = document.createElement('span'); name.className = 'text-slate-200 font-bold'; name.textContent = player.username + (doc.id === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
+                const state = document.createElement('span'); state.className = player.ready ? 'text-emerald-300' : 'text-amber-300'; state.textContent = player.ready ? 'READY' : 'NOT READY';
+                row.append(name, state); list.appendChild(row);
+            });
+            if (!snapshot.size) list.textContent = 'No players found.';
+        }
+        function watchLobby(code) {
+            stopLobbyListeners(); activeLobbyCode = code;
+            $('lobby-entry-controls').classList.add('hidden'); $('lobby-room-panel').classList.remove('hidden');
+            $('lobby-room-code').textContent = code; $('lobby-status-badge').textContent = 'IN ROOM';
+            lobbyUnsubscribe = firestoreDB.collection('lobbies').doc(code).onSnapshot(doc => {
+                if (!doc.exists) { setLobbyStatus('This room was closed by its host.', true); resetLobbyUI(); return; }
+                const room = doc.data();
+                $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : room.status.toUpperCase();
+                setLobbyStatus('Room hosted by ' + (room.hostName || 'Player') + '. Share the code to invite friends.');
+            }, err => setLobbyStatus('Lobby update failed: ' + err.message, true));
+            lobbyPlayersUnsubscribe = firestoreDB.collection('lobbies').doc(code).collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
+        }
+        async function createLobby() {
+            if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before creating a room.', true);
+            if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
+            try {
+                let code = lobbyCode();
+                let roomRef = firestoreDB.collection('lobbies').doc(code);
+                for (let i = 0; i < 5 && (await roomRef.get()).exists; i++) { code = lobbyCode(); roomRef = firestoreDB.collection('lobbies').doc(code); }
+                await roomRef.set({ code, hostUid: firebaseAuth.currentUser.uid, hostName: currentAccount.username, status: 'waiting', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).set({ uid: firebaseAuth.currentUser.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                activeLobbyIsHost = true; activeLobbyReady = false; watchLobby(code);
+            } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
+        }
+        async function joinLobbyByCode() {
+            if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before joining a room.', true);
+            const code = $('lobby-join-code').value.trim().toUpperCase();
+            if (!/^[A-Z0-9]{6}$/.test(code)) return setLobbyStatus('Enter the 6-character room code.', true);
+            try {
+                const roomRef = firestoreDB.collection('lobbies').doc(code); const room = await roomRef.get();
+                if (!room.exists || room.data().status !== 'waiting') return setLobbyStatus('Room not found or no longer accepting players.', true);
+                const players = await roomRef.collection('players').get();
+                if (players.size >= 8 && !players.docs.some(d => d.id === firebaseAuth.currentUser.uid)) return setLobbyStatus('This room is full (8 players max).', true);
+                await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).set({ uid: firebaseAuth.currentUser.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                activeLobbyIsHost = false; activeLobbyReady = false; watchLobby(code); $('lobby-join-code').value = '';
+            } catch (err) { console.error(err); setLobbyStatus('Could not join room: ' + err.message, true); }
+        }
+        async function toggleLobbyReady() {
+            if (!activeLobbyCode || !firebaseAuth.currentUser) return;
+            try {
+                activeLobbyReady = !activeLobbyReady;
+                await firestoreDB.collection('lobbies').doc(activeLobbyCode).collection('players').doc(firebaseAuth.currentUser.uid).update({ ready: activeLobbyReady });
+                $('lobby-ready-button').textContent = activeLobbyReady ? 'NOT READY' : "I'M READY";
+            } catch (err) { activeLobbyReady = !activeLobbyReady; setLobbyStatus('Could not update ready status: ' + err.message, true); }
+        }
+        function copyLobbyCode() { if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true)); }
+        function resetLobbyUI() {
+            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false;
+            $('lobby-entry-controls').classList.remove('hidden'); $('lobby-room-panel').classList.add('hidden'); $('lobby-status-badge').textContent = 'NOT IN A ROOM'; $('lobby-ready-button').textContent = "I'M READY";
+        }
+        async function leaveLobby() {
+            if (!activeLobbyCode || !firebaseAuth.currentUser) return;
+            const code = activeLobbyCode; const roomRef = firestoreDB.collection('lobbies').doc(code);
+            try {
+                if (activeLobbyIsHost) {
+                    const players = await roomRef.collection('players').get();
+                    const batch = firestoreDB.batch(); players.forEach(d => batch.delete(d.ref)); batch.delete(roomRef); await batch.commit();
+                } else { await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).delete(); }
+                resetLobbyUI(); setLobbyStatus('You left the room.');
+            } catch (err) { setLobbyStatus('Could not leave room: ' + err.message, true); }
+        }
+
         function enterGameFromAccount() {
             if (!currentAccount) return;
             $('account-gate').classList.add('hidden');
@@ -4156,9 +4342,14 @@
         }
 
         async function signOutAccount() {
+            if (activeLobbyCode) { try { await leaveLobby(); } catch (_) {} }
+            closePlayerProfile();
             try { if (firebaseAuth) await firebaseAuth.signOut(); } catch (err) { console.warn(err); }
             currentAccount = null;
             pendingGoogleUser = null;
+            const menuName = $('menu-account-name'); if (menuName) menuName.textContent = 'SIGNED OUT';
+            $('account-gate').classList.remove('hidden');
+            $('main-menu').classList.add('hidden');
             $('account-session-panel').classList.add('hidden');
             $('account-auth-panel').classList.remove('hidden');
             $('google-username-panel').classList.add('hidden');
@@ -4179,8 +4370,11 @@
                 }
                 try {
                     const snap = await firestoreDB.doc('users/' + user.uid).get();
-                    if (snap.exists) renderCloudProfile(snap.data(), user);
-                    else {
+                    if (snap.exists) {
+                        renderCloudProfile(snap.data(), user);
+                        $('account-gate').classList.add('hidden');
+                        $('main-menu').classList.remove('hidden');
+                    } else {
                         pendingGoogleUser = user;
                         $('account-gate').classList.remove('hidden');
                         $('account-auth-panel').classList.add('hidden');
