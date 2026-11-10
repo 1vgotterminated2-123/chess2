@@ -16,7 +16,6 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
     <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -3883,9 +3882,9 @@
 
 
         /* =====================================================================
-           FIREBASE ACCOUNTS + CLOUD PROFILE
-           Requires Firebase Authentication, Firestore, and the callable
-           createProfile/updateSettings Cloud Functions from the setup bundle.
+           FIREBASE ACCOUNTS + FIRESTORE PROFILE
+           Uses Firebase Authentication and Firestore directly.
+           No Cloud Functions or paid-plan upgrade required.
            Passwords are handled only by Firebase Authentication.
            ===================================================================== */
         const FIREBASE_CONFIG = {
@@ -3902,7 +3901,6 @@
         let accountTab = 'login';
         let firebaseAuth = null;
         let firestoreDB = null;
-        let firebaseFunctions = null;
         let profileUnsubscribe = null;
 
         function accountStatus(message, isError = false) {
@@ -3923,7 +3921,6 @@
                 if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
                 firebaseAuth = firebase.auth();
                 firestoreDB = firebase.firestore();
-                firebaseFunctions = firebase.functions();
                 return true;
             } catch (err) {
                 console.error('Firebase initialization failed:', err);
@@ -3956,10 +3953,13 @@
             };
         }
         async function saveAccountSettings() {
-            if (!currentAccount || !firebaseFunctions) return;
+            if (!currentAccount || !firestoreDB) return;
             try {
-                await firebaseFunctions.httpsCallable('updateSettings')({ settings: collectSettings() });
+                await firestoreDB.doc('users/' + currentAccount.id).update({
+                    settings: collectSettings()
+                });
             } catch (err) {
+                // Settings are non-critical; keep the game usable if a save is denied.
                 console.warn('Cloud settings save failed:', err);
             }
         }
@@ -4007,10 +4007,38 @@
         }
 
         async function ensureCloudProfile(user, username) {
-            const call = firebaseFunctions.httpsCallable('createProfile');
-            const result = await call({ username });
-            const profile = result.data?.profile || (await firestoreDB.doc('users/' + user.uid).get()).data();
-            if (!profile) throw new Error('Your Firebase login was created, but your player profile was not returned. Deploy the createProfile Cloud Function, then sign in again to finish setup.');
+            if (!validUsername(username)) {
+                throw new Error('Use 3–20 letters, numbers, or underscores for your username.');
+            }
+
+            const userRef = firestoreDB.doc('users/' + user.uid);
+            const usernameRef = firestoreDB.doc('usernames/' + username);
+
+            // Claim the username and create the profile atomically. No Cloud Functions needed.
+            const profile = await firestoreDB.runTransaction(async transaction => {
+                const userSnap = await transaction.get(userRef);
+                if (userSnap.exists) return userSnap.data();
+
+                const usernameSnap = await transaction.get(usernameRef);
+                if (usernameSnap.exists) {
+                    const claimedBy = usernameSnap.data().uid;
+                    if (claimedBy !== user.uid) {
+                        throw new Error('That username is already taken. Please choose another.');
+                    }
+                }
+
+                const newProfile = {
+                    username: username,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    ratings: { classic: 1000, draft: 1000, bedwars: 1000 },
+                    settings: collectSettings()
+                };
+
+                transaction.set(usernameRef, { uid: user.uid, username: username });
+                transaction.set(userRef, newProfile);
+                return newProfile;
+            });
+
             renderCloudProfile(profile, user);
         }
 
@@ -4050,7 +4078,6 @@
                     'auth/user-not-found': 'No account exists for that email.',
                     'auth/wrong-password': 'Incorrect password.',
                     'auth/invalid-credential': 'Email or password is incorrect.',
-                    'functions/not-found': 'The Firebase createProfile function is not deployed yet.'
                 };
                 const detail = messages[err.code] || err.message || 'Authentication failed.';
                 if (accountTab === 'signup' && firebaseAuth && firebaseAuth.currentUser) {
@@ -4102,8 +4129,7 @@
                 console.error('Anonymous sign-in/profile setup failed:', err);
                 const messages = {
                     'auth/operation-not-allowed': 'Anonymous sign-in is not enabled yet. In Firebase Console, open Authentication → Sign-in method → Anonymous → Enable, then try again.',
-                    'functions/not-found': 'Your guest login was created, but the createProfile Cloud Function is missing. Deploy the Firebase Functions, then refresh and choose Play Anonymously again.',
-                    'permission-denied': 'Your guest login was created, but Firestore denied profile access. Check the deployed createProfile function and Firestore rules.'
+                    'permission-denied': 'Your guest login was created, but Firestore denied profile creation. Replace your Firestore rules with the updated rules provided with this version.'
                 };
                 accountStatus(messages[err.code] || ('Guest login could not finish: ' + (err.message || err)), true);
             } finally {
@@ -4169,7 +4195,7 @@
             });
         }
 
-        // Persist settings to Firestore through the authenticated callable function.
+        // Persist non-competitive preferences directly to the signed-in user's Firestore profile.
         document.addEventListener('change', () => setTimeout(saveAccountSettings, 250));
         document.addEventListener('click', () => setTimeout(saveAccountSettings, 250));
 
