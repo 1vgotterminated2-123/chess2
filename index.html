@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHESS 2: ULTIMATE EXPANSION</title>
+    <title>CHESS 2: ULTIMATE EXPANSION &amp; ROBLOX BEDWARS REALMS</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -149,12 +149,12 @@
             
             <div class="text-center space-y-1">
                 <div class="inline-block px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/50 text-cyan-400 text-xs font-orbitron font-bold tracking-widest uppercase mb-1">
-                    CHESS 2.0 • ULTIMATE EXPANSION EDITION
+                    CHESS 2.0 • ULTIMATE EXPANSION &amp; BEDWARS REALMS
                 </div>
                 <h1 class="font-orbitron font-black text-3xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-300 to-emerald-400 text-glow-cyan tracking-wider">
-                    CHESS 2: GOD-AI &amp; 4-TEAM REALMS
+                    CHESS 2: BEDWARS &amp; SQUAD REALMS
                 </h1>
-                <p class="text-xs md:text-sm text-slate-400 font-mono">15 DISTINCT MAPS (UP TO 60x60) • CASTLING &amp; PAWN DOUBLE MOVES • AI LVL 1-25 • FULL ENGINE EVALUATION</p>
+                <p class="text-xs md:text-sm text-slate-400 font-mono">15 UNIQUE ARENAS (UP TO 60x60) • SMART AI BRIDGING &amp; PATHFINDING • GUARANTEED PIECE SPAWNS</p>
             </div>
 
             <!-- Configuration Grid -->
@@ -217,10 +217,10 @@
                             <i class="fa-solid fa-gem"></i> 3. EXPANSION MECHANICS
                         </h3>
                         <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
-                            • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns can leap 2 tiles on first move!<br>
+                            • <strong>♟️ Pawn 2-Step:</strong> Unmoved pawns leap 2 tiles on first move!<br>
                             • <strong>🏰 Castling:</strong> O-O / O-O-O castling between unmoved King &amp; Rook.<br>
-                            • <strong>💎 Diamond Bosses:</strong> Spawn on Diamond Generators and stay tethered within 2 tiles!<br>
-                            • <strong>🧠 AI Loop Shield:</strong> Level 1-25 engine penalizes move oscillations &amp; builds bridges!
+                            • <strong>💎 Diamond Guardians:</strong> Spawn on Diamond Gens every 50 turns with 10 Dia reward!<br>
+                            • <strong>🧶 AI Bridging &amp; Anti-Loop:</strong> Smart AI buys wool to bridge void &amp; pathfinds directly!
                         </p>
                     </div>
 
@@ -235,7 +235,7 @@
             <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
                 <div class="flex items-center justify-between">
                     <h3 class="font-orbitron text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 DISTINCT MAPS • UP TO 60x60 MASSIVE REALMS)
+                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 DISTINCT UNIQUE MAPS)
                     </h3>
                     <span id="map-count-badge" class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono">15 MAPS AVAILABLE</span>
                 </div>
@@ -313,7 +313,7 @@
         </button>
 
         <!-- Camera Reset Button -->
-        <button onclick="resetCamera()" title="Reset Camera Center & Position" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
+        <button onclick="resetCamera()" title="Reset Camera Center &amp; Position" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-cyan-300 border border-cyan-500/50 flex items-center justify-center transition active:scale-95 shadow glow-cyan">
             <i class="fa-solid fa-arrows-to-dot"></i>
         </button>
 
@@ -330,7 +330,7 @@
         </button>
 
         <!-- Game Move Analysis Drawer Button -->
-        <button onclick="openAnalysisModal()" title="Game Move Analysis & Replay" class="w-10 h-10 rounded-xl glass-panel hover:bg-amber-900/50 text-amber-400 border border-amber-500/50 flex items-center justify-center transition active:scale-95 shadow glow-gold">
+        <button onclick="openAnalysisModal()" title="Game Move Analysis &amp; Replay" class="w-10 h-10 rounded-xl glass-panel hover:bg-amber-900/50 text-amber-400 border border-amber-500/50 flex items-center justify-center transition active:scale-95 shadow glow-gold">
             <i class="fa-solid fa-chart-line"></i>
         </button>
 
@@ -689,7 +689,7 @@
 
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
                     <h4 class="font-orbitron font-bold text-purple-300 text-sm mb-1">🧠 GOD-AI ENGINE (LEVEL 1-25) &amp; MOVE LOOP PREVENTION</h4>
-                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with -200pt loop prevention penalties.</p>
+                    <p>Configurable per team! Level 25 features telepearl jumps, active wool bridging across void chasms, TP home recalls on high gem count, dynamic base rush, and move history tracking with anti-loop penalties.</p>
                 </div>
             </div>
         </div>
@@ -716,7 +716,7 @@
     <!-- JAVASCRIPT GAME ENGINE -->
     <script>
         /* =====================================================================
-           CHESS 2: ULTIMATE EXPANSION ENGINE - COMPLETE BUG-FIXED EDITION
+           CHESS 2: ULTIMATE EXPANSION & ROBLOX BEDWARS - BUG-FIXED EDITION
            ===================================================================== */
         const ALL_TEAMS = ['white', 'black', 'red', 'blue', 'green', 'yellow'];
         const TEAM_FORMATS = {
@@ -855,161 +855,134 @@
         };
 
         /* =====================================================================
-           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - ALL INTEGER GRID POSITIONS)
+           FULL MAP CATALOG (15 DISTINCT UNIQUE MAPS - 100% UNIQUE DESIGNS)
            ===================================================================== */
         const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
 
         const MAP_CATALOG = [
-            /* --- 4-TEAM MASSIVE ARENAS (5 DISTINCT MAPS) --- */
+            /* --- 4-TEAM BEDWARS SQUAD ARENAS (5 DISTINCT UNIQUE MAPS) --- */
             {
-                id: 'quad_archipelago', kind: 'bedwars', teams: 4, name: "55x55 Quad Realm Archipelago", W: 55, H: 55, theme: 'sky', fwd: FWD_NS,
-                desc: "55x55 4-Team Mega Arena. 4 Floating corner fortresses, central Emerald structure, outer Diamond shrines.",
+                id: 'quad_sky_islands', kind: 'bedwars', teams: 4, name: "50x50 Sky Realm Squads", W: 50, H: 50, theme: 'sky', fwd: FWD_NS,
+                desc: "50x50 Sky Island Quad Arena. 4 Solid Corner Bases (-18,-18), (18,-18), (18,18), (-18,18) with 4 side Diamond islands.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
-                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (-20)) <= 6) return { h: 0, base: 'red' };
-                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (-20)) <= 6) return { h: 0, base: 'blue' };
-                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (20)) <= 6) return { h: 0, base: 'green' };
-                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (20)) <= 6) return { h: 0, base: 'yellow' };
-                    if (ax <= 4 && az <= 4) return { h: 0.6 };
-                    if (Math.abs(ax - 14) <= 3 && Math.abs(az - 14) <= 3) return { h: 0.3 };
-                    if (ax <= 2 && az <= 22) return { h: 0.1 };
-                    if (az <= 2 && ax <= 22) return { h: 0.1 };
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'red' };
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'blue' };
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'green' };
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'yellow' };
+                    if (ax <= 3 && az <= 3) return { h: 0.6 }; // Center Emerald
+                    if ((ax <= 2 && Math.abs(az - 12) <= 2) || (az <= 2 && Math.abs(ax - 12) <= 2)) return { h: 0.3 }; // Side Diamond Shrines
                     return null;
                 },
                 baseTeam: (x, z) => {
-                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (-20)) <= 6) return 'red';
-                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (-20)) <= 6) return 'blue';
-                    if (Math.abs(x - (20)) <= 6 && Math.abs(z - (20)) <= 6) return 'green';
-                    if (Math.abs(x - (-20)) <= 6 && Math.abs(z - (20)) <= 6) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' }, { x: -3, z: 0, type: 'em' }, { x: 3, z: 0, type: 'em' },
-                    { x: -14, z: -14, type: 'dia' }, { x: 14, z: -14, type: 'dia' },
-                    { x: 14, z: 14, type: 'dia' }, { x: -14, z: 14, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['b', -21, -19], ['b', -19, -21], ['n', -22, -19], ['n', -19, -22], ['p', -20, -19], ['p', -19, -20]],
-                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['b', 21, -19], ['b', 19, -21], ['n', 22, -19], ['n', 19, -22], ['p', 20, -19], ['p', 19, -20]],
-                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['b', 21, 19], ['b', 19, 21], ['n', 22, 19], ['n', 19, 22], ['p', 20, 19], ['p', 19, 20]],
-                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['b', -21, 19], ['b', -19, 21], ['n', -22, 19], ['n', -19, 22], ['p', -20, 19], ['p', -19, 20]]
-                }
-            },
-            {
-                id: 'cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic 4-Team Crossroads", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
-                desc: "60x60 Sprawling 4-Arm Fortress Matrix. Central Obsidian Void Rift with elevated diamond shrines.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (az >= 18 && ax <= 8) return { h: 0 };
-                    if (ax >= 18 && az <= 8) return { h: 0 };
-                    const r = Math.sqrt(x * x + z * z);
-                    if (r <= 7) return { h: 0.5 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (z <= -18 && Math.abs(x) <= 8) return 'red';
-                    if (x >= 18 && Math.abs(z) <= 8) return 'blue';
-                    if (z >= 18 && Math.abs(x) <= 8) return 'green';
-                    if (x <= -18 && Math.abs(z) <= 8) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: 0, z: -24 }, blue: { x: 24, z: 0 }, green: { x: 0, z: 24 }, yellow: { x: -24, z: 0 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: 0, z: -5, type: 'dia' }, { x: 5, z: 0, type: 'dia' },
-                    { x: 0, z: 5, type: 'dia' }, { x: -5, z: 0, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', 0, -26], ['k', 0, -25], ['q', 1, -25], ['r', -3, -25], ['r', 3, -25], ['n', -1, -24], ['p', 0, -23]],
-                    blue:   [['bed', 26, 0], ['k', 25, 0], ['q', 25, 1], ['r', 25, -3], ['r', 25, 3], ['n', 24, -1], ['p', 23, 0]],
-                    green:  [['bed', 0, 26], ['k', 0, 25], ['q', -1, 25], ['r', 3, 25], ['r', -3, 25], ['n', 1, 24], ['p', 0, 23]],
-                    yellow: [['bed', -26, 0], ['k', -25, 0], ['q', -25, -1], ['r', -25, 3], ['r', -25, -3], ['n', -24, 1], ['p', -23, 0]]
-                }
-            },
-            {
-                id: 'dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'lava', fwd: FWD_NS,
-                desc: "50x50 Volcanic Fortress Ring. Concentric lava moats, central dragon egg shrine with emerald drops.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 15 && az >= 15) return { h: 0 };
-                    if (ax <= 5 && az <= 5) return { h: 0.8 };
-                    if (Math.abs(ax - 10) <= 3 && Math.abs(az - 10) <= 3) return { h: 0.3 };
-                    if (ax <= 3 || az <= 3) return { h: 0.1 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (x <= -15 && z <= -15) return 'red';
-                    if (x >= 15 && z <= -15) return 'blue';
-                    if (x >= 15 && z >= 15) return 'green';
-                    if (x <= -15 && z >= 15) return 'yellow';
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return 'red';
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (-18)) <= 4) return 'blue';
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (18)) <= 4) return 'green';
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (18)) <= 4) return 'yellow';
                     return null;
                 },
                 baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
-                gens: [
-                    { x: 0, z: 0, type: 'em' },
-                    { x: -10, z: -10, type: 'dia' }, { x: 10, z: -10, type: 'dia' },
-                    { x: 10, z: 10, type: 'dia' }, { x: -10, z: 10, type: 'dia' }
-                ],
-                spawns: {
-                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['p', -18, -17]],
-                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['p', 18, -17]],
-                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['p', 18, 17]],
-                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['p', -18, 17]]
-                }
-            },
-            {
-                id: 'nether_quadrant', kind: 'bedwars', teams: 4, name: "52x52 Nether Fortress Quadrant", W: 52, H: 52, theme: 'crystal', fwd: FWD_NS,
-                desc: "52x52 Nether Obsidian Castle grid with narrow bridges connecting isolated 4-team bases.",
-                tile(x, z) {
-                    const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 16 && az >= 16) return { h: 0 };
-                    if (ax <= 6 && az <= 6) return { h: 0.4 };
-                    if (ax <= 3 || az <= 3) return { h: 0.1 };
-                    return null;
-                },
-                baseTeam: (x, z) => {
-                    if (x <= -16 && z <= -16) return 'red';
-                    if (x >= 16 && z <= -16) return 'blue';
-                    if (x >= 16 && z >= 16) return 'green';
-                    if (x <= -16 && z >= 16) return 'yellow';
-                    return null;
-                },
-                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
                 gens: [
                     { x: 0, z: 0, type: 'em' },
                     { x: 0, z: -12, type: 'dia' }, { x: 12, z: 0, type: 'dia' },
                     { x: 0, z: 12, type: 'dia' }, { x: -12, z: 0, type: 'dia' }
                 ],
                 spawns: {
-                    red:    [['bed', -21, -21], ['k', -20, -20], ['q', -19, -20], ['r', -21, -19], ['r', -19, -21], ['p', -19, -18]],
-                    blue:   [['bed', 21, -21], ['k', 20, -20], ['q', 19, -20], ['r', 21, -19], ['r', 19, -21], ['p', 19, -18]],
-                    green:  [['bed', 21, 21], ['k', 20, 20], ['q', 19, 20], ['r', 21, 19], ['r', 19, 21], ['p', 19, 18]],
-                    yellow: [['bed', -21, 21], ['k', -20, 20], ['q', -19, 20], ['r', -21, 19], ['r', -19, 21], ['p', -19, 18]]
+                    red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['b', -19, -17], ['n', -20, -17], ['p', -18, -17]],
+                    blue:   [['bed', 20, -20], ['k', 19, -19], ['q', 18, -19], ['r', 20, -18], ['r', 18, -20], ['b', 19, -17], ['n', 20, -17], ['p', 18, -17]],
+                    green:  [['bed', 20, 20], ['k', 19, 19], ['q', 18, 19], ['r', 20, 18], ['r', 18, 20], ['b', 19, 17], ['n', 20, 17], ['p', 18, 17]],
+                    yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['b', -19, 17], ['n', -20, 17], ['p', -18, 17]]
                 }
             },
             {
-                id: 'star_temple', kind: 'bedwars', teams: 4, name: "50x50 Celestial Star Temple", W: 50, H: 50, theme: 'celestial', fwd: FWD_NS,
-                desc: "50x50 8-Pointed Star layout. Central celestial altar with double diamond shrines on outer peaks.",
+                id: 'quad_volcanic_fortress', kind: 'bedwars', teams: 4, name: "52x52 Volcanic Fortress Squads", W: 52, H: 52, theme: 'lava', fwd: FWD_NS,
+                desc: "52x52 Nether Lava Trench Arena. Corner obsidian battlements, lava moats, central magma spire.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
-                    if (ax >= 16 && az >= 16) return { h: 0 };
-                    if (ax <= 5 && az <= 5) return { h: 0.7 };
-                    if (ax + az <= 22) return { h: 0.2 };
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'red' };
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'blue' };
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'green' };
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'yellow' };
+                    if (ax <= 4 && az <= 4) return { h: 0.8 }; // Central Emerald Spire
+                    if (Math.abs(ax - 10) <= 2 && Math.abs(az - 10) <= 2) return { h: 0.3 }; // Diagonal Diamond Altars
                     return null;
                 },
                 baseTeam: (x, z) => {
-                    if (x <= -16 && z <= -16) return 'red';
-                    if (x >= 16 && z <= -16) return 'blue';
-                    if (x >= 16 && z >= 16) return 'green';
-                    if (x <= -16 && z >= 16) return 'yellow';
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return 'red';
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (-20)) <= 4) return 'blue';
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (20)) <= 4) return 'green';
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (20)) <= 4) return 'yellow';
+                    return null;
+                },
+                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: -10, z: -10, type: 'dia' }, { x: 10, z: -10, type: 'dia' },
+                    { x: 10, z: 10, type: 'dia' }, { x: -10, z: 10, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['b', -21, -19], ['n', -22, -19], ['p', -20, -19]],
+                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['b', 21, -19], ['n', 22, -19], ['p', 20, -19]],
+                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['b', 21, 19], ['n', 22, 19], ['p', 20, 19]],
+                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['b', -21, 19], ['n', -22, 19], ['p', -20, 19]]
+                }
+            },
+            {
+                id: 'quad_cosmic_crossroads', kind: 'bedwars', teams: 4, name: "60x60 Cosmic Asteroid Matrix", W: 60, H: 60, theme: 'celestial', fwd: FWD_NS,
+                desc: "60x60 Sprawling 4-Arm Asteroid Spoke System. Extended void bridges & high-value diamond outposts.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (az >= 18 && Math.abs(x - 0) <= 4) return { h: 0 };
+                    if (ax >= 18 && Math.abs(z - 0) <= 4) return { h: 0 };
+                    if (ax <= 5 && az <= 5) return { h: 0.5 };
+                    if (Math.abs(ax - 12) <= 2 && Math.abs(az - 12) <= 2) return { h: 0.3 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (z <= -18 && Math.abs(x) <= 4) return 'red';
+                    if (x >= 18 && Math.abs(z) <= 4) return 'blue';
+                    if (z >= 18 && Math.abs(x) <= 4) return 'green';
+                    if (x <= -18 && Math.abs(z) <= 4) return 'yellow';
+                    return null;
+                },
+                baseCenters: { red: { x: 0, z: -22 }, blue: { x: 22, z: 0 }, green: { x: 0, z: 22 }, yellow: { x: -22, z: 0 } },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: -12, z: -12, type: 'dia' }, { x: 12, z: -12, type: 'dia' },
+                    { x: 12, z: 12, type: 'dia' }, { x: -12, z: 12, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', 0, -24], ['k', 0, -23], ['q', 1, -23], ['r', -2, -23], ['r', 2, -23], ['n', -1, -22], ['p', 0, -21]],
+                    blue:   [['bed', 24, 0], ['k', 23, 0], ['q', 23, 1], ['r', 23, -2], ['r', 23, 2], ['n', 22, -1], ['p', 21, 0]],
+                    green:  [['bed', 0, 24], ['k', 0, 23], ['q', -1, 23], ['r', 2, 23], ['r', -2, 23], ['n', 1, 22], ['p', 0, 21]],
+                    yellow: [['bed', -24, 0], ['k', -23, 0], ['q', -23, -1], ['r', -23, 2], ['r', -23, -2], ['n', -22, 1], ['p', -21, 0]]
+                }
+            },
+            {
+                id: 'quad_dragon_citadel', kind: 'bedwars', teams: 4, name: "50x50 Dragon Citadel Quad", W: 50, H: 50, theme: 'crystal', fwd: FWD_NS,
+                desc: "50x50 Volcanic Dragon Citadel. Concentric void trenches surrounding central dragon altar.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'red' };
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (-18)) <= 4) return { h: 0, base: 'blue' };
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'green' };
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (18)) <= 4) return { h: 0, base: 'yellow' };
+                    if (ax <= 4 && az <= 4) return { h: 0.8 };
+                    if (ax <= 2 || az <= 2) return { h: 0.1 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (-18)) <= 4) return 'red';
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (-18)) <= 4) return 'blue';
+                    if (Math.abs(x - (18)) <= 4 && Math.abs(z - (18)) <= 4) return 'green';
+                    if (Math.abs(x - (-18)) <= 4 && Math.abs(z - (18)) <= 4) return 'yellow';
                     return null;
                 },
                 baseCenters: { red: { x: -18, z: -18 }, blue: { x: 18, z: -18 }, green: { x: 18, z: 18 }, yellow: { x: -18, z: 18 } },
                 gens: [
                     { x: 0, z: 0, type: 'em' },
-                    { x: -13, z: 0, type: 'dia' }, { x: 13, z: 0, type: 'dia' },
-                    { x: 0, z: -13, type: 'dia' }, { x: 0, z: 13, type: 'dia' }
+                    { x: -10, z: 0, type: 'dia' }, { x: 10, z: 0, type: 'dia' },
+                    { x: 0, z: -10, type: 'dia' }, { x: 0, z: 10, type: 'dia' }
                 ],
                 spawns: {
                     red:    [['bed', -20, -20], ['k', -19, -19], ['q', -18, -19], ['r', -20, -18], ['r', -18, -20], ['p', -18, -17]],
@@ -1018,10 +991,44 @@
                     yellow: [['bed', -20, 20], ['k', -19, 19], ['q', -18, 19], ['r', -20, 18], ['r', -18, 20], ['p', -18, 17]]
                 }
             },
-
-            /* --- 2-TEAM BEDWARS ARENAS (5 DISTINCT MAPS) --- */
             {
-                id: 'archipelago', kind: 'bedwars', teams: 2, name: "Archipelago Bedwars", W: 19, H: 19, theme: 'sky', fwd: FWD_NS,
+                id: 'quad_stepped_ziggurat', kind: 'bedwars', teams: 4, name: "55x55 Stepped Ziggurat Quad", W: 55, H: 55, theme: 'sunset', fwd: FWD_NS,
+                desc: "55x55 Multi-tiered Ziggurat pyramid map. Base corner plateaus with central emerald apex.",
+                tile(x, z) {
+                    const ax = Math.abs(x), az = Math.abs(z);
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'red' };
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (-20)) <= 4) return { h: 0, base: 'blue' };
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'green' };
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (20)) <= 4) return { h: 0, base: 'yellow' };
+                    if (ax <= 3 && az <= 3) return { h: 0.9 };
+                    if (ax <= 7 && az <= 7) return { h: 0.4 };
+                    if ((Math.abs(ax - 13) <= 2 && az <= 2) || (Math.abs(az - 13) <= 2 && ax <= 2)) return { h: 0.2 };
+                    return null;
+                },
+                baseTeam: (x, z) => {
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (-20)) <= 4) return 'red';
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (-20)) <= 4) return 'blue';
+                    if (Math.abs(x - (20)) <= 4 && Math.abs(z - (20)) <= 4) return 'green';
+                    if (Math.abs(x - (-20)) <= 4 && Math.abs(z - (20)) <= 4) return 'yellow';
+                    return null;
+                },
+                baseCenters: { red: { x: -20, z: -20 }, blue: { x: 20, z: -20 }, green: { x: 20, z: 20 }, yellow: { x: -20, z: 20 } },
+                gens: [
+                    { x: 0, z: 0, type: 'em' },
+                    { x: -13, z: 0, type: 'dia' }, { x: 13, z: 0, type: 'dia' },
+                    { x: 0, z: -13, type: 'dia' }, { x: 0, z: 13, type: 'dia' }
+                ],
+                spawns: {
+                    red:    [['bed', -22, -22], ['k', -21, -21], ['q', -20, -21], ['r', -22, -20], ['r', -20, -22], ['p', -20, -19]],
+                    blue:   [['bed', 22, -22], ['k', 21, -21], ['q', 20, -21], ['r', 22, -20], ['r', 20, -22], ['p', 20, -19]],
+                    green:  [['bed', 22, 22], ['k', 21, 21], ['q', 20, 21], ['r', 22, 20], ['r', 20, 22], ['p', 20, 19]],
+                    yellow: [['bed', -22, 22], ['k', -21, 21], ['q', -20, 21], ['r', -22, 20], ['r', -20, 22], ['p', -20, 19]]
+                }
+            },
+
+            /* --- 2-TEAM BEDWARS ARENAS (5 DISTINCT UNIQUE MAPS) --- */
+            {
+                id: 'archipelago', kind: 'bedwars', teams: 2, name: "Archipelago 2-Team Dual", W: 19, H: 19, theme: 'sky', fwd: FWD_NS,
                 desc: "19x19. Three isolated island chains: bases, central EMERALD isle and side DIAMOND isles.",
                 tile(x, z) {
                     const ax = Math.abs(x), az = Math.abs(z);
@@ -1089,7 +1096,7 @@
                 spawn: [['bed', 0, 6], ['k', 0, 5], ['q', 1, 5], ['r', -3, 5], ['r', 3, 5], ['p', 0, 4]]
             },
 
-            /* --- STANDARD / CLASSIC MAPS (5 DISTINCT MAPS) --- */
+            /* --- STANDARD / CLASSIC MAPS (5 DISTINCT UNIQUE MAPS) --- */
             { id: 'classic', kind: 'classic', teams: 2, name: "Classic 8x8 Arena", size: 8, theme: 'neon', fwd: FWD_NS, desc: "Traditional 8x8 chessboard with Castling, Pawn 2-step & D20 combat.", tile: () => ({ h: 0 }) },
             { id: 'donut', kind: 'classic', teams: 2, name: "The Void Donut 10x10", size: 10, theme: 'celestial', fwd: FWD_NS, desc: "Circular ring board with a hollow void pit in the center.", tile: (x, z) => (Math.sqrt(x * x + z * z) < 2.2) ? null : { h: 0 } },
             { id: 'l_shaped', kind: 'classic', teams: 2, name: "L-Shaped Arena 10x10", size: 10, theme: 'emerald', fwd: FWD_NS, desc: "Asymmetric tactical L-board challenging piece positioning.", tile: (x, z) => (x < 0 && z < 0) ? null : { h: 0 } },
@@ -1318,7 +1325,7 @@
         }
 
         /* =====================================================================
-           PIECE HELPER FUNCTIONS & SPAWNER
+           PIECE HELPER FUNCTIONS & SPAWNER WITH 100% GUARANTEED TILE FALLBACK
            ===================================================================== */
         function getAtk(piece) {
             if (!piece) return 0;
@@ -1373,14 +1380,17 @@
             }
         }
 
-        function findNearestValidSpawnTile(targetX, targetZ) {
+        function findOrCreateValidSpawnTile(targetX, targetZ, team) {
             const tx = Math.round(targetX);
             const tz = Math.round(targetZ);
             const key = keyOf(tx, tz);
             let tile = G.boardGrid[key];
+            
+            // If tile exists, is not void, and is unoccupied, return it directly
             if (tile && !tile.isVoid && !tile.piece) return { x: tx, z: tz };
 
-            for (let r = 1; r <= 30; r++) {
+            // Search outward for nearest free non-void tile
+            for (let r = 1; r <= 15; r++) {
                 for (let dx = -r; dx <= r; dx++) {
                     for (let dz = -r; dz <= r; dz++) {
                         if (Math.abs(dx) !== r && Math.abs(dz) !== r) continue;
@@ -1390,16 +1400,28 @@
                     }
                 }
             }
-            return null;
+
+            // Ultimate Fallback: Dynamically generate a solid base platform tile so spawn NEVER fails
+            const theme = MAP_THEMES[G.mapData ? G.mapData.theme : 'sky'] || MAP_THEMES.neon;
+            const tileMat = new THREE.MeshStandardMaterial({ color: TEAM_CONFIGS[team] ? TEAM_CONFIGS[team].hex : theme.tileA, roughness: 0.4 });
+            const tileMesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4, 0.95), tileMat);
+            tileMesh.position.set(tx, 0, tz);
+            tileMesh.receiveShadow = true;
+            tileMesh.userData = { tileX: tx, tileZ: tz };
+            scene.add(tileMesh);
+            
+            const newTile = { tileMesh, x: tx, z: tz, height: 0, isVoid: false, isGenerator: false, genType: null, baseTeam: team, piece: null };
+            G.boardGrid[key] = newTile;
+            if (G.bases[team]) G.bases[team].add(key);
+            return { x: tx, z: tz };
         }
 
         function placePiece(type, team, targetX, targetZ) {
-            const spot = findNearestValidSpawnTile(targetX, targetZ);
-            if (!spot) return null;
+            const spot = findOrCreateValidSpawnTile(targetX, targetZ, team);
             const rx = spot.x, rz = spot.z;
 
             const tile = G.boardGrid[keyOf(rx, rz)];
-            if (!tile || tile.isVoid || tile.piece) return null;
+            if (!tile || tile.piece) return null;
 
             const stats = BASE_STATS[type] || { hp: 10, atk: 4, def: 2 };
             const mesh = createPieceMesh(type, team);
@@ -1453,7 +1475,7 @@
         }
 
         /* =====================================================================
-           MAP & BOARD BUILDER (INTEGER COORDINATE FIX FOR EVEN/ODD DIMENSIONS)
+           MAP & BOARD BUILDER
            ===================================================================== */
         function clearBoard() {
             for (const key in G.boardGrid) { if (G.boardGrid[key].tileMesh) scene.remove(G.boardGrid[key].tileMesh); }
@@ -1470,7 +1492,6 @@
             const map = mapById(mapId) || MAP_CATALOG[0];
             G.mapData = map;
 
-            // Automatically sync format if selecting a 4-team map
             if (map.teams === 4 && G.teamFormat !== '4-team') {
                 G.teamFormat = '4-team';
                 G.teams = TEAM_FORMATS['4-team'];
@@ -1928,7 +1949,7 @@
         function setPrompt(t) { $('prompt-text').innerText = t; }
 
         /* =====================================================================
-           MOVEMENT CORE WITH CASTLING SUPPORT
+           MOVEMENT CORE WITH CASTLING SUPPORT & RECENT MOVE TRACKING
            ===================================================================== */
         function cancelTeleportChannel(p, msg) {
             if (p.tpLeft > 0) {
@@ -2506,7 +2527,7 @@
 
             checkWin();
 
-            // AUTO-PLAY MANAGEMENT FOR HUMAN TURNS
+            // AUTO-PAUSE WHEN TURN REACHES A HUMAN PLAYER
             if (G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'human') {
                 if (G.autoPlayActive) {
                     G.autoPlayActive = false;
@@ -2744,8 +2765,7 @@
                     let mx = -p.x, mz = -p.z;
                     if (enemyTeam === 'blue') { mx = p.z; mz = -p.x; }
                     else if (enemyTeam === 'yellow') { mx = -p.z; mz = p.x; }
-                    const spot = findNearestValidSpawnTile(mx, mz);
-                    if (spot) placePiece(p.type, enemyTeam, spot.x, spot.z);
+                    placePiece(p.type, enemyTeam, mx, mz);
                 });
             });
 
@@ -2756,7 +2776,7 @@
         }
 
         /* =====================================================================
-           GOD-AI ENGINE (LEVEL 1 TO 25) WITH ACTIVE BRIDGING & LOOP SHIELD
+           GOD-AI ENGINE (LEVEL 1 TO 25) WITH SMART BRIDGING & ANTI-LOOPING
            ===================================================================== */
         function aiBaseCenter(team) {
             const b = bedOf(team);
@@ -2864,11 +2884,12 @@
                 if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
             }
 
-            // HEAVY LOOP PREVENTION PENALTY (-200 pts per repeat)
+            // HEAVY ANTI-LOOPING PENALTY (-350 per recent repeat position to end base shuffling)
             if (move && piece.moveHistory && piece.moveHistory.length > 0) {
-                const matches = piece.moveHistory.filter(h => h.x === move.x && h.z === move.z).length;
-                if (matches > 0) {
-                    score -= (matches * 200 * (aiLevel / 10));
+                const recentMoves = piece.moveHistory.slice(-6);
+                const repeats = recentMoves.filter(h => h.x === move.x && h.z === move.z).length;
+                if (repeats > 0) {
+                    score -= (repeats * 350 * (aiLevel / 10));
                 }
             }
 
