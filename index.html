@@ -12,6 +12,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- Optional Firebase Authentication for real Google sign-in. Add your Firebase web config below. -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -94,6 +97,54 @@
     </style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
+
+
+    <!-- ACCOUNT GATE -->
+    <div id="account-gate" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto">
+      <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 border-cyan-500/40 shadow-2xl">
+        <div class="text-center mb-6">
+          <div class="text-4xl mb-2">♟️</div>
+          <h2 class="font-orbitron font-black text-2xl text-cyan-300 text-glow-cyan">CHESS 2 ACCOUNT</h2>
+          <p class="text-xs text-slate-400 mt-2">Sign in to save your game settings to this account.</p>
+        </div>
+        <div id="account-auth-panel">
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <button id="account-tab-login" onclick="setAccountTab('login')" class="py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs">SIGN IN</button>
+            <button id="account-tab-signup" onclick="setAccountTab('signup')" class="py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs">CREATE ACCOUNT</button>
+          </div>
+          <form id="account-password-form" class="space-y-3">
+            <div>
+              <label class="block text-[10px] text-slate-400 font-mono mb-1">USERNAME</label>
+              <input id="account-username" required minlength="3" maxlength="20" autocomplete="username" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="Your username">
+            </div>
+            <div>
+              <label class="block text-[10px] text-slate-400 font-mono mb-1">PASSWORD</label>
+              <input id="account-password" required minlength="8" maxlength="128" type="password" autocomplete="current-password" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="At least 8 characters">
+            </div>
+            <button id="account-submit" type="submit" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs">SIGN IN</button>
+          </form>
+          <div class="flex items-center gap-3 my-4"><div class="h-px bg-slate-700 flex-1"></div><span class="text-[10px] text-slate-500">OR</span><div class="h-px bg-slate-700 flex-1"></div></div>
+          <button onclick="signInWithGoogle()" class="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-center gap-3">
+            <span class="text-lg font-black">G</span> Continue with Google
+          </button>
+          <p class="text-[10px] text-slate-500 text-center mt-3">Username/password accounts are stored in this browser only. Google sign-in requires Firebase setup by the site owner.</p>
+        </div>
+        <div id="google-username-panel" class="hidden space-y-3">
+          <h3 class="font-orbitron text-sm text-emerald-300 text-center">CHOOSE YOUR USERNAME</h3>
+          <p class="text-xs text-slate-400 text-center">One last step before entering Chess 2.</p>
+          <input id="google-new-username" minlength="3" maxlength="20" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="Choose a username">
+          <button onclick="finishGoogleUsername()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs">SAVE USERNAME</button>
+        </div>
+        <div id="account-status" role="status" aria-live="polite" class="text-xs text-center text-amber-300 mt-4 min-h-5"></div>
+        <div id="account-session-panel" class="hidden mt-4 pt-4 border-t border-slate-700">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0"><div class="text-[9px] text-slate-500 font-mono">SIGNED IN AS</div><div id="account-current-name" class="text-sm font-bold text-emerald-300 truncate"></div></div>
+            <button onclick="signOutAccount()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-300">SIGN OUT</button>
+          </div>
+          <button onclick="enterGameFromAccount()" class="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs">CONTINUE TO GAME</button>
+        </div>
+      </div>
+    </div>
 
     <!-- 3D WebGL Canvas Container -->
     <div id="canvas-container" class="w-full h-full absolute top-0 left-0 z-0"></div>
@@ -3817,10 +3868,212 @@
             $('modal-game-over').classList.remove('hidden');
         }
 
+
+        /* =====================================================================
+           LOCAL ACCOUNTS + PER-ACCOUNT SETTINGS
+           ===================================================================== */
+        // For Google sign-in, replace these placeholders with the Firebase web app
+        // config from Firebase Console > Project settings > Your apps.
+        const FIREBASE_CONFIG = {
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            appId: "YOUR_FIREBASE_APP_ID"
+        };
+        const ACCOUNT_DB_KEY = 'chess2_accounts_v1';
+        const ACCOUNT_SESSION_KEY = 'chess2_session_v1';
+        let currentAccount = null;
+        let pendingGoogleUser = null;
+        let accountTab = 'login';
+        let firebaseAuth = null;
+
+        function readAccountDB() {
+            try { return JSON.parse(localStorage.getItem(ACCOUNT_DB_KEY) || '{"users":{}}'); }
+            catch (_) { return { users: {} }; }
+        }
+        function writeAccountDB(db) { localStorage.setItem(ACCOUNT_DB_KEY, JSON.stringify(db)); }
+        function accountStatus(message, isError = false) {
+            const el = $('account-status');
+            if (el) { el.textContent = message; el.className = 'text-xs text-center mt-4 min-h-5 ' + (isError ? 'text-red-300' : 'text-emerald-300'); }
+        }
+        function validUsername(name) { return /^[a-zA-Z0-9_]{3,20}$/.test(name); }
+        function bytesToHex(bytes) { return Array.from(new Uint8Array(bytes)).map(b => b.toString(16).padStart(2,'0')).join(''); }
+        async function hashPassword(password, saltHex) {
+            const salt = saltHex ? Uint8Array.from(saltHex.match(/.{2}/g).map(x => parseInt(x,16))) : crypto.getRandomValues(new Uint8Array(16));
+            const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({ name:'PBKDF2', salt, iterations:210000, hash:'SHA-256' }, key, 256);
+            return { hash: bytesToHex(bits), salt: bytesToHex(salt) };
+        }
+        function setAccountTab(tab) {
+            accountTab = tab;
+            $('account-tab-login').className = tab === 'login' ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs' : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
+            $('account-tab-signup').className = tab === 'signup' ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs' : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
+            $('account-submit').textContent = tab === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN';
+            $('account-password').autocomplete = tab === 'signup' ? 'new-password' : 'current-password';
+            accountStatus('');
+        }
+        function collectSettings() {
+            return {
+                teamFormat: G.teamFormat, mode: G.mode, chaosPieces: G.chaosPieces,
+                soundEnabled: G.soundEnabled, enableAIStrategy: G.enableAIStrategy,
+                enablePieceRoles: G.enablePieceRoles, speedMultiplier: G.speedMultiplier,
+                selectedMapId: G.selectedMapId, teamControllers: G.teamControllers
+            };
+        }
+        function saveAccountSettings() {
+            if (!currentAccount) return;
+            try {
+                const db = readAccountDB();
+                if (!db.users[currentAccount.id]) return;
+                db.users[currentAccount.id].settings = collectSettings();
+                writeAccountDB(db);
+            } catch (err) { console.warn('Could not save account settings:', err); }
+        }
+        function applyAccountSettings(settings) {
+            if (!settings) return;
+            G.teamControllers = Object.assign(G.teamControllers, settings.teamControllers || {});
+            G.chaosPieces = settings.chaosPieces ?? G.chaosPieces;
+            G.soundEnabled = settings.soundEnabled ?? G.soundEnabled;
+            G.enableAIStrategy = settings.enableAIStrategy ?? G.enableAIStrategy;
+            G.enablePieceRoles = settings.enablePieceRoles ?? G.enablePieceRoles;
+            G.speedMultiplier = Number(settings.speedMultiplier || 1);
+            setTeamFormat(settings.teamFormat === '4-team' ? '4-team' : '2-team');
+            selectGameMode(['bedwars','standard','commander'].includes(settings.mode) ? settings.mode : 'bedwars');
+            if (settings.selectedMapId && MAP_CATALOG.some(m => m.id === settings.selectedMapId && isMapAllowed(m.id, G.mode, G.teamFormat))) G.selectedMapId = settings.selectedMapId;
+            $('toggle-chaos-pieces').checked = G.chaosPieces;
+            $('toggle-ai-strategy').checked = G.enableAIStrategy;
+            $('toggle-piece-roles').checked = G.enablePieceRoles;
+            $('autoplay-speed-select').value = String(G.speedMultiplier);
+            toggleAudioButtonDisplay();
+            renderTeamControllerOptions();
+            renderMapCards();
+        }
+        function toggleAudioButtonDisplay() {
+            const btn = $('btn-sound-toggle');
+            if (!btn) return;
+            btn.innerHTML = G.soundEnabled ? '<i class="fa-solid fa-volume-high"></i> AUDIO: SOUND ON' : '<i class="fa-solid fa-volume-xmark"></i> AUDIO: MUTED';
+            btn.classList.toggle('text-cyan-300', G.soundEnabled);
+            btn.classList.toggle('text-slate-400', !G.soundEnabled);
+        }
+        function showAccountSession() {
+            $('account-auth-panel').classList.add('hidden');
+            $('google-username-panel').classList.add('hidden');
+            $('account-session-panel').classList.remove('hidden');
+            $('account-current-name').textContent = currentAccount.username;
+            $('account-status').textContent = 'Your settings are saved automatically.';
+            $('account-gate').classList.remove('hidden');
+        }
+        function completeAccountLogin(account) {
+            currentAccount = account;
+            localStorage.setItem(ACCOUNT_SESSION_KEY, account.id);
+            applyAccountSettings(account.settings);
+            showAccountSession();
+        }
+        $('account-password-form').addEventListener('submit', async event => {
+            event.preventDefault();
+            const username = $('account-username').value.trim();
+            const password = $('account-password').value;
+            if (!validUsername(username)) return accountStatus('Use 3–20 letters, numbers, or underscores.', true);
+            if (password.length < 8) return accountStatus('Password must be at least 8 characters.', true);
+            const db = readAccountDB();
+            const key = username.toLowerCase();
+            try {
+                if (accountTab === 'signup') {
+                    if (db.users[key]) return accountStatus('That username is already taken in this browser.', true);
+                    const derived = await hashPassword(password);
+                    const account = { id: key, username, passwordHash: derived.hash, passwordSalt: derived.salt, provider: 'password', settings: null };
+                    db.users[key] = account; writeAccountDB(db);
+                    completeAccountLogin(account);
+                } else {
+                    const account = db.users[key];
+                    if (!account) return accountStatus('Account not found in this browser.', true);
+                    const derived = await hashPassword(password, account.passwordSalt);
+                    if (derived.hash !== account.passwordHash) return accountStatus('Incorrect password.', true);
+                    completeAccountLogin(account);
+                }
+            } catch (err) { accountStatus('Account storage is unavailable in this browser.', true); }
+        });
+        function initFirebaseAuth() {
+            const configured = FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY' && FIREBASE_CONFIG.projectId !== 'YOUR_PROJECT_ID';
+            if (!configured || !window.firebase) return null;
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+                firebaseAuth = firebase.auth();
+                return firebaseAuth;
+            } catch (err) { console.error(err); return null; }
+        }
+        async function signInWithGoogle() {
+            const auth = initFirebaseAuth();
+            if (!auth) return accountStatus('Google sign-in is not configured yet. The site owner must add Firebase config and enable Google in Firebase Authentication.', true);
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                const result = await auth.signInWithPopup(provider);
+                pendingGoogleUser = result.user;
+                const db = readAccountDB();
+                const googleId = 'google_' + result.user.uid;
+                const existing = db.users[googleId];
+                if (existing?.username) return completeAccountLogin(existing);
+                $('account-auth-panel').classList.add('hidden');
+                $('google-username-panel').classList.remove('hidden');
+                $('google-new-username').value = '';
+                $('google-new-username').focus();
+                accountStatus('Google verified! Pick a username to finish.');
+            } catch (err) { accountStatus(err.message || 'Google sign-in failed.', true); }
+        }
+        function finishGoogleUsername() {
+            if (!pendingGoogleUser) return accountStatus('Please sign in with Google first.', true);
+            const username = $('google-new-username').value.trim();
+            if (!validUsername(username)) return accountStatus('Use 3–20 letters, numbers, or underscores.', true);
+            const db = readAccountDB();
+            const googleId = 'google_' + pendingGoogleUser.uid;
+            if (Object.values(db.users).some(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== googleId))
+                return accountStatus('That username is already taken in this browser.', true);
+            const account = { id: googleId, username, provider: 'google', settings: db.users[googleId]?.settings || null };
+            db.users[googleId] = account; writeAccountDB(db);
+            pendingGoogleUser = null;
+            completeAccountLogin(account);
+        }
+        function enterGameFromAccount() {
+            if (!currentAccount) return;
+            saveAccountSettings();
+            $('account-gate').classList.add('hidden');
+            $('main-menu').classList.remove('hidden');
+        }
+        async function signOutAccount() {
+            saveAccountSettings();
+            if (firebaseAuth && currentAccount?.provider === 'google') {
+                try { await firebaseAuth.signOut(); } catch (_) {}
+            }
+            currentAccount = null;
+            localStorage.removeItem(ACCOUNT_SESSION_KEY);
+            $('account-session-panel').classList.add('hidden');
+            $('account-auth-panel').classList.remove('hidden');
+            $('google-username-panel').classList.add('hidden');
+            $('account-username').value = '';
+            $('account-password').value = '';
+            setAccountTab('login');
+            accountStatus('Signed out.');
+        }
+        // Save after any settings control is changed, including dynamically rendered map/team controls.
+        document.addEventListener('change', () => setTimeout(saveAccountSettings, 0));
+        document.addEventListener('click', () => setTimeout(saveAccountSettings, 0));
+        window.addEventListener('beforeunload', saveAccountSettings);
+
+        function restoreAccountSession() {
+            initFirebaseAuth();
+            const id = localStorage.getItem(ACCOUNT_SESSION_KEY);
+            if (!id) { $('account-gate').classList.remove('hidden'); return; }
+            const account = readAccountDB().users[id];
+            if (!account) { localStorage.removeItem(ACCOUNT_SESSION_KEY); $('account-gate').classList.remove('hidden'); return; }
+            completeAccountLogin(account);
+        }
+
+
         window.onload = function () {
             initThreeEngine();
             renderTeamControllerOptions();
             renderMapCards();
+            restoreAccountSession();
         };
     </script>
 </body>
