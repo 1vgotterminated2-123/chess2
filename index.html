@@ -228,11 +228,36 @@
                 <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col justify-between">
                     <div>
                         <h3 class="font-orbitron text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2 mb-2">
-                            <i class="fa-solid fa-brain"></i> 3. ADAPTIVE AI &amp; ROLE SWAPPING
+                            <i class="fa-solid fa-sliders"></i> 3. EXPANSION SETTINGS &amp; RULES
                         </h3>
+
+                        <div class="space-y-2 text-xs font-mono mb-3">
+                            <!-- Adaptive AI Strategy Toggle (Off by default) -->
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <div class="flex flex-col">
+                                    <span class="font-orbitron font-bold text-purple-300 text-[11px]">🧠 ADAPTIVE AI STRATEGY</span>
+                                    <span class="text-[9px] text-slate-400">AI learns &amp; counters player tactics</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input id="toggle-ai-strategy" type="checkbox" onchange="toggleAIStrategy(this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                                </label>
+                            </div>
+
+                            <!-- Piece Roles Toggle (Off by default) -->
+                            <div class="flex items-center justify-between p-2 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <div class="flex flex-col">
+                                    <span class="font-orbitron font-bold text-cyan-300 text-[11px]">⚔️ DYNAMIC PIECE ROLES</span>
+                                    <span class="text-[9px] text-slate-400">Mid-round scenario role swapping</span>
+                                </div>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input id="toggle-piece-roles" type="checkbox" onchange="togglePieceRoles(this.checked)" class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-600"></div>
+                                </label>
+                            </div>
+                        </div>
+
                         <p class="text-[11px] text-slate-300 font-mono leading-relaxed">
-                            • <strong>🧠 Behavioral Learning:</strong> AI tracks opponent Rush Aggression, Turtling, &amp; Gem Hoarding to counter-tactic.<br>
-                            • <strong>⚡ Dynamic Role Swapping:</strong> Units swap mid-round (CLUTCH_DEFEND, RETREAT_BANK, BOSS_HUNTER, RUSH).<br>
                             • <strong>💎 Diamond Guardians:</strong> Neutral bosses spawn every 50 turns with 10 Dia bounty rewards!<br>
                             • <strong>🧶 AI Bridging &amp; Anti-Loop:</strong> Auto-bridges void chasms &amp; penalizes repetitive moves.
                         </p>
@@ -371,7 +396,7 @@
         </div>
 
         <!-- DYNAMIC PIECE ROLE BADGE -->
-        <div class="flex items-center justify-between text-xs font-mono bg-slate-900/90 p-2 rounded-xl border border-slate-800">
+        <div id="inspector-role-container" class="flex items-center justify-between text-xs font-mono bg-slate-900/90 p-2 rounded-xl border border-slate-800 hidden">
             <span class="text-slate-400 text-[10px] font-orbitron uppercase">TACTICAL ROLE:</span>
             <span id="inspector-role-badge" class="px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-orbitron role-guard flex items-center gap-1">
                 🛡️ GUARD
@@ -492,56 +517,80 @@
     </div>
 
     <!-- GAME MOVE ANALYSIS & REPLAY MODAL -->
-    <div id="modal-analysis" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md hidden pointer-events-auto">
-        <div class="glass-panel rounded-3xl p-6 border-amber-500/50 max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl relative mt-10">
-            <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+    <div id="modal-analysis" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-3 md:p-6 pointer-events-none hidden">
+        <div id="analysis-panel-card" class="glass-panel rounded-3xl p-5 md:p-6 border-amber-500/50 max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl relative pointer-events-auto transition-all duration-300">
             
-            <div class="flex items-center gap-3 mb-2">
-                <span class="text-3xl">📊</span>
-                <div>
-                    <h3 class="font-orbitron font-black text-2xl text-amber-400 text-glow-gold uppercase">GAME MOVE ANALYSIS &amp; ENGINE EVALUATION</h3>
-                    <p class="text-xs text-slate-400 font-mono">COMPLETE CHESS ANNOTATIONS (!!, !, ⭐, 👍, ?!, ?, ??, 💔) &amp; REPLAY STEPPER</p>
+            <!-- Header bar with title and action buttons -->
+            <div class="flex items-center justify-between gap-3 mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl md:text-3xl">📊</span>
+                    <div>
+                        <h3 class="font-orbitron font-black text-lg md:text-xl text-amber-400 text-glow-gold uppercase">GAME ANALYSIS &amp; REPLAY</h3>
+                        <p class="text-[10px] md:text-xs text-slate-400 font-mono">STEPPER &amp; ENGINE EVALUATION (!!, !, ⭐, 👍, ?!, ?, ??, 💔)</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button onclick="toggleAnalysisCompact()" id="btn-analysis-compact" title="Toggle Compact Board View" class="w-8 h-8 rounded-xl bg-slate-900 border border-amber-500/40 text-amber-400 hover:bg-slate-800 flex items-center justify-center text-xs transition">
+                        <i id="analysis-compact-icon" class="fa-solid fa-compress"></i>
+                    </button>
+                    <button onclick="closeModals()" title="Close Drawer" class="w-8 h-8 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 hover:text-white flex items-center justify-center text-xs transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- Interactive Stepper Controls -->
-            <div class="flex items-center justify-between bg-slate-900/90 p-3 rounded-2xl border border-slate-800 text-xs font-mono mb-2">
-                <div class="flex items-center gap-2">
-                    <button onclick="analysisStepFirst()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">⏮ FIRST</button>
-                    <button onclick="analysisStepPrev()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">◀ PREV</button>
-                    <button onclick="analysisStepNext()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">NEXT ▶</button>
-                    <button onclick="analysisStepLatest()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold">⏭ LATEST</button>
+            <div class="flex items-center justify-between bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 text-xs font-mono mb-2">
+                <div class="flex items-center gap-1.5">
+                    <button onclick="analysisStepFirst()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏮ FIRST</button>
+                    <button onclick="analysisStepPrev()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">◀ PREV</button>
+                    <button onclick="analysisStepNext()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">NEXT ▶</button>
+                    <button onclick="analysisStepLatest()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold transition">⏭ LATEST</button>
                 </div>
-                <div class="text-slate-300">
+                <div class="text-slate-300 text-[11px]">
                     MOVE: <strong id="analysis-step-idx" class="text-amber-400 font-bold">0 / 0</strong>
                 </div>
             </div>
 
             <!-- Analysis Log List -->
-            <div id="analysis-log-container" class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl p-4 border border-slate-800 space-y-2 font-mono text-xs my-2 max-h-60">
+            <div id="analysis-log-container" class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl p-3 border border-slate-800 space-y-2 font-mono text-xs my-1 max-h-56 transition-all duration-300">
                 <!-- Dynamic move history entries injected here -->
             </div>
 
-            <div class="flex items-center justify-between border-t border-slate-800 pt-3">
-                <div class="flex items-center flex-wrap gap-2 text-[11px] font-mono text-slate-300">
-                    <span class="px-1.5 py-0.5 rounded badge-brilliant">!! Brilliant</span>
-                    <span class="px-1.5 py-0.5 rounded badge-excellent">! Excellent</span>
-                    <span class="px-1.5 py-0.5 rounded badge-best">⭐ Best</span>
-                    <span class="px-1.5 py-0.5 rounded badge-good">👍 Good</span>
-                    <span class="px-1.5 py-0.5 rounded badge-inaccuracy">?! Inaccuracy</span>
-                    <span class="px-1.5 py-0.5 rounded badge-mistake">? Mistake</span>
-                    <span class="px-1.5 py-0.5 rounded badge-blunder">?? Blunder</span>
-                    <span class="px-1.5 py-0.5 rounded badge-missed">💔 Missed Win</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button id="btn-analysis-hint" onclick="showBestMoveHint(); closeModals();" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-orbitron text-xs font-bold transition">
-                        💡 HIGHLIGHT BEST MOVE
+            <!-- Badge Legend -->
+            <div id="analysis-legend-bar" class="flex items-center flex-wrap gap-1.5 text-[10px] font-mono text-slate-300 py-1 border-t border-slate-800/80 my-1">
+                <span class="px-1.5 py-0.5 rounded badge-brilliant">!! Brilliant</span>
+                <span class="px-1.5 py-0.5 rounded badge-excellent">! Excellent</span>
+                <span class="px-1.5 py-0.5 rounded badge-best">⭐ Best</span>
+                <span class="px-1.5 py-0.5 rounded badge-good">👍 Good</span>
+                <span class="px-1.5 py-0.5 rounded badge-inaccuracy">?! Inaccuracy</span>
+                <span class="px-1.5 py-0.5 rounded badge-mistake">? Mistake</span>
+                <span class="px-1.5 py-0.5 rounded badge-blunder">?? Blunder</span>
+                <span class="px-1.5 py-0.5 rounded badge-missed">💔 Missed Win</span>
+            </div>
+
+            <!-- Navigation & Action Buttons -->
+            <div class="flex flex-wrap items-center justify-between gap-2 border-t border-slate-800 pt-2.5 mt-1">
+                <div class="flex items-center gap-1.5">
+                    <button id="btn-analysis-back-gameover" onclick="returnToGameOverFromAnalysis()" class="px-3 py-1.5 rounded-xl bg-purple-950 border border-purple-500 hover:bg-purple-900 text-purple-300 font-orbitron text-xs font-bold transition hidden">
+                        🏆 GAME OVER
                     </button>
-                    <button onclick="closeModals()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron text-xs font-bold">
+                    <button onclick="returnToMainMenu()" class="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-red-400 text-slate-300 hover:text-red-400 font-orbitron text-xs font-bold transition">
+                        <i class="fa-solid fa-house me-1"></i> MENU
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button id="btn-analysis-hint" onclick="showBestMoveHint(); closeModals();" class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-orbitron text-xs font-bold transition">
+                        💡 BEST MOVE
+                    </button>
+                    <button onclick="closeModals()" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-orbitron text-xs font-bold transition">
                         CLOSE
                     </button>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -760,7 +809,11 @@
             'GUARD':         { label: '🛡️ BASE GUARD',      class: 'role-guard' }
         };
 
-        const keyOf = (x, z) => `${Math.round(x)},${Math.round(z)}`;
+        const keyOf = (x, z) => {
+            const rx = Math.round(x) || 0;
+            const rz = Math.round(z) || 0;
+            return `${rx},${rz}`;
+        };
         const cheb = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.z - b.z));
         const $ = id => document.getElementById(id);
 
@@ -816,6 +869,8 @@
             mode: 'bedwars',
             chaosPieces: true,
             soundEnabled: true,
+            enableAIStrategy: false, // OFF by default
+            enablePieceRoles: false,  // OFF by default
             turnIndex: 0,
             turn: 'white',
             turnCount: 1,
@@ -841,7 +896,7 @@
             draftSelectedCost: 1,
 
             resources: null,
-            teamProfiles: {}, // Behavioral profiles per team
+            teamProfiles: {},
             activeBattle: null,
             moveHistoryLog: [],
             analysisCurrentIndex: 0,
@@ -1518,8 +1573,23 @@
         /* =====================================================================
            DYNAMIC MID-ROUND SCENARIO-BASED ROLE SWAPPING ENGINE
            ===================================================================== */
+        function toggleAIStrategy(val) {
+            G.enableAIStrategy = !!val;
+            updateAIHUDStrategyText();
+        }
+
+        function togglePieceRoles(val) {
+            G.enablePieceRoles = !!val;
+            updateAllPieceRoles();
+            if (G.selectedPiece) updatePieceInspector(G.selectedPiece);
+        }
+
         function evaluatePieceRole(piece) {
             if (!piece || piece.type === 'bed') return 'GUARD';
+            if (!G.enablePieceRoles) {
+                piece.role = 'GUARD';
+                return 'GUARD';
+            }
             
             const homeBed = bedOf(piece.team);
             const nearEnemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed');
@@ -1575,23 +1645,34 @@
            ADAPTIVE AI LEARNING ENGINE (BEHAVIOR TRACKING & COUNTER-TACTICS)
            ===================================================================== */
         function adaptAIStrategies() {
+            if (!G.enableAIStrategy) {
+                G.teams.forEach(team => {
+                    if (G.teamProfiles[team]) G.teamProfiles[team].learnedStrategy = 'BALANCED-EXPANSION';
+                });
+                updateAIHUDStrategyText();
+                return;
+            }
+
             G.teams.forEach(team => {
                 if (!G.teamControllers[team] || G.teamControllers[team].type !== 'ai') return;
                 
-                // Analyze opponents' metrics
+                // Analyze opponents' metrics (especially human players)
                 const opponents = G.teams.filter(t => t !== team);
-                let highestAggression = 0, highestTurtling = 0, mostBridged = 0;
-                let keyEnemy = null;
+                let highestAggression = 0, highestTurtling = 0, highestHoarding = 0;
+                let humanPlayerFound = false;
 
                 opponents.forEach(opp => {
                     const prof = G.teamProfiles[opp];
+                    const isHuman = G.teamControllers[opp] && G.teamControllers[opp].type === 'human';
+                    if (isHuman) humanPlayerFound = true;
                     if (!prof || prof.totalMoves === 0) return;
+
                     const aggRatio = prof.forwardMoves / prof.totalMoves;
                     const turtleRatio = prof.baseMoves / prof.totalMoves;
 
-                    if (aggRatio > highestAggression) { highestAggression = aggRatio; keyEnemy = opp; }
+                    if (aggRatio > highestAggression) highestAggression = aggRatio;
                     if (turtleRatio > highestTurtling) highestTurtling = turtleRatio;
-                    if (prof.bridgesPlaced > mostBridged) mostBridged = prof.bridgesPlaced;
+                    if (prof.gemsHoarded > highestHoarding) highestHoarding = prof.gemsHoarded;
                 });
 
                 // Check for exposed beds
@@ -1603,13 +1684,20 @@
                 let newStrategy = 'BALANCED-EXPANSION';
                 if (exposedEnemy) {
                     newStrategy = 'BED_RUSH_EXECUTE';
-                } else if (highestAggression >= 0.45) {
+                } else if (highestAggression >= 0.40) {
                     newStrategy = 'COUNTER-RUSH';
-                } else if (highestTurtling >= 0.55) {
+                } else if (highestTurtling >= 0.50 || highestHoarding >= 5) {
                     newStrategy = 'OUT-RESOURCE';
                 }
 
+                const oldStrategy = G.teamProfiles[team].learnedStrategy;
                 G.teamProfiles[team].learnedStrategy = newStrategy;
+
+                // Live floating alert when AI adapts to human strategy shifts
+                if (oldStrategy !== newStrategy && humanPlayerFound) {
+                    showFloatingText(`🧠 AI DETECTED HUMAN TACTICS -> SWITCHING TO ${newStrategy}`, null, null, '#a855f7');
+                    playSound('boss');
+                }
             });
 
             updateAIHUDStrategyText();
@@ -1620,7 +1708,7 @@
             const textEl = $('ai-strategy-text');
             if (!container || !textEl) return;
 
-            if (G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai') {
+            if (G.enableAIStrategy && G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai') {
                 const strat = G.teamProfiles[G.turn] ? G.teamProfiles[G.turn].learnedStrategy : 'BALANCED-EXPANSION';
                 textEl.innerText = `${G.turn.toUpperCase()} AI STRATEGY: ${strat}`;
                 container.classList.remove('hidden');
@@ -1781,12 +1869,19 @@
 
             const maxZ = map.dims.maxZ;
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
+            const startZ = Math.min(maxZ, Math.floor(map.dims.H / 2) - 1);
             for (let c = 0; c < 8; c++) {
                 const x = c - 3.5;
-                placePiece(order[c], 'white', Math.round(x), maxZ);
-                placePiece('p', 'white', Math.round(x), maxZ - 1);
-                placePiece(order[c], 'black', Math.round(x), -maxZ);
-                placePiece('p', 'black', Math.round(x), -maxZ + 1);
+                placePiece(order[c], 'white', Math.round(x), startZ);
+                placePiece('p', 'white', Math.round(x), startZ - 1);
+                placePiece(order[c], 'black', Math.round(x), -startZ);
+                placePiece('p', 'black', Math.round(x), -startZ + 1);
+            }
+            if (G.chaosPieces) {
+                placePiece('d', 'white', -3, startZ - 2);
+                placePiece('nec', 'white', 3, startZ - 2);
+                placePiece('d', 'black', -3, -startZ + 2);
+                placePiece('nec', 'black', 3, -startZ + 2);
             }
             if (G.chaosPieces) {
                 placePiece('d', 'white', -3, maxZ - 2);
@@ -2319,19 +2414,21 @@
                     if (mid !== G.matchId) return;
                     $('modal-d20-combat').classList.add('hidden');
                     G.activeBattle = null;
+                    const fromX = attacker.x, fromZ = attacker.z;
                     if (defender.hp <= 0) {
                         const dx = defender.x, dz = defender.z;
+                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: dx, z: dz }, defender, 'Combat Capture');
                         eliminatePiece(defender, attacker);
                         if (G.gameOver) return;
                         cancelTeleportChannel(attacker);
                         movePieceTo(attacker, dx, dz);
                         attacker.hasMoved = true;
-                        logGameMove(attacker, { x: attacker.x, z: attacker.z }, { x: dx, z: dz }, defender, 'Combat Capture');
                         deselectPiece();
                         endTurn();
                     } else {
                         attacker.hasMoved = true;
-                        logGameMove(attacker, { x: attacker.x, z: attacker.z }, { x: attacker.x, z: attacker.z }, defender, 'Combat Strike');
+                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: fromX, z: fromZ }, defender, 'Combat Strike');
+                        if (G.gameOver) return;
                         deselectPiece();
                         endTurn();
                     }
@@ -2947,7 +3044,7 @@
         }
 
         /* =====================================================================
-           GOD-AI ENGINE WITH ROLE-WEIGHTED EVALUATION & ANTI-LOOPING
+           GOD-AI ENGINE WITH WAYPOINT NAVIGATION & SQUAD BRIDGING
            ===================================================================== */
         function aiBaseCenter(team) {
             const b = bedOf(team);
@@ -2958,6 +3055,52 @@
 
         function otherTeam(team) {
             return G.teams.find(t => t !== team) || 'white';
+        }
+
+        // INTERMEDIATE WAYPOINT RESOLVER FOR SQUAD MAPS
+        function getSquadWaypoint(piece, finalTarget) {
+            if (!finalTarget) return { x: 0, z: 0 };
+            const distToFinal = cheb(piece, finalTarget);
+            
+            // If close enough to final target, aim directly
+            if (distToFinal <= 5) return finalTarget;
+
+            // Collect available map waypoints (Diamond Generators & Center Emerald Generator)
+            const waypoints = [];
+            
+            // 1. Center Emerald Altar (0, 0)
+            const centerGen = G.gens.find(g => g.type === 'em') || { x: 0, z: 0 };
+            waypoints.push({ x: centerGen.x, z: centerGen.z, weight: 1.5 });
+
+            // 2. Diamond Generators (side islands)
+            G.gens.filter(g => g.type === 'dia').forEach(g => {
+                waypoints.push({ x: g.x, z: g.z, weight: 1.2 });
+            });
+
+            // 3. Enemy Base approach points
+            const enemyBed = G.pieces.find(p => p.team !== piece.team && p.team !== 'neutral' && p.type === 'bed');
+            if (enemyBed) {
+                waypoints.push({ x: enemyBed.x, z: enemyBed.z, weight: 2.0 });
+            }
+
+            // Find best stepping-stone waypoint closer to target than current position
+            let bestWp = finalTarget;
+            let bestScore = Infinity;
+
+            waypoints.forEach(wp => {
+                const distFromPiece = cheb(piece, wp);
+                const distToTarget = cheb(wp, finalTarget);
+                // Prefer waypoints that make forward progress
+                if (distToTarget < distToFinal) {
+                    const score = distFromPiece + (distToTarget * 0.8) / wp.weight;
+                    if (score < bestScore) {
+                        bestScore = score;
+                        bestWp = wp;
+                    }
+                }
+            });
+
+            return bestWp;
         }
 
         function aiTarget(piece) {
@@ -2976,15 +3119,19 @@
                 G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bd) { bd = d; best = g; } } });
                 if (best) return best;
             }
+
+            let primaryTarget = null;
             if (role === 'RUSH') {
-                const enemyBed = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
-                if (enemyBed) return enemyBed;
+                primaryTarget = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'bed');
             }
 
-            const enemyKing = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'k');
-            if (enemyKing) return enemyKing;
-            const anyEnemy = G.pieces.find(p => p.team !== team && p.team !== 'neutral');
-            return anyEnemy || null;
+            if (!primaryTarget) {
+                primaryTarget = G.pieces.find(p => p.team !== team && p.team !== 'neutral' && p.type === 'k')
+                             || G.pieces.find(p => p.team !== team && p.team !== 'neutral');
+            }
+
+            // Return intermediate squad waypoint to prevent corner-huddling
+            return getSquadWaypoint(piece, primaryTarget);
         }
 
         function aiShop(team) {
@@ -3011,24 +3158,26 @@
             }
         }
 
+        // ENHANCED WOOL BRIDGING PATHFINDER FOR SQUAD AI
         function aiTryBridge(team) {
             if (G.mode !== 'bedwars') return;
             const piecesWithBlocks = G.pieces.filter(p => p.team === team && p.blocks > 0 && p.type !== 'bed');
             
             for (const p of piecesWithBlocks) {
                 if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) break;
-                const target = aiTarget(p);
-                if (!target) continue;
+                const targetWp = aiTarget(p);
+                if (!targetWp) continue;
                 
                 const ghosts = calculateGhostBridgeTiles(p);
                 if (!ghosts.length) continue;
 
-                const currentDist = cheb(p, target);
+                const currentDist = cheb(p, targetWp);
                 let bestGhost = null;
                 let bestDist = currentDist;
 
+                // Find ghost void tile closest to waypoint vector
                 ghosts.forEach(g => {
-                    const d = cheb(g, target);
+                    const d = cheb(g, targetWp);
                     if (d <= bestDist) {
                         bestDist = d;
                         bestGhost = g;
@@ -3058,21 +3207,28 @@
                     const nextD = cheb(move, target);
                     const distDiff = currD - nextD;
 
-                    // Boosted forward distance progress score rewards (+18 per tile closed)
+                    // Progress score rewards for advancing to intermediate waypoints (+25 / +18 per tile)
                     if (distDiff > 0) {
-                        score += distDiff * (role === 'RUSH' ? 30 : 18);
+                        score += distDiff * (role === 'RUSH' ? 35 : 25);
                     } else {
                         score += distDiff * (role === 'RUSH' ? 25 : 15);
                     }
 
-                    // Queen Aimless Base Shuffling Penalty (-120 pts for non-advancing lateral/backward moves inside home base)
-                    if (piece.type === 'q' && inBase(piece) && distDiff <= 0) {
-                        score -= 120;
+                    // Queen & Major Piece Aimless Base Shuffling Penalty (-150 pts)
+                    if ((piece.type === 'q' || piece.type === 'r' || piece.type === 'b') && inBase(piece) && distDiff <= 0) {
+                        score -= 150;
                     }
                 }
 
+                // Base-evacuation incentive (+90 score for stepping out of base towards field/waypoints)
+                const wasInBase = isPosInBase(piece.x, piece.z, piece.team);
+                const willBeInBase = isPosInBase(move.x, move.z, piece.team);
+                if (wasInBase && !willBeInBase && role !== 'GUARD' && role !== 'CLUTCH_DEFEND') {
+                    score += 90;
+                }
+
                 // Non-guard unit in-base idle movement penalty (-50 pts)
-                if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && inBase(piece) && isPosInBase(move.x, move.z, piece.team)) {
+                if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && inBase(piece) && willBeInBase) {
                     score -= 50;
                 }
 
@@ -3081,12 +3237,12 @@
                 if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
             }
 
-            // Heavy anti-looping penalty
+            // Heavy anti-oscillation penalty (-300 multiplier for repeated positions)
             if (move && piece.moveHistory && piece.moveHistory.length > 0) {
                 const recentMoves = piece.moveHistory.slice(-6);
                 const repeats = recentMoves.filter(h => h.x === move.x && h.z === move.z).length;
                 if (repeats > 0) {
-                    score -= (repeats * 350 * (aiLevel / 10));
+                    score -= (repeats * 300 * (aiLevel / 10));
                 }
             }
 
@@ -3229,9 +3385,72 @@
         }
 
         function openAnalysisModal() {
+            if (G.gameOver) {
+                $('modal-game-over').classList.add('hidden');
+                $('btn-analysis-back-gameover').classList.remove('hidden');
+            } else {
+                $('btn-analysis-back-gameover').classList.add('hidden');
+            }
             G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
             renderAnalysisLogUI();
             $('modal-analysis').classList.remove('hidden');
+        }
+
+        function returnToGameOverFromAnalysis() {
+            $('modal-analysis').classList.add('hidden');
+            if (G.gameOver) {
+                $('modal-game-over').classList.remove('hidden');
+            } else {
+                returnToMainMenu();
+            }
+        }
+
+        let isAnalysisCompact = false;
+        function toggleAnalysisCompact() {
+            isAnalysisCompact = !isAnalysisCompact;
+            const logBox = $('analysis-log-container');
+            const legendBox = $('analysis-legend-bar');
+            const icon = $('analysis-compact-icon');
+            if (isAnalysisCompact) {
+                logBox.classList.add('hidden');
+                legendBox.classList.add('hidden');
+                icon.className = 'fa-solid fa-expand';
+            } else {
+                logBox.classList.remove('hidden');
+                legendBox.classList.remove('hidden');
+                icon.className = 'fa-solid fa-compress';
+            }
+        }
+
+        function animateCameraPan(targetX, targetZ) {
+            if (!controls) return;
+            const startX = controls.target.x;
+            const startZ = controls.target.z;
+            const startTime = performance.now();
+            const duration = 350;
+
+            function stepPan(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(1, elapsed / duration);
+                const ease = 1 - Math.pow(1 - progress, 2);
+                controls.target.x = startX + (targetX - startX) * ease;
+                controls.target.z = startZ + (targetZ - startZ) * ease;
+                if (progress < 1) {
+                    requestAnimationFrame(stepPan);
+                }
+            }
+            requestAnimationFrame(stepPan);
+        }
+
+        function highlightAnalysisMoveOnBoard() {
+            if (G.analysisCurrentIndex < 0 || G.analysisCurrentIndex >= G.moveHistoryLog.length) return;
+            const log = G.moveHistoryLog[G.analysisCurrentIndex];
+            G.bestMoveHint = { fromX: log.from.x, fromZ: log.from.z, toX: log.to.x, toZ: log.to.z };
+            renderTargetHighlights();
+
+            const panX = (log.from.x + log.to.x) / 2;
+            const panZ = (log.from.z + log.to.z) / 2;
+            animateCameraPan(panX, panZ);
         }
 
         function renderAnalysisLogUI() {
@@ -3459,12 +3678,20 @@
             $('inspector-atk-val').innerText = getAtk(piece);
             $('inspector-def-val').innerText = getDef(piece);
 
-            // Update Dynamic Scenario Role Badge
-            const currentRole = evaluatePieceRole(piece);
-            const roleCfg = ROLE_CONFIGS[currentRole] || ROLE_CONFIGS.GUARD;
-            const roleBadge = $('inspector-role-badge');
-            roleBadge.innerText = roleCfg.label;
-            roleBadge.className = `px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-orbitron ${roleCfg.class} flex items-center gap-1`;
+            // Update Dynamic Scenario Role Badge if enabled
+            const roleContainer = $('inspector-role-container');
+            if (G.enablePieceRoles) {
+                if (roleContainer) roleContainer.classList.remove('hidden');
+                const currentRole = evaluatePieceRole(piece);
+                const roleCfg = ROLE_CONFIGS[currentRole] || ROLE_CONFIGS.GUARD;
+                const roleBadge = $('inspector-role-badge');
+                if (roleBadge) {
+                    roleBadge.innerText = roleCfg.label;
+                    roleBadge.className = `px-2.5 py-0.5 rounded-lg text-[10px] font-bold font-orbitron ${roleCfg.class} flex items-center gap-1`;
+                }
+            } else {
+                if (roleContainer) roleContainer.classList.add('hidden');
+            }
 
             $('inspector-gear-sword').innerText = `🗡️ ${SWORD_TIERS[piece.swordTier] ? SWORD_TIERS[piece.swordTier].name : 'Sword'}`;
             $('inspector-gear-armor').innerText = `🛡️ ${ARMOR_TIERS[piece.armorTier] ? ARMOR_TIERS[piece.armorTier].name : 'Armor'}`;
