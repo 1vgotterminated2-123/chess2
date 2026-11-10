@@ -15,6 +15,8 @@
     <!-- Optional Firebase Authentication for real Google sign-in. Add your Firebase web config below. -->
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-functions-compat.js"></script>
     <!-- Three.js & OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -114,8 +116,12 @@
           </div>
           <form id="account-password-form" class="space-y-3">
             <div>
-              <label class="block text-[10px] text-slate-400 font-mono mb-1">USERNAME</label>
-              <input id="account-username" required minlength="3" maxlength="20" autocomplete="username" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="Your username">
+              <label class="block text-[10px] text-slate-400 font-mono mb-1">EMAIL</label>
+              <input id="account-email" required type="email" autocomplete="email" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="you@example.com">
+            </div>
+            <div id="username-field">
+              <label class="block text-[10px] text-slate-400 font-mono mb-1">USERNAME <span class="text-slate-500">(for new accounts)</span></label>
+              <input id="account-username" minlength="3" maxlength="20" autocomplete="username" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-sm text-white outline-none focus:border-cyan-400" placeholder="Your public username">
             </div>
             <div>
               <label class="block text-[10px] text-slate-400 font-mono mb-1">PASSWORD</label>
@@ -127,7 +133,7 @@
           <button onclick="signInWithGoogle()" class="w-full py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-center gap-3">
             <span class="text-lg font-black">G</span> Continue with Google
           </button>
-          <p class="text-[10px] text-slate-500 text-center mt-3">Username/password accounts are stored in this browser only. Google sign-in requires Firebase setup by the site owner.</p>
+          <p class="text-[10px] text-slate-500 text-center mt-3">Accounts use Firebase Authentication. Your public profile and ratings are stored in Firestore.</p>
         </div>
         <div id="google-username-panel" class="hidden space-y-3">
           <h3 class="font-orbitron text-sm text-emerald-300 text-center">CHOOSE YOUR USERNAME</h3>
@@ -138,8 +144,13 @@
         <div id="account-status" role="status" aria-live="polite" class="text-xs text-center text-amber-300 mt-4 min-h-5"></div>
         <div id="account-session-panel" class="hidden mt-4 pt-4 border-t border-slate-700">
           <div class="flex items-center justify-between gap-3">
-            <div class="min-w-0"><div class="text-[9px] text-slate-500 font-mono">SIGNED IN AS</div><div id="account-current-name" class="text-sm font-bold text-emerald-300 truncate"></div></div>
+            <div class="min-w-0"><div class="text-[9px] text-slate-500 font-mono">SIGNED IN AS</div><div id="account-current-name" class="text-sm font-bold text-emerald-300 truncate"></div><div id="account-email-display" class="text-[10px] text-slate-400 truncate"></div></div>
             <button onclick="signOutAccount()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-300">SIGN OUT</button>
+          </div>
+          <div id="account-ratings" class="grid grid-cols-3 gap-2 mt-4 text-center">
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">CLASSIC</div><div id="rating-classic" class="font-bold text-cyan-300">1000</div></div>
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">DRAFT</div><div id="rating-draft" class="font-bold text-purple-300">1000</div></div>
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">BEDWARS</div><div id="rating-bedwars" class="font-bold text-amber-300">1000</div></div>
           </div>
           <button onclick="enterGameFromAccount()" class="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs">CONTINUE TO GAME</button>
         </div>
@@ -3870,48 +3881,70 @@
 
 
         /* =====================================================================
-           LOCAL ACCOUNTS + PER-ACCOUNT SETTINGS
+           FIREBASE ACCOUNTS + CLOUD PROFILE
+           Requires Firebase Authentication, Firestore, and the callable
+           createProfile/updateSettings Cloud Functions from the setup bundle.
+           Passwords are handled only by Firebase Authentication.
            ===================================================================== */
-        // For Google sign-in, replace these placeholders with the Firebase web app
-        // config from Firebase Console > Project settings > Your apps.
         const FIREBASE_CONFIG = {
-            apiKey: "YOUR_FIREBASE_API_KEY",
-            authDomain: "YOUR_PROJECT.firebaseapp.com",
-            projectId: "YOUR_PROJECT_ID",
-            appId: "YOUR_FIREBASE_APP_ID"
+            apiKey: "AIzaSyAOgXa80kNqtCiajACUZV288sh0AA0m6rk",
+            authDomain: "chess2thegame.firebaseapp.com",
+            projectId: "chess2thegame",
+            storageBucket: "chess2thegame.firebasestorage.app",
+            messagingSenderId: "620452564284",
+            appId: "1:620452564284:web:0d0ee4111ec3e0a1a92239",
+            measurementId: "G-6THESKYHT6"
         };
-        const ACCOUNT_DB_KEY = 'chess2_accounts_v1';
-        const ACCOUNT_SESSION_KEY = 'chess2_session_v1';
         let currentAccount = null;
         let pendingGoogleUser = null;
         let accountTab = 'login';
         let firebaseAuth = null;
+        let firestoreDB = null;
+        let firebaseFunctions = null;
+        let profileUnsubscribe = null;
 
-        function readAccountDB() {
-            try { return JSON.parse(localStorage.getItem(ACCOUNT_DB_KEY) || '{"users":{}}'); }
-            catch (_) { return { users: {} }; }
-        }
-        function writeAccountDB(db) { localStorage.setItem(ACCOUNT_DB_KEY, JSON.stringify(db)); }
         function accountStatus(message, isError = false) {
             const el = $('account-status');
-            if (el) { el.textContent = message; el.className = 'text-xs text-center mt-4 min-h-5 ' + (isError ? 'text-red-300' : 'text-emerald-300'); }
+            if (el) {
+                el.textContent = message;
+                el.className = 'text-xs text-center mt-4 min-h-5 ' + (isError ? 'text-red-300' : 'text-emerald-300');
+            }
         }
         function validUsername(name) { return /^[a-zA-Z0-9_]{3,20}$/.test(name); }
-        function bytesToHex(bytes) { return Array.from(new Uint8Array(bytes)).map(b => b.toString(16).padStart(2,'0')).join(''); }
-        async function hashPassword(password, saltHex) {
-            const salt = saltHex ? Uint8Array.from(saltHex.match(/.{2}/g).map(x => parseInt(x,16))) : crypto.getRandomValues(new Uint8Array(16));
-            const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-            const bits = await crypto.subtle.deriveBits({ name:'PBKDF2', salt, iterations:210000, hash:'SHA-256' }, key, 256);
-            return { hash: bytesToHex(bits), salt: bytesToHex(salt) };
+
+        function initFirebase() {
+            if (!window.firebase) {
+                accountStatus('Firebase SDK did not load. Check your internet connection and refresh.', true);
+                return false;
+            }
+            try {
+                if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+                firebaseAuth = firebase.auth();
+                firestoreDB = firebase.firestore();
+                firebaseFunctions = firebase.functions();
+                return true;
+            } catch (err) {
+                console.error('Firebase initialization failed:', err);
+                accountStatus('Firebase could not initialize: ' + (err.message || err), true);
+                return false;
+            }
         }
+
         function setAccountTab(tab) {
             accountTab = tab;
-            $('account-tab-login').className = tab === 'login' ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs' : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
-            $('account-tab-signup').className = tab === 'signup' ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs' : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
+            $('account-tab-login').className = tab === 'login'
+                ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs'
+                : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
+            $('account-tab-signup').className = tab === 'signup'
+                ? 'py-2 rounded-xl bg-cyan-950 border border-cyan-500 text-cyan-300 font-bold text-xs'
+                : 'py-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-xs';
             $('account-submit').textContent = tab === 'signup' ? 'CREATE ACCOUNT' : 'SIGN IN';
             $('account-password').autocomplete = tab === 'signup' ? 'new-password' : 'current-password';
+            $('username-field').classList.toggle('hidden', tab !== 'signup');
+            $('account-username').required = tab === 'signup';
             accountStatus('');
         }
+
         function collectSettings() {
             return {
                 teamFormat: G.teamFormat, mode: G.mode, chaosPieces: G.chaosPieces,
@@ -3920,14 +3953,13 @@
                 selectedMapId: G.selectedMapId, teamControllers: G.teamControllers
             };
         }
-        function saveAccountSettings() {
-            if (!currentAccount) return;
+        async function saveAccountSettings() {
+            if (!currentAccount || !firebaseFunctions) return;
             try {
-                const db = readAccountDB();
-                if (!db.users[currentAccount.id]) return;
-                db.users[currentAccount.id].settings = collectSettings();
-                writeAccountDB(db);
-            } catch (err) { console.warn('Could not save account settings:', err); }
+                await firebaseFunctions.httpsCallable('updateSettings')({ settings: collectSettings() });
+            } catch (err) {
+                console.warn('Cloud settings save failed:', err);
+            }
         }
         function applyAccountSettings(settings) {
             if (!settings) return;
@@ -3948,126 +3980,163 @@
             renderTeamControllerOptions();
             renderMapCards();
         }
-        function toggleAudioButtonDisplay() {
-            const btn = $('btn-sound-toggle');
-            if (!btn) return;
-            btn.innerHTML = G.soundEnabled ? '<i class="fa-solid fa-volume-high"></i> AUDIO: SOUND ON' : '<i class="fa-solid fa-volume-xmark"></i> AUDIO: MUTED';
-            btn.classList.toggle('text-cyan-300', G.soundEnabled);
-            btn.classList.toggle('text-slate-400', !G.soundEnabled);
-        }
-        function showAccountSession() {
+
+        function renderCloudProfile(profile, user) {
+            currentAccount = {
+                id: user.uid,
+                username: profile.username || user.displayName || (user.email || 'Player').split('@')[0],
+                email: user.email || '',
+                settings: profile.settings || null,
+                ratings: profile.ratings || { classic: 1000, draft: 1000, bedwars: 1000 },
+                createdAt: profile.createdAt || null,
+                provider: user.providerData?.[0]?.providerId || 'password'
+            };
             $('account-auth-panel').classList.add('hidden');
             $('google-username-panel').classList.add('hidden');
             $('account-session-panel').classList.remove('hidden');
             $('account-current-name').textContent = currentAccount.username;
-            $('account-status').textContent = 'Your settings are saved automatically.';
+            $('account-email-display').textContent = currentAccount.email;
+            $('rating-classic').textContent = currentAccount.ratings.classic ?? 1000;
+            $('rating-draft').textContent = currentAccount.ratings.draft ?? 1000;
+            $('rating-bedwars').textContent = currentAccount.ratings.bedwars ?? 1000;
+            applyAccountSettings(currentAccount.settings);
             $('account-gate').classList.remove('hidden');
+            accountStatus('Signed in. Your profile and ratings are loaded from Firebase.');
         }
-        function completeAccountLogin(account) {
-            currentAccount = account;
-            localStorage.setItem(ACCOUNT_SESSION_KEY, account.id);
-            applyAccountSettings(account.settings);
-            showAccountSession();
+
+        async function ensureCloudProfile(user, username) {
+            const call = firebaseFunctions.httpsCallable('createProfile');
+            const result = await call({ username });
+            const profile = result.data?.profile || (await firestoreDB.doc('users/' + user.uid).get()).data();
+            if (!profile) throw new Error('Firebase profile was not returned. Deploy the createProfile function.');
+            renderCloudProfile(profile, user);
         }
+
         $('account-password-form').addEventListener('submit', async event => {
             event.preventDefault();
-            const username = $('account-username').value.trim();
+            if (!initFirebase()) return;
+            const email = $('account-email').value.trim();
             const password = $('account-password').value;
-            if (!validUsername(username)) return accountStatus('Use 3–20 letters, numbers, or underscores.', true);
+            const username = $('account-username').value.trim();
+            if (!email) return accountStatus('Enter your email address.', true);
             if (password.length < 8) return accountStatus('Password must be at least 8 characters.', true);
-            const db = readAccountDB();
-            const key = username.toLowerCase();
             try {
+                let credential;
                 if (accountTab === 'signup') {
-                    if (db.users[key]) return accountStatus('That username is already taken in this browser.', true);
-                    const derived = await hashPassword(password);
-                    const account = { id: key, username, passwordHash: derived.hash, passwordSalt: derived.salt, provider: 'password', settings: null };
-                    db.users[key] = account; writeAccountDB(db);
-                    completeAccountLogin(account);
+                    if (!validUsername(username)) return accountStatus('Use 3–20 letters, numbers, or underscores for your username.', true);
+                    credential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                    await ensureCloudProfile(credential.user, username);
                 } else {
-                    const account = db.users[key];
-                    if (!account) return accountStatus('Account not found in this browser.', true);
-                    const derived = await hashPassword(password, account.passwordSalt);
-                    if (derived.hash !== account.passwordHash) return accountStatus('Incorrect password.', true);
-                    completeAccountLogin(account);
+                    credential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+                    const snap = await firestoreDB.doc('users/' + credential.user.uid).get();
+                    if (!snap.exists) {
+                        $('account-auth-panel').classList.add('hidden');
+                        $('google-username-panel').classList.remove('hidden');
+                        pendingGoogleUser = credential.user;
+                        $('google-username-panel').querySelector('h3').textContent = 'CHOOSE YOUR USERNAME';
+                        accountStatus('Account authenticated. Choose a username to finish setting up your profile.');
+                        return;
+                    }
+                    renderCloudProfile(snap.data(), credential.user);
                 }
-            } catch (err) { accountStatus('Account storage is unavailable in this browser.', true); }
+            } catch (err) {
+                console.error(err);
+                const messages = {
+                    'auth/email-already-in-use': 'That email already has an account. Switch to Sign In.',
+                    'auth/invalid-email': 'That email address is not valid.',
+                    'auth/weak-password': 'Choose a stronger password (at least 8 characters).',
+                    'auth/user-not-found': 'No account exists for that email.',
+                    'auth/wrong-password': 'Incorrect password.',
+                    'auth/invalid-credential': 'Email or password is incorrect.',
+                    'functions/not-found': 'The Firebase createProfile function is not deployed yet.'
+                };
+                accountStatus(messages[err.code] || err.message || 'Authentication failed.', true);
+            }
         });
-        function initFirebaseAuth() {
-            const configured = FIREBASE_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY' && FIREBASE_CONFIG.projectId !== 'YOUR_PROJECT_ID';
-            if (!configured || !window.firebase) return null;
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-                firebaseAuth = firebase.auth();
-                return firebaseAuth;
-            } catch (err) { console.error(err); return null; }
-        }
+
         async function signInWithGoogle() {
-            const auth = initFirebaseAuth();
-            if (!auth) return accountStatus('Google sign-in is not configured yet. The site owner must add Firebase config and enable Google in Firebase Authentication.', true);
+            if (!initFirebase()) return;
             try {
                 const provider = new firebase.auth.GoogleAuthProvider();
-                const result = await auth.signInWithPopup(provider);
-                pendingGoogleUser = result.user;
-                const db = readAccountDB();
-                const googleId = 'google_' + result.user.uid;
-                const existing = db.users[googleId];
-                if (existing?.username) return completeAccountLogin(existing);
-                $('account-auth-panel').classList.add('hidden');
-                $('google-username-panel').classList.remove('hidden');
-                $('google-new-username').value = '';
-                $('google-new-username').focus();
-                accountStatus('Google verified! Pick a username to finish.');
-            } catch (err) { accountStatus(err.message || 'Google sign-in failed.', true); }
+                const result = await firebaseAuth.signInWithPopup(provider);
+                const snap = await firestoreDB.doc('users/' + result.user.uid).get();
+                if (snap.exists) renderCloudProfile(snap.data(), result.user);
+                else {
+                    pendingGoogleUser = result.user;
+                    $('account-auth-panel').classList.add('hidden');
+                    $('google-username-panel').classList.remove('hidden');
+                    $('google-new-username').value = '';
+                    $('google-new-username').focus();
+                    $('google-username-panel').querySelector('h3').textContent = 'CHOOSE YOUR USERNAME';
+                    accountStatus('Google verified! Pick a username to finish your profile.');
+                }
+            } catch (err) {
+                console.error(err);
+                accountStatus(err.message || 'Google sign-in failed.', true);
+            }
         }
-        function finishGoogleUsername() {
-            if (!pendingGoogleUser) return accountStatus('Please sign in with Google first.', true);
+
+        async function finishGoogleUsername() {
+            if (!pendingGoogleUser) return accountStatus('Please sign in first.', true);
             const username = $('google-new-username').value.trim();
             if (!validUsername(username)) return accountStatus('Use 3–20 letters, numbers, or underscores.', true);
-            const db = readAccountDB();
-            const googleId = 'google_' + pendingGoogleUser.uid;
-            if (Object.values(db.users).some(u => u.username.toLowerCase() === username.toLowerCase() && u.id !== googleId))
-                return accountStatus('That username is already taken in this browser.', true);
-            const account = { id: googleId, username, provider: 'google', settings: db.users[googleId]?.settings || null };
-            db.users[googleId] = account; writeAccountDB(db);
-            pendingGoogleUser = null;
-            completeAccountLogin(account);
+            try {
+                await ensureCloudProfile(pendingGoogleUser, username);
+                pendingGoogleUser = null;
+            } catch (err) {
+                accountStatus(err.message || 'Could not create your profile.', true);
+            }
         }
+
         function enterGameFromAccount() {
             if (!currentAccount) return;
-            saveAccountSettings();
             $('account-gate').classList.add('hidden');
             $('main-menu').classList.remove('hidden');
         }
+
         async function signOutAccount() {
-            saveAccountSettings();
-            if (firebaseAuth && currentAccount?.provider === 'google') {
-                try { await firebaseAuth.signOut(); } catch (_) {}
-            }
+            try { if (firebaseAuth) await firebaseAuth.signOut(); } catch (err) { console.warn(err); }
             currentAccount = null;
-            localStorage.removeItem(ACCOUNT_SESSION_KEY);
+            pendingGoogleUser = null;
             $('account-session-panel').classList.add('hidden');
             $('account-auth-panel').classList.remove('hidden');
             $('google-username-panel').classList.add('hidden');
+            $('account-email').value = '';
             $('account-username').value = '';
             $('account-password').value = '';
             setAccountTab('login');
             accountStatus('Signed out.');
         }
-        // Save after any settings control is changed, including dynamically rendered map/team controls.
-        document.addEventListener('change', () => setTimeout(saveAccountSettings, 0));
-        document.addEventListener('click', () => setTimeout(saveAccountSettings, 0));
-        window.addEventListener('beforeunload', saveAccountSettings);
 
-        function restoreAccountSession() {
-            initFirebaseAuth();
-            const id = localStorage.getItem(ACCOUNT_SESSION_KEY);
-            if (!id) { $('account-gate').classList.remove('hidden'); return; }
-            const account = readAccountDB().users[id];
-            if (!account) { localStorage.removeItem(ACCOUNT_SESSION_KEY); $('account-gate').classList.remove('hidden'); return; }
-            completeAccountLogin(account);
+        async function restoreAccountSession() {
+            if (!initFirebase()) return;
+            firebaseAuth.onAuthStateChanged(async user => {
+                if (!user) {
+                    currentAccount = null;
+                    $('account-gate').classList.remove('hidden');
+                    return;
+                }
+                try {
+                    const snap = await firestoreDB.doc('users/' + user.uid).get();
+                    if (snap.exists) renderCloudProfile(snap.data(), user);
+                    else {
+                        pendingGoogleUser = user;
+                        $('account-gate').classList.remove('hidden');
+                        $('account-auth-panel').classList.add('hidden');
+                        $('google-username-panel').classList.remove('hidden');
+                        $('google-username-panel').querySelector('h3').textContent = 'FINISH YOUR PROFILE';
+                        accountStatus('Choose a username to finish setting up your account.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    accountStatus('Could not load your cloud profile: ' + err.message, true);
+                }
+            });
         }
 
+        // Persist settings to Firestore through the authenticated callable function.
+        document.addEventListener('change', () => setTimeout(saveAccountSettings, 250));
+        document.addEventListener('click', () => setTimeout(saveAccountSettings, 250));
 
         window.onload = function () {
             initThreeEngine();
