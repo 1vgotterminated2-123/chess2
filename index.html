@@ -149,9 +149,9 @@
             <button onclick="signOutAccount()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-300">SIGN OUT</button>
           </div>
           <div id="account-ratings" class="grid grid-cols-3 gap-2 mt-4 text-center">
-            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">CLASSIC</div><div id="rating-classic" class="font-bold text-cyan-300">1000</div></div>
-            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">DRAFT</div><div id="rating-draft" class="font-bold text-purple-300">1000</div></div>
-            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">BEDWARS</div><div id="rating-bedwars" class="font-bold text-amber-300">1000</div></div>
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="rating-classic" class="font-bold text-cyan-300">300</div></div>
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">DRAFT ELO</div><div id="rating-draft" class="font-bold text-purple-300">300</div></div>
+            <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">BEDWARS ELO</div><div id="rating-bedwars" class="font-bold text-amber-300">300</div></div>
           </div>
           <button onclick="enterGameFromAccount()" class="w-full mt-4 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-orbitron font-black text-xs">CONTINUE TO GAME</button>
         </div>
@@ -246,34 +246,13 @@
                 </div>
             </div>
 
-            <!-- ONLINE LOBBY -->
-            <section class="rounded-2xl border border-purple-500/40 bg-purple-950/20 p-4 space-y-3">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                        <h2 class="font-orbitron text-sm font-black text-purple-300"><i class="fa-solid fa-users mr-2"></i>ONLINE LOBBY</h2>
-                        <p class="text-[10px] text-slate-400">Create a private room or join a friend's room code.</p>
-                    </div>
-                    <span id="lobby-status-badge" class="text-[9px] rounded-full px-2 py-1 bg-slate-900 border border-slate-700 text-slate-400">NOT IN A ROOM</span>
+            <!-- ONLINE MULTIPLAYER ENTRY -->
+            <section class="rounded-2xl border border-purple-500/40 bg-gradient-to-r from-purple-950/50 to-cyan-950/30 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <h2 class="font-orbitron text-base font-black text-purple-200"><i class="fa-solid fa-globe mr-2"></i>ONLINE MULTIPLAYER</h2>
+                    <p class="text-xs text-slate-400 mt-1">Browse public rooms, join with a private code, or host a match with your preferred mode and arena.</p>
                 </div>
-                <div id="lobby-entry-controls" class="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2">
-                    <input id="lobby-join-code" maxlength="6" autocomplete="off" placeholder="ENTER 6-CHAR ROOM CODE" class="min-w-0 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2.5 text-center font-mono tracking-[0.2em] text-white uppercase outline-none focus:border-purple-400">
-                    <button onclick="joinLobbyByCode()" class="px-4 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold">JOIN ROOM</button>
-                    <button onclick="createLobby()" class="px-4 py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold">CREATE ROOM</button>
-                </div>
-                <div id="lobby-feedback" class="text-[10px] text-slate-400" role="status" aria-live="polite">Create a room to get an invite code, or enter a friend's code to join.</div>
-                <div id="lobby-room-panel" class="hidden rounded-xl bg-slate-950/80 border border-purple-500/30 p-3 space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                        <div><div class="text-[9px] text-slate-500 font-mono">ROOM CODE · SHARE WITH FRIENDS</div><div id="lobby-room-code" class="font-orbitron text-2xl font-black tracking-[0.25em] text-purple-200">------</div></div>
-                        <button onclick="copyLobbyCode()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-200"><i class="fa-solid fa-copy mr-1"></i> COPY CODE</button>
-                    </div>
-                    <div><div class="text-[10px] text-slate-400 font-mono mb-2">PLAYERS IN ROOM</div><div id="lobby-player-list" class="space-y-1"></div></div>
-                    <div id="lobby-message" class="text-[10px] text-slate-400" role="status">Waiting for players...</div>
-                    <div class="flex flex-wrap gap-2">
-                        <button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button>
-                        <button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button>
-                    </div>
-                </div>
-                <p class="text-[10px] text-amber-300/80">Room creation, joining, presence and ready status are online. Live synchronized board gameplay is not connected yet.</p>
+                <button onclick="openOnlineMultiplayer()" class="shrink-0 px-6 py-3 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-orbitron font-black tracking-wide shadow-lg"><i class="fa-solid fa-users mr-2"></i>OPEN ONLINE PLAY</button>
             </section>
 
             <!-- Configuration Grid -->
@@ -403,12 +382,84 @@
         </div>
     </div>
 
+    <!-- ONLINE MULTIPLAYER PAGE -->
+    <div id="online-multiplayer-page" class="fixed inset-0 z-[80] hidden bg-slate-950/95 backdrop-blur-xl p-3 sm:p-6 overflow-y-auto">
+        <div class="max-w-6xl mx-auto space-y-5">
+            <header class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <div class="text-[10px] text-purple-300 font-mono tracking-[0.25em]">CHESS 2 • NETWORK PLAY</div>
+                    <h1 class="font-orbitron text-2xl sm:text-3xl font-black text-white">ONLINE MULTIPLAYER</h1>
+                    <p class="text-xs text-slate-400 mt-1">Find a public room or create your own.</p>
+                </div>
+                <button onclick="closeOnlineMultiplayer()" class="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-xs font-bold"><i class="fa-solid fa-arrow-left mr-2"></i>BACK TO MENU</button>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-4">
+                <section class="rounded-2xl border border-cyan-500/30 bg-slate-900/70 p-4 sm:p-5 space-y-4">
+                    <div>
+                        <h2 class="font-orbitron font-black text-cyan-200 text-sm">CREATE A ROOM</h2>
+                        <p class="text-[10px] text-slate-400 mt-1">Choose the rules and arena before hosting.</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="space-y-1 text-[10px] text-slate-400">GAME MODE
+                            <select id="online-mode" onchange="updateOnlineMapOptions()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
+                                <option value="bedwars">Bedwars</option><option value="standard">Standard Chess 2</option><option value="commander">Commander Draft</option>
+                            </select>
+                        </label>
+                        <label class="space-y-1 text-[10px] text-slate-400">TEAM FORMAT
+                            <select id="online-team-format" onchange="updateOnlineMapOptions()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
+                                <option value="2-team">2-Team Dual</option><option value="4-team">4-Team Quad</option>
+                            </select>
+                        </label>
+                        <label class="col-span-2 space-y-1 text-[10px] text-slate-400">ARENA / MAP
+                            <select id="online-map" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs"></select>
+                        </label>
+                        <label class="space-y-1 text-[10px] text-slate-400">ROOM VISIBILITY
+                            <select id="online-visibility" onchange="updateOnlineVisibilityHint()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
+                                <option value="public">Public — listed for everyone</option><option value="private">Private — code only</option>
+                            </select>
+                        </label>
+                        <label class="space-y-1 text-[10px] text-slate-400">PLAYER LIMIT
+                            <select id="online-max-players" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
+                                <option value="2">2 Players</option><option value="4">4 Players</option><option value="8" selected>8 Players</option>
+                            </select>
+                        </label>
+                    </div>
+                    <p id="online-visibility-hint" class="text-[10px] text-slate-400">Public rooms appear in the browser below. Anyone signed in can join while the room is waiting.</p>
+                    <button onclick="createLobby()" class="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-600 to-purple-700 hover:from-cyan-500 hover:to-purple-600 text-white font-orbitron font-black text-xs"><i class="fa-solid fa-plus mr-2"></i>CREATE ROOM</button>
+                    <div class="border-t border-slate-800 pt-3 space-y-2">
+                        <div class="text-[10px] text-slate-400 font-mono">JOIN A PRIVATE ROOM BY CODE</div>
+                        <div class="flex gap-2"><input id="lobby-join-code" maxlength="6" autocomplete="off" placeholder="6-CHAR CODE" class="min-w-0 flex-1 rounded-xl bg-slate-950 border border-slate-700 px-3 py-2.5 text-center font-mono tracking-[0.2em] text-white uppercase outline-none focus:border-purple-400"><button onclick="joinLobbyByCode()" class="px-4 rounded-xl bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold">JOIN</button></div>
+                    </div>
+                </section>
+
+                <section class="rounded-2xl border border-purple-500/30 bg-slate-900/70 p-4 sm:p-5 space-y-3">
+                    <div class="flex items-center justify-between gap-2"><div><h2 class="font-orbitron font-black text-purple-200 text-sm">PUBLIC ROOMS</h2><p class="text-[10px] text-slate-400 mt-1">Only public rooms appear here.</p></div><button onclick="refreshPublicLobbyList()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-200"><i class="fa-solid fa-rotate mr-1"></i>REFRESH</button></div>
+                    <div id="public-lobby-list" class="space-y-2 max-h-[390px] overflow-y-auto pr-1"><div class="text-xs text-slate-500 text-center py-8">Loading public rooms...</div></div>
+                    <div id="public-lobby-status" class="text-[10px] text-slate-500" role="status">Rooms update automatically.</div>
+                </section>
+            </div>
+
+            <section id="lobby-room-panel" class="hidden rounded-2xl border border-emerald-500/40 bg-emerald-950/20 p-4 sm:p-5 space-y-4">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div><div class="text-[10px] text-emerald-300 font-mono tracking-widest">ROOM DETAILS</div><h2 class="font-orbitron text-xl font-black text-white">YOU'RE IN A ROOM</h2><div id="lobby-room-meta" class="text-xs text-slate-400 mt-1"></div></div>
+                    <div class="text-right"><div class="text-[9px] text-slate-500 font-mono">ROOM CODE</div><div id="lobby-room-code" class="font-orbitron text-2xl font-black tracking-[0.2em] text-purple-200">------</div><button onclick="copyLobbyCode()" class="text-[10px] text-cyan-300 underline mt-1">Copy invite code</button></div>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2"><span id="lobby-status-badge" class="text-[9px] rounded-full px-2 py-1 bg-slate-900 border border-slate-700 text-slate-300">WAITING</span><span id="lobby-message" class="text-[10px] text-slate-400" role="status">Waiting for players...</span></div>
+                <div><div class="text-[10px] text-slate-400 font-mono mb-2">PLAYERS IN ROOM</div><div id="lobby-player-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div></div>
+                <div class="flex flex-wrap gap-2"><button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button><button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button></div>
+                <p class="text-[10px] text-amber-300/80">This page currently handles room discovery, settings, membership and ready status. Synchronized board gameplay still needs to be implemented separately.</p>
+            </section>
+            <div id="lobby-feedback" class="text-xs text-slate-400 min-h-5" role="status" aria-live="polite"></div>
+        </div>
+    </div>
+
     <!-- PLAYER PROFILE PAGE -->
     <div id="player-profile-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
         <div class="glass-panel w-full max-w-lg rounded-3xl border-cyan-500/40 p-6 shadow-2xl space-y-5">
             <div class="flex items-center justify-between"><div><div class="text-[10px] text-cyan-400 font-mono tracking-widest">CHESS 2 PLAYER CARD</div><h2 class="font-orbitron text-xl font-black text-white">MY PROFILE</h2></div><button onclick="closePlayerProfile()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300">✕</button></div>
             <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800"><div class="text-[9px] text-slate-500 font-mono">USERNAME</div><div id="profile-page-username" class="text-2xl font-black text-emerald-300">Player</div><div id="profile-page-email" class="text-xs text-slate-400 mt-1 break-all"></div><div id="profile-page-account-type" class="text-[10px] text-cyan-300 mt-2"></div></div>
-            <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">1000</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">1000</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">1000</div></div></div>
+            <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT ELO</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS ELO</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">300</div></div></div>
             <div class="flex gap-2"><button onclick="closePlayerProfile()" class="flex-1 py-3 rounded-xl bg-cyan-700 text-white text-xs font-bold">BACK TO GAME</button><button onclick="signOutAccount()" class="px-4 py-3 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LOG OUT</button></div>
         </div>
     </div>
@@ -3909,6 +3960,7 @@
             ensureValidMap();
             resetMatchState();
             $('main-menu').classList.add('hidden');
+            $('online-multiplayer-page').classList.add('hidden');
             $('hud-header').classList.remove('hidden');
             $('persistent-controls-bar').classList.remove('hidden');
             $('hud-sidebar').classList.remove('hidden');
@@ -3981,6 +4033,8 @@
         let profileUnsubscribe = null;
         let lobbyUnsubscribe = null;
         let lobbyPlayersUnsubscribe = null;
+        let publicLobbyUnsubscribe = null;
+        let activeLobbyRoomData = null;
         let activeLobbyCode = null;
         let activeLobbyIsHost = false;
         let activeLobbyReady = false;
@@ -4071,7 +4125,9 @@
                 username: profile.username || user.displayName || (user.email || 'Player').split('@')[0],
                 email: user.email || '',
                 settings: profile.settings || null,
-                ratings: profile.ratings || { classic: 1000, draft: 1000, bedwars: 1000 },
+                ratings: (profile.ratings && profile.ratings.classic === 1000 && profile.ratings.draft === 1000 && profile.ratings.bedwars === 1000)
+                    ? { classic: 300, draft: 300, bedwars: 300 }
+                    : { classic: profile.ratings?.classic ?? 300, draft: profile.ratings?.draft ?? 300, bedwars: profile.ratings?.bedwars ?? 300 },
                 createdAt: profile.createdAt || null,
                 provider: user.providerData?.[0]?.providerId || 'password'
             };
@@ -4080,18 +4136,22 @@
             $('account-session-panel').classList.remove('hidden');
             $('account-current-name').textContent = currentAccount.username;
             $('account-email-display').textContent = currentAccount.email;
-            $('rating-classic').textContent = currentAccount.ratings.classic ?? 1000;
-            $('rating-draft').textContent = currentAccount.ratings.draft ?? 1000;
-            $('rating-bedwars').textContent = currentAccount.ratings.bedwars ?? 1000;
+            $('rating-classic').textContent = currentAccount.ratings.classic ?? 300;
+            $('rating-draft').textContent = currentAccount.ratings.draft ?? 300;
+            $('rating-bedwars').textContent = currentAccount.ratings.bedwars ?? 300;
+            if (profile.ratings && profile.ratings.classic === 1000 && profile.ratings.draft === 1000 && profile.ratings.bedwars === 1000 && firestoreDB) {
+                firestoreDB.doc('users/' + user.uid).update({ ratings: { classic: 300, draft: 300, bedwars: 300 } })
+                    .catch(err => console.warn('Could not migrate legacy default Elo values:', err));
+            }
             applyAccountSettings(currentAccount.settings);
             const menuName = $('menu-account-name');
             if (menuName) menuName.textContent = currentAccount.username + (currentAccount.isAnonymous ? ' · GUEST' : '');
             const pu = $('profile-page-username'); if (pu) pu.textContent = currentAccount.username;
             const pe = $('profile-page-email'); if (pe) pe.textContent = currentAccount.email || 'Guest account';
             const pt = $('profile-page-account-type'); if (pt) pt.textContent = currentAccount.isAnonymous ? 'TEMPORARY GUEST ACCOUNT' : 'REGISTERED ACCOUNT';
-            const pc = $('profile-page-classic'); if (pc) pc.textContent = currentAccount.ratings.classic ?? 1000;
-            const pd = $('profile-page-draft'); if (pd) pd.textContent = currentAccount.ratings.draft ?? 1000;
-            const pb = $('profile-page-bedwars'); if (pb) pb.textContent = currentAccount.ratings.bedwars ?? 1000;
+            const pc = $('profile-page-classic'); if (pc) pc.textContent = currentAccount.ratings.classic ?? 300;
+            const pd = $('profile-page-draft'); if (pd) pd.textContent = currentAccount.ratings.draft ?? 300;
+            const pb = $('profile-page-bedwars'); if (pb) pb.textContent = currentAccount.ratings.bedwars ?? 300;
             $('account-gate').classList.remove('hidden');
             accountStatus('Signed in. Your profile and ratings are loaded from Firebase.');
         }
@@ -4120,7 +4180,7 @@
                 const newProfile = {
                     username: username,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    ratings: { classic: 1000, draft: 1000, bedwars: 1000 },
+                    ratings: { classic: 300, draft: 300, bedwars: 300 },
                     settings: collectSettings()
                 };
 
@@ -4249,88 +4309,236 @@
             modal.classList.add('hidden'); modal.classList.remove('flex');
         }
         function setLobbyStatus(message, isError = false) {
-            const el = $('lobby-message');
-            if (el) { el.textContent = message; el.className = 'text-[10px] ' + (isError ? 'text-red-300' : 'text-slate-400'); }
-            const feedback = $('lobby-feedback');
-            if (feedback) { feedback.textContent = message; feedback.className = 'text-[10px] ' + (isError ? 'text-red-300' : 'text-slate-400'); }
+            const color = isError ? 'text-red-300' : 'text-slate-400';
+            ['lobby-message', 'lobby-feedback'].forEach(id => {
+                const el = $(id); if (el) { el.textContent = message; el.className = 'text-xs ' + color; }
+            });
         }
-        function lobbyCode() { return Math.random().toString(36).slice(2, 8).toUpperCase().replace(/[^A-Z0-9]/g, 'X').padEnd(6, 'X'); }
+        function lobbyCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let out = ''; for (let i = 0; i < 6; i++) out += chars[Math.floor(Math.random() * chars.length)];
+            return out;
+        }
         function stopLobbyListeners() {
             if (lobbyUnsubscribe) lobbyUnsubscribe();
             if (lobbyPlayersUnsubscribe) lobbyPlayersUnsubscribe();
             lobbyUnsubscribe = lobbyPlayersUnsubscribe = null;
+        }
+        function stopPublicLobbyListener() {
+            if (publicLobbyUnsubscribe) publicLobbyUnsubscribe();
+            publicLobbyUnsubscribe = null;
+        }
+        function openOnlineMultiplayer() {
+            $('main-menu').classList.add('hidden');
+            $('online-multiplayer-page').classList.remove('hidden');
+            updateOnlineMapOptions();
+            refreshPublicLobbyList();
+            if (activeLobbyCode) $('lobby-room-panel').classList.remove('hidden');
+            else $('lobby-room-panel').classList.add('hidden');
+        }
+        function closeOnlineMultiplayer() {
+            stopPublicLobbyListener();
+            $('online-multiplayer-page').classList.add('hidden');
+            $('main-menu').classList.remove('hidden');
+        }
+        function updateOnlineVisibilityHint() {
+            const isPrivate = $('online-visibility').value === 'private';
+            $('online-visibility-hint').textContent = isPrivate
+                ? 'Private rooms are hidden from the public browser. Friends must enter the 6-character room code to join.'
+                : 'Public rooms appear in the browser below. Anyone signed in can join while the room is waiting.';
+        }
+        function updateOnlineMapOptions() {
+            const mode = $('online-mode').value;
+            const teamSelect = $('online-team-format');
+            const quadOption = Array.from(teamSelect.options).find(o => o.value === '4-team');
+            if (mode !== 'bedwars') {
+                teamSelect.value = '2-team';
+                if (quadOption) quadOption.disabled = true;
+            } else if (quadOption) {
+                quadOption.disabled = false;
+            }
+            const teamFormat = teamSelect.value;
+            const select = $('online-map');
+            if (!select) return;
+            const maps = MAP_CATALOG.filter(m => isMapAllowed(m.id, mode, teamFormat));
+            select.innerHTML = '';
+            maps.forEach(m => {
+                const opt = document.createElement('option'); opt.value = m.id; opt.textContent = m.name; select.appendChild(opt);
+            });
+            if (!maps.length) {
+                const opt = document.createElement('option'); opt.value = ''; opt.textContent = 'No maps available for this setup'; select.appendChild(opt);
+            }
+        }
+        function renderPublicLobbyList(snapshot) {
+            const list = $('public-lobby-list'); if (!list) return;
+            const rooms = [];
+            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && d.status === 'waiting') rooms.push({ id: doc.id, ...d }); });
+            rooms.sort((a,b) => {
+                const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
+                const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
+                return tb - ta;
+            });
+            list.innerHTML = '';
+            if (!rooms.length) {
+                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one and it will appear here.'; list.appendChild(empty); return;
+            }
+            rooms.forEach(room => {
+                const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
+                const info = document.createElement('div'); info.className = 'min-w-0';
+                const title = document.createElement('div'); title.className = 'text-xs font-bold text-white truncate'; title.textContent = room.hostName || 'Player';
+                const details = document.createElement('div'); details.className = 'text-[10px] text-slate-400 mt-1';
+                const modeNames = { bedwars: 'Bedwars', standard: 'Standard', commander: 'Commander Draft' };
+                details.textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • Max ' + (room.maxPlayers || 8) + ' players';
+                info.append(title, details);
+                const join = document.createElement('button'); join.className = 'shrink-0 px-3 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-bold'; join.textContent = 'JOIN'; join.onclick = () => joinLobbyCode(room.id);
+                card.append(info, join); list.appendChild(card);
+            });
+        }
+        function refreshPublicLobbyList() {
+            if (!firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) {
+                $('public-lobby-list').textContent = 'Sign in to browse rooms.'; return;
+            }
+            stopPublicLobbyListener();
+            $('public-lobby-status').textContent = 'Listening for public rooms...';
+            // Query only the public visibility field. Private rooms are never returned in this list.
+            publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').limit(40).onSnapshot(snapshot => {
+                renderPublicLobbyList(snapshot);
+                $('public-lobby-status').textContent = 'Live room list • refreshed automatically';
+            }, err => {
+                console.error('Public room list failed:', err);
+                $('public-lobby-status').textContent = 'Could not load public rooms: ' + err.message;
+                $('public-lobby-list').textContent = 'Room list unavailable. Check that the updated Firestore rules are published.';
+            });
         }
         function renderLobbyPlayers(snapshot) {
             const list = $('lobby-player-list'); if (!list) return;
             list.innerHTML = '';
             snapshot.forEach(doc => {
                 const player = doc.data();
-                const row = document.createElement('div');
-                row.className = 'flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-xs';
-                const name = document.createElement('span'); name.className = 'text-slate-200 font-bold'; name.textContent = player.username + (doc.id === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
+                const row = document.createElement('div'); row.className = 'flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-xs';
+                const name = document.createElement('span'); name.className = 'text-slate-200 font-bold'; name.textContent = (player.username || 'Player') + (doc.id === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
                 const state = document.createElement('span'); state.className = player.ready ? 'text-emerald-300' : 'text-amber-300'; state.textContent = player.ready ? 'READY' : 'NOT READY';
                 row.append(name, state); list.appendChild(row);
             });
             if (!snapshot.size) list.textContent = 'No players found.';
+            if (activeLobbyRoomData) activeLobbyRoomData.playerCount = snapshot.size;
         }
         function watchLobby(code) {
             stopLobbyListeners(); activeLobbyCode = code;
-            $('lobby-entry-controls').classList.add('hidden'); $('lobby-room-panel').classList.remove('hidden');
-            $('lobby-room-code').textContent = code; $('lobby-status-badge').textContent = 'IN ROOM';
-            lobbyUnsubscribe = firestoreDB.collection('lobbies').doc(code).onSnapshot(doc => {
+            $('lobby-room-panel').classList.remove('hidden');
+            $('lobby-room-code').textContent = code;
+            $('lobby-status-badge').textContent = 'IN ROOM';
+            const roomRef = firestoreDB.collection('lobbies').doc(code);
+            lobbyUnsubscribe = roomRef.onSnapshot(doc => {
                 if (!doc.exists) { setLobbyStatus('This room was closed by its host.', true); resetLobbyUI(); return; }
-                const room = doc.data();
-                $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : room.status.toUpperCase();
-                setLobbyStatus('Room hosted by ' + (room.hostName || 'Player') + '. Share the code to invite friends.');
+                activeLobbyRoomData = doc.data();
+                const room = activeLobbyRoomData;
+                $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : String(room.status || 'WAITING').toUpperCase();
+                const modeNames = { bedwars: 'Bedwars', standard: 'Standard Chess 2', commander: 'Commander Draft' };
+                $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • Host: ' + (room.hostName || 'Player');
+                setLobbyStatus('Room is open. Share the code with friends or get ready.');
             }, err => setLobbyStatus('Lobby update failed: ' + err.message, true));
-            lobbyPlayersUnsubscribe = firestoreDB.collection('lobbies').doc(code).collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
+            lobbyPlayersUnsubscribe = roomRef.collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
         }
         async function createLobby() {
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before creating a room.', true);
             if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
             try {
+                const mode = $('online-mode').value;
+                const teamFormat = $('online-team-format').value;
+                const mapId = $('online-map').value;
+                const map = mapById(mapId);
+                if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
+                const visibility = $('online-visibility').value;
+                const maxPlayers = Number($('online-max-players').value);
                 let code = lobbyCode();
                 let roomRef = firestoreDB.collection('lobbies').doc(code);
-                for (let i = 0; i < 5 && (await roomRef.get()).exists; i++) { code = lobbyCode(); roomRef = firestoreDB.collection('lobbies').doc(code); }
-                await roomRef.set({ code, hostUid: firebaseAuth.currentUser.uid, hostName: currentAccount.username, status: 'waiting', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).set({ uid: firebaseAuth.currentUser.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                activeLobbyIsHost = true; activeLobbyReady = false; watchLobby(code);
+                for (let i = 0; i < 8 && (await roomRef.get()).exists; i++) { code = lobbyCode(); roomRef = firestoreDB.collection('lobbies').doc(code); }
+                if ((await roomRef.get()).exists) throw new Error('Could not generate a unique room code. Try again.');
+                const user = firebaseAuth.currentUser;
+                const playerRef = roomRef.collection('players').doc(user.uid);
+                await roomRef.set({
+                    code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
+                    visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                try {
+                    await playerRef.set({ uid: user.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                } catch (playerError) {
+                    await roomRef.delete().catch(() => {});
+                    throw playerError;
+                }
+                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username };
+                watchLobby(code);
+                setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
         }
         async function joinLobbyByCode() {
+            const codeInput = $('lobby-join-code');
+            const code = (codeInput.value || '').trim().toUpperCase();
+            await joinLobbyCode(code);
+            if (activeLobbyCode && codeInput) codeInput.value = '';
+        }
+        async function joinPublicLobby(code) { await joinLobbyCode(code); }
+        async function joinLobbyCode(code) {
             if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before joining a room.', true);
-            const code = $('lobby-join-code').value.trim().toUpperCase();
+            if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
+            code = String(code || '').trim().toUpperCase();
             if (!/^[A-Z0-9]{6}$/.test(code)) return setLobbyStatus('Enter the 6-character room code.', true);
             try {
-                const roomRef = firestoreDB.collection('lobbies').doc(code); const room = await roomRef.get();
-                if (!room.exists || room.data().status !== 'waiting') return setLobbyStatus('Room not found or no longer accepting players.', true);
+                const user = firebaseAuth.currentUser;
+                const roomRef = firestoreDB.collection('lobbies').doc(code);
+                const roomSnap = await roomRef.get();
+                if (!roomSnap.exists) return setLobbyStatus('Room not found. Check the code and try again.', true);
+                const room = roomSnap.data();
+                if (room.status !== 'waiting') return setLobbyStatus('This room is no longer accepting players.', true);
+                const playerRef = roomRef.collection('players').doc(user.uid);
+                const existingPlayer = await playerRef.get();
                 const players = await roomRef.collection('players').get();
-                if (players.size >= 8 && !players.docs.some(d => d.id === firebaseAuth.currentUser.uid)) return setLobbyStatus('This room is full (8 players max).', true);
-                await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).set({ uid: firebaseAuth.currentUser.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                activeLobbyIsHost = false; activeLobbyReady = false; watchLobby(code); $('lobby-join-code').value = '';
-            } catch (err) { console.error(err); setLobbyStatus('Could not join room: ' + err.message, true); }
+                const maxPlayers = Number(room.maxPlayers || 8);
+                if (!existingPlayer.exists && players.size >= maxPlayers) return setLobbyStatus('This room is full (' + maxPlayers + ' players max).', true);
+                const playerData = { uid: user.uid, username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() };
+                // Rejoining an existing player document uses update(), not set(), so Firestore rules can explicitly permit it.
+                if (existingPlayer.exists) await playerRef.update({ username: playerData.username, ready: false, joinedAt: playerData.joinedAt });
+                else await playerRef.set(playerData);
+                activeLobbyIsHost = room.hostUid === user.uid; activeLobbyReady = false; activeLobbyRoomData = room;
+                watchLobby(code);
+                setLobbyStatus('Joined ' + (room.visibility === 'private' ? 'private' : 'public') + ' room successfully.');
+            } catch (err) {
+                console.error('Join room failed:', err);
+                const msg = err.code === 'permission-denied'
+                    ? 'Firestore denied the join. Publish the updated lobby rules from the new rules file, then try again.'
+                    : 'Could not join room: ' + err.message;
+                setLobbyStatus(msg, true);
+            }
         }
         async function toggleLobbyReady() {
-            if (!activeLobbyCode || !firebaseAuth.currentUser) return;
+            if (!activeLobbyCode || !firebaseAuth || !firebaseAuth.currentUser) return;
             try {
-                activeLobbyReady = !activeLobbyReady;
-                await firestoreDB.collection('lobbies').doc(activeLobbyCode).collection('players').doc(firebaseAuth.currentUser.uid).update({ ready: activeLobbyReady });
+                const nextReady = !activeLobbyReady;
+                await firestoreDB.collection('lobbies').doc(activeLobbyCode).collection('players').doc(firebaseAuth.currentUser.uid).update({ ready: nextReady });
+                activeLobbyReady = nextReady;
                 $('lobby-ready-button').textContent = activeLobbyReady ? 'NOT READY' : "I'M READY";
-            } catch (err) { activeLobbyReady = !activeLobbyReady; setLobbyStatus('Could not update ready status: ' + err.message, true); }
+            } catch (err) { setLobbyStatus('Could not update ready status: ' + err.message, true); }
         }
-        function copyLobbyCode() { if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true)); }
+        function copyLobbyCode() {
+            if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true));
+        }
         function resetLobbyUI() {
-            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false;
-            $('lobby-entry-controls').classList.remove('hidden'); $('lobby-room-panel').classList.add('hidden'); $('lobby-status-badge').textContent = 'NOT IN A ROOM'; $('lobby-ready-button').textContent = "I'M READY";
+            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null;
+            const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
+            const ready = $('lobby-ready-button'); if (ready) ready.textContent = "I'M READY";
         }
         async function leaveLobby() {
-            if (!activeLobbyCode || !firebaseAuth.currentUser) return;
+            if (!activeLobbyCode || !firebaseAuth || !firebaseAuth.currentUser) return;
             const code = activeLobbyCode; const roomRef = firestoreDB.collection('lobbies').doc(code);
             try {
                 if (activeLobbyIsHost) {
                     const players = await roomRef.collection('players').get();
                     const batch = firestoreDB.batch(); players.forEach(d => batch.delete(d.ref)); batch.delete(roomRef); await batch.commit();
-                } else { await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).delete(); }
+                } else {
+                    await roomRef.collection('players').doc(firebaseAuth.currentUser.uid).delete();
+                }
                 resetLobbyUI(); setLobbyStatus('You left the room.');
             } catch (err) { setLobbyStatus('Could not leave room: ' + err.message, true); }
         }
@@ -4344,6 +4552,8 @@
         async function signOutAccount() {
             if (activeLobbyCode) { try { await leaveLobby(); } catch (_) {} }
             closePlayerProfile();
+            stopPublicLobbyListener();
+            $('online-multiplayer-page').classList.add('hidden');
             try { if (firebaseAuth) await firebaseAuth.signOut(); } catch (err) { console.warn(err); }
             currentAccount = null;
             pendingGoogleUser = null;
