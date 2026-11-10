@@ -95,7 +95,12 @@
         .role-rush { background: #a855f7; color: #ffffff; border: 1px solid #e9d5ff; }
         .role-gather { background: #10b981; color: #020617; border: 1px solid #a7f3d0; }
         .role-guard { background: #64748b; color: #ffffff; border: 1px solid #cbd5e1; }
-    </style>
+    
+        .hub-nav-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:13px 8px;border-radius:14px;background:rgba(15,23,42,.92);border:1px solid rgba(100,116,139,.35);color:#e2e8f0;font:700 10px Orbitron,monospace;letter-spacing:.06em;transition:.18s;min-height:76px}.hub-nav-btn:hover{transform:translateY(-2px);border-color:#22d3ee;background:rgba(8,47,73,.8)}
+        .hub-setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px;border-radius:12px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;font-size:12px}
+        .achievement-card{border:1px solid #475569;border-radius:16px;background:rgba(2,6,23,.88);padding:14px;text-align:left;transition:.18s}.achievement-card:hover{transform:translateY(-2px);filter:brightness(1.15)}.achievement-card.locked{opacity:.62;filter:saturate(.55)}
+        .rarity-common{border:1px solid #64748b!important;box-shadow:inset 0 0 12px rgba(100,116,139,.08)}.rarity-uncommon{border:1px solid #22c55e!important;box-shadow:0 0 10px rgba(34,197,94,.12),inset 0 0 14px rgba(34,197,94,.08)}.rarity-rare{border:1px solid #38bdf8!important;box-shadow:0 0 13px rgba(56,189,248,.2),inset 0 0 18px rgba(56,189,248,.1)}.rarity-epic{border:2px solid #a855f7!important;box-shadow:0 0 16px rgba(168,85,247,.28),inset 0 0 22px rgba(168,85,247,.13)}.rarity-legendary{border:2px solid #f59e0b!important;box-shadow:0 0 20px rgba(245,158,11,.35),inset 0 0 24px rgba(245,158,11,.16);background-image:linear-gradient(135deg,rgba(120,53,15,.14),transparent 55%)}.rarity-mythic{border:2px solid #f0abfc!important;box-shadow:0 0 22px rgba(232,121,249,.45),inset 0 0 28px rgba(192,38,211,.2);background-image:linear-gradient(120deg,rgba(126,34,206,.2),rgba(8,145,178,.1),rgba(190,24,93,.15))}
+</style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
 
@@ -146,7 +151,7 @@
         <div id="account-session-panel" class="hidden mt-4 pt-4 border-t border-slate-700">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0"><div class="text-[9px] text-slate-500 font-mono">SIGNED IN AS</div><div id="account-current-name" class="text-sm font-bold text-emerald-300 truncate"></div><div id="account-email-display" class="text-[10px] text-slate-400 truncate"></div></div>
-            <button onclick="signOutAccount()" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-xs text-slate-300">SIGN OUT</button>
+            <span class="text-[10px] text-slate-500">Manage account in Settings</span>
           </div>
           <div id="account-ratings" class="grid grid-cols-3 gap-2 mt-4 text-center">
             <div class="rounded-lg bg-slate-900 p-2"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="rating-classic" class="font-bold text-cyan-300">300</div></div>
@@ -234,15 +239,14 @@
                 <p class="text-xs md:text-sm text-slate-400 font-mono">ADAPTIVE AI LEARNING • MID-ROUND SCENARIO ROLE SWAPPING • 15 UNIQUE ARENAS</p>
             </div>
 
-            <!-- ACCOUNT SHORTCUTS -->
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 rounded-2xl border border-cyan-500/30 bg-slate-950/70 p-3">
-                <div class="min-w-0">
-                    <div class="text-[9px] text-slate-500 font-mono">SIGNED IN</div>
-                    <div id="menu-account-name" class="font-orbitron text-sm font-bold text-emerald-300 truncate">Loading account...</div>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="openPlayerProfile()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-cyan-950 border border-cyan-500/50 text-cyan-200 text-xs font-bold"><i class="fa-solid fa-user mr-1"></i> MY PROFILE</button>
-                    <button onclick="signOutAccount()" class="flex-1 sm:flex-none px-4 py-2 rounded-xl bg-red-950/70 border border-red-500/40 text-red-200 text-xs font-bold"><i class="fa-solid fa-right-from-bracket mr-1"></i> LOG OUT</button>
+            <!-- PLAYER HUB NAVIGATION -->
+            <div class="rounded-2xl border border-cyan-500/30 bg-slate-950/70 p-3 space-y-3">
+                <div class="flex items-center justify-between gap-3"><div class="min-w-0"><div class="text-[9px] text-slate-500 font-mono">SIGNED IN</div><div id="menu-account-name" class="font-orbitron text-sm font-bold text-emerald-300 truncate">Loading account...</div></div><div id="menu-material" class="text-xs font-bold text-amber-300 whitespace-nowrap">◆ 0 MATERIAL</div></div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <button onclick="openSettingsPage()" class="hub-nav-btn"><i class="fa-solid fa-gear text-cyan-300 text-lg"></i><span>SETTINGS</span></button>
+                    <button onclick="openPlayerProfile()" class="hub-nav-btn"><i class="fa-solid fa-user text-emerald-300 text-lg"></i><span>PROFILE</span></button>
+                    <button onclick="openPlayerSearch()" class="hub-nav-btn relative"><i class="fa-solid fa-magnifying-glass text-purple-300 text-lg"></i><span>SEARCH</span><b id="notification-nav-count" class="absolute -top-1 -right-1 rounded-full bg-rose-500 text-white text-[9px] px-1.5 py-0.5 hidden">0</b></button>
+                    <button onclick="openAchievementsPage()" class="hub-nav-btn relative"><i class="fa-solid fa-trophy text-amber-300 text-lg"></i><span>ACHIEVEMENTS</span><b id="achievement-nav-count" class="absolute -top-1 -right-1 rounded-full bg-amber-400 text-slate-950 text-[9px] px-1.5 py-0.5">0</b></button>
                 </div>
             </div>
 
@@ -467,14 +471,25 @@
         </div>
     </div>
 
-    <div id="player-profile-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/90 backdrop-blur-md p-4">
-        <div class="glass-panel w-full max-w-lg rounded-3xl border-cyan-500/40 p-6 shadow-2xl space-y-5">
-            <div class="flex items-center justify-between"><div><div class="text-[10px] text-cyan-400 font-mono tracking-widest">CHESS 2 PLAYER CARD</div><h2 class="font-orbitron text-xl font-black text-white">MY PROFILE</h2></div><button onclick="closePlayerProfile()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300">✕</button></div>
-            <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800"><div class="text-[9px] text-slate-500 font-mono">USERNAME</div><div id="profile-page-username" class="text-2xl font-black text-emerald-300">Player</div><div id="profile-page-email" class="text-xs text-slate-400 mt-1 break-all"></div><div id="profile-page-account-type" class="text-[10px] text-cyan-300 mt-2"></div></div>
-            <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT ELO</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS ELO</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">300</div></div></div>
-            <div class="flex gap-2"><button onclick="closePlayerProfile()" class="flex-1 py-3 rounded-xl bg-cyan-700 text-white text-xs font-bold">BACK TO GAME</button><button onclick="signOutAccount()" class="px-4 py-3 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LOG OUT</button></div>
-        </div>
+    <div id="player-profile-modal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto">
+      <div class="glass-panel w-full max-w-2xl rounded-3xl border-cyan-500/40 p-5 md:p-7 shadow-2xl space-y-5 my-auto max-h-[94vh] overflow-y-auto">
+        <div class="flex items-center justify-between"><div><div class="text-[10px] text-cyan-400 font-mono tracking-widest">CHESS 2 PLAYER CARD</div><h2 id="profile-page-title" class="font-orbitron text-2xl font-black text-white">MY PROFILE</h2></div><button onclick="closePlayerProfile()" class="w-9 h-9 rounded-xl bg-slate-800 text-slate-300">✕</button></div>
+        <div class="rounded-2xl bg-slate-950 p-4 border border-slate-800"><div class="flex items-start justify-between gap-3"><div><div class="text-[9px] text-slate-500 font-mono">USERNAME</div><div id="profile-page-username" class="text-2xl font-black text-emerald-300">Player</div><div id="profile-page-email" class="text-xs text-slate-400 mt-1 break-all"></div><div id="profile-page-account-type" class="text-[10px] text-cyan-300 mt-2"></div></div><div class="text-right"><div class="text-[9px] text-slate-500">MATERIAL</div><div id="profile-page-material" class="text-xl font-black text-amber-300">◆ 0</div></div></div></div>
+        <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT ELO</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS ELO</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">300</div></div></div>
+        <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">GAMES</div><div id="profile-page-games" class="text-lg font-black text-white">0</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">WINS</div><div id="profile-page-wins" class="text-lg font-black text-emerald-300">0</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">WIN RATE</div><div id="profile-page-winrate" class="text-lg font-black text-cyan-300">0%</div></div></div>
+        <div class="rounded-2xl border border-amber-500/30 bg-slate-950/70 p-4"><div class="flex justify-between items-center mb-3"><h3 class="font-orbitron text-xs text-amber-300 font-bold">DISPLAYED ACHIEVEMENT</h3><button id="profile-showcase-edit" onclick="openAchievementsPage(true)" class="text-[10px] text-cyan-300">CHANGE</button></div><div id="profile-showcase" class="text-sm text-slate-400">No achievement displayed yet.</div></div>
+        <div id="profile-social-actions" class="hidden flex gap-2"><button id="profile-friend-button" onclick="sendFriendRequestFromProfile()" class="flex-1 py-3 rounded-xl bg-purple-700 text-white text-xs font-bold">ADD FRIEND</button></div>
+        <div class="flex gap-2"><button onclick="closePlayerProfile()" class="flex-1 py-3 rounded-xl bg-cyan-700 text-white text-xs font-bold">BACK TO GAME</button></div>
+      </div>
     </div>
+
+    <div id="settings-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-xl rounded-3xl border-cyan-500/40 p-6 space-y-5 my-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-cyan-400 font-mono">PLAYER HUB</div><h2 class="font-orbitron text-2xl font-black">SETTINGS</h2></div><button onclick="closeHubPage('settings-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><label class="hub-setting"><span>Sound effects</span><input id="hub-sound" type="checkbox" onchange="G.soundEnabled=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>AI strategy hints</span><input id="hub-ai" type="checkbox" onchange="G.enableAIStrategy=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Piece role abilities</span><input id="hub-roles" type="checkbox" onchange="G.enablePieceRoles=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Chaos pieces</span><input id="hub-chaos" type="checkbox" onchange="G.chaosPieces=this.checked; $('toggle-chaos-pieces').checked=this.checked; saveAccountSettings()"></label></div><p class="text-[10px] text-slate-500">Match mode, map, team format and controller settings are configured on the main menu.</p><button onclick="signOutAccount()" class="w-full py-3 rounded-xl bg-red-950 border border-red-500/50 text-red-200 text-xs font-bold"><i class="fa-solid fa-right-from-bracket mr-2"></i>SIGN OUT</button></div></div>
+
+    <div id="player-search-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-2xl rounded-3xl border-purple-500/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-purple-300 font-mono">COMMUNITY</div><h2 class="font-orbitron text-2xl font-black">FIND PLAYERS</h2></div><button onclick="closeHubPage('player-search-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><input id="player-search-input" oninput="searchPlayersDebounced()" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-white outline-none focus:border-purple-400" placeholder="Search any username..."><div id="player-search-results" class="space-y-2 text-sm text-slate-400">Start typing to find players.</div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-emerald-300 mb-2">FRIENDS</h3><div id="player-friends-list" class="space-y-2 text-sm text-slate-400">No friends yet.</div></div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-cyan-300 mb-2">RECENTLY PLAYED AGAINST</h3><div id="recent-opponents-list" class="space-y-2 text-sm text-slate-400">No recent opponents yet.</div></div><div class="border-t border-slate-800 pt-4"><div class="flex justify-between items-center"><h3 class="font-orbitron text-xs text-amber-300">NOTIFICATIONS</h3><span id="notification-count" class="text-[10px] text-slate-500">0 unread</span></div><div id="player-notifications" class="space-y-2 mt-2 text-sm text-slate-400">No notifications.</div></div></div></div>
+
+    <div id="achievements-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-4xl rounded-3xl border-amber-500/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-amber-300 font-mono">COLLECTION & REWARDS</div><h2 class="font-orbitron text-2xl font-black">ACHIEVEMENTS</h2><p id="achievement-progress" class="text-xs text-slate-400 mt-1">0 unlocked</p></div><button onclick="closeHubPage('achievements-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div id="achievement-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div></div></div>
+
+    <div id="achievement-inspect-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/80 p-4"><div id="achievement-inspect-card" class="w-full max-w-md rounded-2xl bg-slate-950 border p-6 space-y-3"><div id="inspect-rarity" class="text-[10px] uppercase tracking-widest"></div><h3 id="inspect-title" class="font-orbitron text-xl font-black"></h3><p id="inspect-description" class="text-sm text-slate-300"></p><div id="inspect-owners" class="text-xs text-slate-400">Owners: loading...</div><div id="inspect-reward" class="text-sm text-amber-300"></div><button id="inspect-showcase" onclick="setAchievementShowcase(inspectingAchievementId)" class="hidden w-full py-2 rounded-xl bg-amber-700 text-white text-xs font-bold">DISPLAY ON MY PROFILE</button><button onclick="closeAchievementInspect()" class="w-full py-2 rounded-xl bg-slate-800 text-slate-200 text-xs">CLOSE</button></div></div>
 
     <!-- COMMANDER DRAFT OVERLAY BAR -->
     <div id="commander-draft-bar" class="absolute top-16 left-1/2 -translate-x-1/2 z-30 glass-panel px-6 py-3 rounded-2xl border-purple-500/50 shadow-2xl flex flex-wrap items-center justify-center gap-4 hidden pointer-events-auto max-w-4xl w-full">
@@ -4407,7 +4422,7 @@
             G.selectedPiece = null; G.validMoves = []; G.attackTargets = []; G.ghostBridgeTiles = [];
             G.bridgeModeActive = false; G.bridgesThisTurn = 0;
             G.pearlMode = false; G.pearlTargets = []; G.spellMode = null; G.bestMoveHint = null;
-            G.gameOver = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
+            G.gameOver = false; G.matchRewarded = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
             G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
             G.reviewSnapshots = []; G.reviewPieceRegistry = {};
             G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.isReviewing = false;
@@ -4479,6 +4494,9 @@
         function triggerGameOver(winnerTeam, reason) {
             G.gameOver = true;
             clearTimeout(G.aiTimer);
+            const localHumanTeam = (G.teams || []).find(t => G.teamControllers && G.teamControllers[t] && G.teamControllers[t].type === 'human') || (G.teams || [])[0];
+            const localWon = String(winnerTeam).toLowerCase() === String(localHumanTeam || '').toLowerCase();
+            awardMatchProgress(localWon);
             $('winner-title').innerText = `${winnerTeam.toUpperCase()} VICTORY!`;
             $('winner-subtitle').innerText = reason || 'The enemy team has been obliterated.';
             $('modal-d20-combat').classList.add('hidden');
@@ -4608,7 +4626,9 @@
                 ratings: (profile.ratings && profile.ratings.classic === 1000 && profile.ratings.draft === 1000 && profile.ratings.bedwars === 1000)
                     ? { classic: 300, draft: 300, bedwars: 300 }
                     : { classic: profile.ratings?.classic ?? 300, draft: profile.ratings?.draft ?? 300, bedwars: profile.ratings?.bedwars ?? 300 },
-                createdAt: profile.createdAt || null,
+                createdAt: profile.createdAt || null, material: Number(profile.material || 0),
+                stats: profile.stats || { gamesPlayed: 0, wins: 0, losses: 0, winStreak: 0, bestWinStreak: 0 },
+                unlockedAchievements: profile.unlockedAchievements || [], showcaseAchievement: profile.showcaseAchievement || null,
                 activeLobbyCode: profile.activeLobbyCode || null,
                 provider: user.providerData?.[0]?.providerId || 'password',
                 isAnonymous: !!user.isAnonymous
@@ -4626,6 +4646,19 @@
                     .catch(err => console.warn('Could not migrate legacy default Elo values:', err));
             }
             applyAccountSettings(currentAccount.settings);
+            if (firestoreDB && !user.isAnonymous) {
+                const profilePatch = {};
+                if (!profile.usernameLower) profilePatch.usernameLower = currentAccount.username.toLowerCase();
+                profilePatch.lastOnline = firebase.firestore.FieldValue.serverTimestamp();
+                if (!profile.stats) profilePatch.stats = currentAccount.stats;
+                if (!Array.isArray(profile.unlockedAchievements)) profilePatch.unlockedAchievements = [];
+                if (!Array.isArray(profile.eloHistory)) profilePatch.eloHistory = [];
+                if (typeof profile.material !== 'number') profilePatch.material = 0;
+                if (!Array.isArray(profile.unlockedThemes)) profilePatch.unlockedThemes = ['midnight'];
+                if (typeof profile.activeTheme !== 'string') profilePatch.activeTheme = 'midnight';
+                if (profile.showcaseAchievement === undefined) profilePatch.showcaseAchievement = null;
+                if (Object.keys(profilePatch).length) firestoreDB.doc('users/' + user.uid).update(profilePatch).catch(err => console.warn('Profile migration:', err));
+            }
             const menuName = $('menu-account-name');
             if (menuName) menuName.textContent = currentAccount.username + (currentAccount.isAnonymous ? ' · GUEST' : '');
             const pu = $('profile-page-username'); if (pu) pu.textContent = currentAccount.username;
@@ -4634,6 +4667,10 @@
             const pc = $('profile-page-classic'); if (pc) pc.textContent = currentAccount.ratings.classic ?? 300;
             const pd = $('profile-page-draft'); if (pd) pd.textContent = currentAccount.ratings.draft ?? 300;
             const pb = $('profile-page-bedwars'); if (pb) pb.textContent = currentAccount.ratings.bedwars ?? 300;
+            const mat = $('profile-page-material'); if (mat) mat.textContent = '◆ ' + currentAccount.material;
+            const menuMat = $('menu-material'); if (menuMat) menuMat.textContent = '◆ ' + currentAccount.material + ' MATERIAL';
+            renderOwnProfileStats();
+            if (!currentAccount.isAnonymous) loadNotifications();
             $('account-gate').classList.remove('hidden');
             accountStatus('Signed in. Your profile and ratings are loaded from Firebase.');
         }
@@ -4660,11 +4697,12 @@
                 }
 
                 const newProfile = {
-                    username: username,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    ratings: { classic: 300, draft: 300, bedwars: 300 },
-                    settings: collectSettings(),
-                    activeLobbyCode: null
+                    username: username, usernameLower: username.toLowerCase(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(), lastOnline: firebase.firestore.FieldValue.serverTimestamp(),
+                    ratings: { classic: 300, draft: 300, bedwars: 300 }, settings: collectSettings(), activeLobbyCode: null,
+                    material: 0, stats: { gamesPlayed: 0, wins: 0, losses: 0, winStreak: 0, bestWinStreak: 0 },
+                    eloHistory: [], unlockedThemes: ['midnight'], activeTheme: 'midnight',
+                    unlockedAchievements: [], showcaseAchievement: null
                 };
 
                 transaction.set(usernameRef, { uid: user.uid, username: username });
@@ -5264,6 +5302,47 @@
                 }
             });
         }
+
+
+        // PLAYER HUB: achievements, public profiles, search, friends and notifications.
+        const ACHIEVEMENTS = [
+          {id:'first_match',name:'First Steps',description:'Complete your first match.',rarity:'common',reward:10,icon:'♟',test:s=>s.gamesPlayed>=1},
+          {id:'first_win',name:'Checkmate!',description:'Win your first match.',rarity:'uncommon',reward:20,icon:'🏆',test:s=>s.wins>=1},
+          {id:'ten_matches',name:'Regular Player',description:'Complete 10 matches.',rarity:'rare',reward:35,icon:'⚔️',test:s=>s.gamesPlayed>=10},
+          {id:'five_wins',name:'On a Roll',description:'Win 5 matches.',rarity:'rare',reward:40,icon:'🔥',test:s=>s.wins>=5},
+          {id:'twenty_five_wins',name:'Grandmaster',description:'Win 25 matches.',rarity:'epic',reward:75,icon:'👑',test:s=>s.wins>=25},
+          {id:'fifty_matches',name:'Veteran of the Board',description:'Complete 50 matches.',rarity:'epic',reward:85,icon:'🛡️',test:s=>s.gamesPlayed>=50},
+          {id:'hundred_wins',name:'Legend Among Kings',description:'Win 100 matches.',rarity:'legendary',reward:160,icon:'🌟',test:s=>s.wins>=100},
+          {id:'win_streak_10',name:'Unstoppable',description:'Reach a 10-win streak.',rarity:'legendary',reward:180,icon:'⚡',test:s=>s.bestWinStreak>=10},
+          {id:'five_hundred_material',name:'Material Hoarder',description:'Accumulate 500 Material.',rarity:'mythic',reward:250,icon:'💎',test:(s,a)=>a.material>=500}
+        ];
+        const RARITY_LABELS={common:'Common',uncommon:'Uncommon',rare:'Rare',epic:'Epic',legendary:'Legendary',mythic:'Mythic'};
+        let inspectingAchievementId=null, viewingPlayerUid=null, searchTimer=null, socialUnsubscribers=[];
+        function closeHubPage(id){const el=$(id);if(el){el.classList.add('hidden');el.classList.remove('flex');}}
+        function openHubPage(id){const el=$(id);if(el){el.classList.remove('hidden');el.classList.add('flex');}}
+        function renderOwnProfileStats(){if(!currentAccount)return;const st=currentAccount.stats||{};const games=Number(st.gamesPlayed||0),wins=Number(st.wins||0);$('profile-page-games').textContent=games;$('profile-page-wins').textContent=wins;$('profile-page-winrate').textContent=(games?Math.round(wins/games*100):0)+'%';$('profile-page-material').textContent='◆ '+Number(currentAccount.material||0);$('menu-material').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const showcase=ACHIEVEMENTS.find(a=>a.id===currentAccount.showcaseAchievement);$('profile-showcase').innerHTML=showcase?`<div class="achievement-card rarity-${showcase.rarity}"><div class="text-xl">${showcase.icon}</div><b>${showcase.name}</b><div class="text-[10px] uppercase mt-1">${RARITY_LABELS[showcase.rarity]}</div></div>`:'No achievement displayed yet.';}
+        function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');$('hub-sound').checked=!!G.soundEnabled;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
+        async function openPlayerProfile(uid){if(!currentAccount||requirePermanentAccount('your player profile'))return;viewingPlayerUid=uid||currentAccount.id;await loadPublicProfile(viewingPlayerUid);openHubPage('player-profile-modal');}
+        async function loadPublicProfile(uid){try{const snap=await firestoreDB.doc('users/'+uid).get();if(!snap.exists)throw new Error('Player not found.');const p=snap.data(),own=uid===currentAccount.id,st=p.stats||{},games=Number(st.gamesPlayed||0),wins=Number(st.wins||0);$('profile-page-title').textContent=own?'MY PROFILE':'PLAYER PROFILE';$('profile-page-username').textContent=p.username||'Player';$('profile-page-email').textContent=own?(currentAccount.email||'Guest account'):'Chess 2 player';$('profile-page-account-type').textContent=own?(currentAccount.isAnonymous?'TEMPORARY GUEST ACCOUNT':'REGISTERED ACCOUNT'):'PLAYER';$('profile-page-classic').textContent=p.ratings?.classic??300;$('profile-page-draft').textContent=p.ratings?.draft??300;$('profile-page-bedwars').textContent=p.ratings?.bedwars??300;$('profile-page-games').textContent=games;$('profile-page-wins').textContent=wins;$('profile-page-winrate').textContent=(games?Math.round(wins/games*100):0)+'%';$('profile-page-material').textContent='◆ '+Number(p.material||0);const a=ACHIEVEMENTS.find(x=>x.id===p.showcaseAchievement);$('profile-showcase').innerHTML=a?`<div class="achievement-card rarity-${a.rarity}"><div class="text-xl">${a.icon}</div><b>${a.name}</b><div class="text-[10px] uppercase mt-1">${RARITY_LABELS[a.rarity]}</div></div>`:'No achievement displayed yet.';$('profile-showcase-edit').classList.toggle('hidden',!own);$('profile-social-actions').classList.toggle('hidden',own);if(!own){const f=await firestoreDB.doc(`users/${currentAccount.id}/friends/${uid}`).get();const rq=await firestoreDB.collection('friendRequests').where('fromUid','==',currentAccount.id).where('toUid','==',uid).where('status','==','pending').limit(1).get();$('profile-friend-button').textContent=f.exists?'FRIENDS':(rq.empty?'ADD FRIEND':'REQUEST SENT');$('profile-friend-button').disabled=f.exists||!rq.empty;}}catch(e){console.warn(e);}}
+        function closePlayerProfile(){closeHubPage('player-profile-modal');viewingPlayerUid=null;}
+        function openPlayerSearch(){if(!currentAccount||requirePermanentAccount('player search'))return;openHubPage('player-search-page');$('player-search-input').value='';$('player-search-results').textContent='Start typing to find players.';loadFriends();loadRecentOpponents();loadNotifications();}
+        function searchPlayersDebounced(){clearTimeout(searchTimer);searchTimer=setTimeout(searchPlayers,220);}
+        async function searchPlayers(){const q=$('player-search-input').value.trim().toLowerCase();const out=$('player-search-results');if(q.length<2){out.textContent='Type at least 2 characters.';return;}try{const snap=await firestoreDB.collection('users').orderBy('usernameLower').startAt(q).endAt(q+'\uf8ff').limit(12).get();const rows=snap.docs.filter(d=>d.id!==currentAccount.id);out.innerHTML=rows.length?rows.map(d=>`<button class="w-full flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900 border border-slate-700 hover:border-purple-400 text-left" onclick="openPlayerProfile('${d.id}')"><span><b class="text-white">${escapeHubText(d.data().username||'Player')}</b><small class="block text-slate-500">${Number(d.data().ratings?.classic||300)} Classic Elo</small></span><span class="text-purple-300 text-xs">VIEW PROFILE →</span></button>`).join(''):'No matching players found.';}catch(e){out.textContent='Could not search players: '+e.message;}}
+        function escapeHubText(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+        async function loadFriends(){const el=$('player-friends-list');try{const snap=await firestoreDB.collection(`users/${currentAccount.id}/friends`).orderBy('username').limit(50).get();el.innerHTML=snap.empty?'No friends yet.':snap.docs.map(d=>`<button class="w-full p-2 rounded-lg bg-slate-900 text-left flex justify-between" onclick="openPlayerProfile('${d.id}')"><b>${escapeHubText(d.data().username||'Player')}</b><span class="text-emerald-300 text-xs">FRIEND →</span></button>`).join('');}catch(e){el.textContent='Friends list unavailable.';}}
+        async function loadRecentOpponents(){const el=$('recent-opponents-list');try{const snap=await firestoreDB.collection(`users/${currentAccount.id}/recentOpponents`).orderBy('playedAt','desc').limit(10).get();el.innerHTML=snap.empty?'No recent opponents yet.':snap.docs.map(d=>`<button class="w-full p-2 rounded-lg bg-slate-900 text-left flex justify-between" onclick="openPlayerProfile('${d.id}')"><b>${escapeHubText(d.data().username||'Player')}</b><span class="text-cyan-300 text-xs">VIEW →</span></button>`).join('');}catch(e){el.textContent='Recent opponents unavailable.';}}
+        async function sendFriendRequest(toUid,toName){if(!currentAccount||toUid===currentAccount.id)return;const exists=await firestoreDB.collection('friendRequests').where('fromUid','==',currentAccount.id).where('toUid','==',toUid).where('status','==','pending').limit(1).get();if(!exists.empty)return;const ref=firestoreDB.collection('friendRequests').doc();await ref.set({fromUid:currentAccount.id,fromName:currentAccount.username,toUid,toName,status:'pending',createdAt:firebase.firestore.FieldValue.serverTimestamp()});await firestoreDB.doc(`users/${toUid}/notifications/${ref.id}`).set({type:'friend_request',requestId:ref.id,fromUid:currentAccount.id,fromName:currentAccount.username,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});}
+        async function sendFriendRequestFromProfile(){if(!viewingPlayerUid)return;try{await sendFriendRequest(viewingPlayerUid,$('profile-page-username').textContent);$('profile-friend-button').textContent='REQUEST SENT';$('profile-friend-button').disabled=true;}catch(e){alert('Could not send friend request: '+e.message);}}
+        async function loadNotifications(){const el=$('player-notifications');try{const snap=await firestoreDB.collection(`users/${currentAccount.id}/notifications`).orderBy('createdAt','desc').limit(25).get();const unread=snap.docs.filter(d=>!d.data().read).length;$('notification-count').textContent=unread+' unread';const nbadge=$('notification-nav-count');nbadge.textContent=String(unread);nbadge.classList.toggle('hidden',!unread);const badge=$('achievement-nav-count');badge.textContent=String((currentAccount.unlockedAchievements||[]).length);el.innerHTML=snap.empty?'No notifications.':snap.docs.map(d=>{const n=d.data();return n.type==='friend_request'?`<div class="p-3 rounded-xl bg-slate-900 border border-slate-700"><div><b class="text-white">${escapeHubText(n.fromName||'A player')}</b> sent you a friend request.</div><div class="flex gap-2 mt-2"><button onclick="answerFriendRequest('${n.requestId}','accepted','${d.id}')" class="px-3 py-1 rounded-lg bg-emerald-800 text-emerald-100 text-xs">ACCEPT</button><button onclick="answerFriendRequest('${n.requestId}','declined','${d.id}')" class="px-3 py-1 rounded-lg bg-slate-700 text-slate-200 text-xs">DECLINE</button></div></div>`:`<div class="p-3 rounded-xl bg-slate-900">${escapeHubText(n.message||'New notification')}</div>`;}).join('');}catch(e){el.textContent='Could not load notifications.';}}
+        async function answerFriendRequest(requestId,status,notificationId){try{const ref=firestoreDB.doc('friendRequests/'+requestId),snap=await ref.get();if(!snap.exists||snap.data().toUid!==currentAccount.id)throw new Error('Request not found.');const r=snap.data();await ref.update({status,respondedAt:firebase.firestore.FieldValue.serverTimestamp()});await firestoreDB.doc(`users/${currentAccount.id}/notifications/${notificationId}`).update({read:true,status});if(status==='accepted'){const batch=firestoreDB.batch();batch.set(firestoreDB.doc(`users/${currentAccount.id}/friends/${r.fromUid}`),{uid:r.fromUid,username:r.fromName,createdAt:firebase.firestore.FieldValue.serverTimestamp()});batch.set(firestoreDB.doc(`users/${r.fromUid}/friends/${currentAccount.id}`),{uid:currentAccount.id,username:currentAccount.username,createdAt:firebase.firestore.FieldValue.serverTimestamp()});const nref=firestoreDB.collection(`users/${r.fromUid}/notifications`).doc();batch.set(nref,{type:'friend_accepted',fromUid:currentAccount.id,message:currentAccount.username+' accepted your friend request.',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});await batch.commit();}await loadNotifications();}catch(e){alert('Could not update friend request: '+e.message);}}
+        async function openAchievementsPage(fromShowcase=false){if(!currentAccount||requirePermanentAccount('achievements'))return;openHubPage('achievements-page');await renderAchievements(fromShowcase);}
+        async function renderAchievements(fromShowcase=false){const unlocked=new Set(currentAccount.unlockedAchievements||[]);$('achievement-progress').textContent=unlocked.size+' / '+ACHIEVEMENTS.length+' unlocked';$('achievement-nav-count').textContent=String(unlocked.size);$('achievement-list').innerHTML=ACHIEVEMENTS.map(a=>{const has=unlocked.has(a.id);return `<button onclick="inspectAchievement('${a.id}',${has})" class="achievement-card rarity-${a.rarity} ${has?'':'locked'}"><div class="flex justify-between items-start"><span class="text-2xl">${has?a.icon:'🔒'}</span><span class="text-[9px] uppercase tracking-widest">${RARITY_LABELS[a.rarity]}</span></div><b class="block mt-2 text-white">${a.name}</b><span class="block text-[11px] text-slate-400 mt-1">${has?a.description:'??? — unlock to reveal'}</span><span class="block text-[10px] text-amber-300 mt-3">${a.reward} MATERIAL</span></button>`;}).join('');if(fromShowcase)$('achievement-progress').textContent+=' · Select an unlocked achievement to inspect and display it.';}
+        async function inspectAchievement(id,has){const a=ACHIEVEMENTS.find(x=>x.id===id);if(!a)return;inspectingAchievementId=id;$('achievement-inspect-card').className='w-full max-w-md rounded-2xl bg-slate-950 border p-6 space-y-3 rarity-'+a.rarity;$('inspect-rarity').textContent=RARITY_LABELS[a.rarity];$('inspect-title').textContent=a.name;$('inspect-description').textContent=has?a.description:'Unlock this achievement to reveal its description.';$('inspect-reward').textContent=a.reward+' Material reward';$('inspect-showcase').classList.toggle('hidden',!has);openHubPage('achievement-inspect-modal');$('inspect-owners').textContent='Owners: loading...';try{const snap=await firestoreDB.collection(`achievementOwners/${id}/owners`).get();$('inspect-owners').textContent='Owners: '+snap.size+' player'+(snap.size===1?'':'s')+' have unlocked this achievement.';}catch(e){$('inspect-owners').textContent='Owner count unavailable.';}}
+        function closeAchievementInspect(){closeHubPage('achievement-inspect-modal');}
+        async function setAchievementShowcase(id){if(!(currentAccount.unlockedAchievements||[]).includes(id))return;try{await firestoreDB.doc('users/'+currentAccount.id).update({showcaseAchievement:id});currentAccount.showcaseAchievement=id;renderOwnProfileStats();closeAchievementInspect();closeHubPage('achievements-page');if(viewingPlayerUid===currentAccount.id)loadPublicProfile(currentAccount.id);}catch(e){alert('Could not update displayed achievement: '+e.message);}}
+        async function grantEligibleAchievements(stats){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB)return;const userRef=firestoreDB.doc('users/'+currentAccount.id);for(const a of ACHIEVEMENTS){if((currentAccount.unlockedAchievements||[]).includes(a.id)||!a.test(stats,currentAccount))continue;try{await firestoreDB.runTransaction(async tx=>{const ownerRef=firestoreDB.doc(`achievementOwners/${a.id}/owners/${currentAccount.id}`);const owner=await tx.get(ownerRef);const user=await tx.get(userRef);if(owner.exists)return;const data=user.data()||{};tx.set(ownerRef,{uid:currentAccount.id,username:currentAccount.username,unlockedAt:firebase.firestore.FieldValue.serverTimestamp()});tx.update(userRef,{material:Number(data.material||0)+a.reward,unlockedAchievements:firebase.firestore.FieldValue.arrayUnion(a.id)});});currentAccount.material=Number(currentAccount.material||0)+a.reward;currentAccount.unlockedAchievements=(currentAccount.unlockedAchievements||[]).concat(a.id);accountStatus('Achievement unlocked: '+a.name+' (+'+a.reward+' Material)');}catch(e){console.warn('Achievement award failed:',a.id,e);}}renderOwnProfileStats();}
+        async function recordRecentOpponents(){if(!currentAccount||currentAccount.isAnonymous||!activeLobbyCode)return;try{const snap=await firestoreDB.collection(`lobbies/${activeLobbyCode}/players`).get();const batch=firestoreDB.batch();snap.docs.filter(d=>d.id!==currentAccount.id).forEach(d=>{const data=d.data();batch.set(firestoreDB.doc(`users/${currentAccount.id}/recentOpponents/${d.id}`),{uid:d.id,username:data.username||'Player',playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});batch.set(firestoreDB.doc(`users/${d.id}/recentOpponents/${currentAccount.id}`),{uid:currentAccount.id,username:currentAccount.username,playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});});await batch.commit();}catch(e){console.warn('Recent opponents save:',e);}}
+        async function awardMatchProgress(won){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB||G.matchRewarded)return;G.matchRewarded=true;const st=Object.assign({gamesPlayed:0,wins:0,losses:0,winStreak:0,bestWinStreak:0},currentAccount.stats||{});st.gamesPlayed++;if(won){st.wins++;st.winStreak++;st.bestWinStreak=Math.max(st.bestWinStreak,st.winStreak);}else{st.losses++;st.winStreak=0;}currentAccount.stats=st;try{await firestoreDB.doc('users/'+currentAccount.id).update({stats:st,material:firebase.firestore.FieldValue.increment(won?15:10)});currentAccount.material=Number(currentAccount.material||0)+(won?15:10);await grantEligibleAchievements(st);await recordRecentOpponents();renderOwnProfileStats();}catch(e){console.warn('Match progress save failed:',e);}}
 
         // Persist non-competitive preferences directly to the signed-in user's Firestore profile.
         document.addEventListener('change', () => setTimeout(saveAccountSettings, 250));
