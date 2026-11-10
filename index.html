@@ -1388,10 +1388,14 @@
 
         function inBase(piece) {
             if (!piece || piece.type === 'bed') return false;
-            const key = keyOf(piece.x, piece.z);
-            if (G.bases[piece.team] && G.bases[piece.team].has(key)) return true;
+            return isPosInBase(piece.x, piece.z, piece.team);
+        }
+
+        function isPosInBase(x, z, team) {
+            const key = keyOf(x, z);
+            if (G.bases[team] && G.bases[team].has(key)) return true;
             const tile = G.boardGrid[key];
-            return tile && tile.baseTeam === piece.team;
+            return tile && tile.baseTeam === team;
         }
 
         function bedOf(team) {
@@ -3052,8 +3056,26 @@
                 if (target) {
                     const currD = cheb(piece, target);
                     const nextD = cheb(move, target);
-                    score += (currD - nextD) * (role === 'RUSH' ? 25 : 15);
+                    const distDiff = currD - nextD;
+
+                    // Boosted forward distance progress score rewards (+18 per tile closed)
+                    if (distDiff > 0) {
+                        score += distDiff * (role === 'RUSH' ? 30 : 18);
+                    } else {
+                        score += distDiff * (role === 'RUSH' ? 25 : 15);
+                    }
+
+                    // Queen Aimless Base Shuffling Penalty (-120 pts for non-advancing lateral/backward moves inside home base)
+                    if (piece.type === 'q' && inBase(piece) && distDiff <= 0) {
+                        score -= 120;
+                    }
                 }
+
+                // Non-guard unit in-base idle movement penalty (-50 pts)
+                if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && inBase(piece) && isPosInBase(move.x, move.z, piece.team)) {
+                    score -= 50;
+                }
+
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
                 if (move.isCastle) score += 50;
                 if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
@@ -3140,7 +3162,7 @@
         /* =====================================================================
            FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS & REPLAY STEPPER
            ===================================================================== */
-        function evaluateMoveBadge(piece, target, actionType, bestMove) {
+        function evaluateMoveBadge(piece, from, to, target, actionType, bestMove) {
             if (actionType.includes('Castling')) {
                 return { tag: '!!', class: 'badge-brilliant', label: 'Brilliant' };
             }
@@ -3150,23 +3172,47 @@
             if (actionType === 'Telepearl Jump') {
                 return { tag: '!', class: 'badge-excellent', label: 'Excellent' };
             }
-            if (target && target.type === 'q') {
-                return { tag: '⭐', class: 'badge-best', label: 'Best' };
-            }
+
+            // Delta-Based Evaluation against Top Engine Score
+            const chosenMove = { x: to.x, z: to.z };
+            const chosenScore = evaluateMoveScore(piece, chosenMove, target, 25);
+            const bestScore = bestMove ? bestMove.score : chosenScore;
+            const delta = bestScore - chosenScore;
+
+            // Missed Win Check
             if (bestMove && bestMove.target && (bestMove.target.type === 'bed' || bestMove.target.type === 'k')) {
                 if (!target || (target !== bestMove.target)) {
                     return { tag: '💔', class: 'badge-missed', label: 'Missed Win' };
                 }
             }
-            if (target) {
-                return { tag: '👍', class: 'badge-good', label: 'Good' };
+
+            // Queen Aimless Base Shuffling check
+            const targetObj = aiTarget(piece);
+            const currD = cheb(piece, targetObj || { x: to.x, z: to.z });
+            const nextD = cheb(to, targetObj || { x: to.x, z: to.z });
+            const isAimlessQueenShuffle = (piece.type === 'q' && inBase(piece) && !target && nextD >= currD);
+
+            if (isAimlessQueenShuffle || delta > 100) {
+                return { tag: '??', class: 'badge-blunder', label: 'Blunder' };
+            }
+            if (delta > 50) {
+                return { tag: '?', class: 'badge-mistake', label: 'Mistake' };
+            }
+            if (delta > 20) {
+                return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
+            }
+            if (target && target.type === 'q') {
+                return { tag: '⭐', class: 'badge-best', label: 'Best' };
+            }
+            if (delta <= 5) {
+                return { tag: '⭐', class: 'badge-best', label: 'Best' };
             }
             return { tag: '👍', class: 'badge-good', label: 'Good' };
         }
 
         function logGameMove(piece, from, to, target, actionType) {
             const best = calculateBestMoveForTeam(piece.team);
-            const badge = evaluateMoveBadge(piece, target, actionType, best);
+            const badge = evaluateMoveBadge(piece, from, to, target, actionType, best);
 
             const entry = {
                 turn: G.turnCount,
