@@ -682,15 +682,15 @@
     </div>
 
     <!-- GAME MOVE ANALYSIS & REPLAY MODAL -->
-    <div id="modal-analysis" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:justify-end p-3 md:p-6 pointer-events-none hidden">
-        <div id="analysis-panel-card" class="glass-panel rounded-3xl p-5 md:p-6 border-amber-500/50 max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl relative pointer-events-auto transition-all duration-300">
+    <div id="modal-analysis" class="fixed inset-0 z-50 flex items-stretch justify-end pointer-events-none hidden">
+        <div id="analysis-panel-card" class="glass-panel rounded-l-3xl rounded-r-none p-4 md:p-5 border-l border-y border-amber-500/50 w-full max-w-[390px] h-full max-h-screen flex flex-col shadow-2xl relative pointer-events-auto transition-all duration-300 overflow-hidden">
             
             <!-- Header bar with title and action buttons -->
             <div class="flex items-center justify-between gap-3 mb-2">
                 <div class="flex items-center gap-2">
                     <span class="text-2xl md:text-3xl">📊</span>
                     <div>
-                        <h3 class="font-orbitron font-black text-lg md:text-xl text-amber-400 text-glow-gold uppercase">GAME ANALYSIS &amp; REPLAY</h3>
+                        <h3 class="font-orbitron font-black text-lg md:text-xl text-amber-400 text-glow-gold uppercase">GAME REVIEW &amp; REPLAY</h3>
                         <p class="text-[10px] md:text-xs text-slate-400 font-mono">STEPPER &amp; ENGINE EVALUATION (!!, !, ⭐, 👍, ?!, ?, ??, 💔)</p>
                     </div>
                 </div>
@@ -719,7 +719,7 @@
             </div>
 
             <!-- Analysis Log List -->
-            <div id="analysis-log-container" class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl p-3 border border-slate-800 space-y-2 font-mono text-xs my-1 max-h-56 transition-all duration-300">
+            <div id="analysis-log-container" class="flex-1 overflow-y-auto bg-slate-900/80 rounded-2xl p-3 border border-slate-800 space-y-2 font-mono text-xs my-1 flex-1 min-h-0 max-h-none transition-all duration-300">
                 <!-- Dynamic move history entries injected here -->
             </div>
 
@@ -1065,6 +1065,11 @@
             activeBattle: null,
             moveHistoryLog: [],
             analysisCurrentIndex: 0,
+            reviewSnapshots: [],
+            reviewPieceRegistry: {},
+            aiLastMovedPieceByTeam: {},
+            aiRecentPieceIdsByTeam: {},
+            isReviewing: false,
 
             selectedMapId: 'archipelago',
             mapData: null,
@@ -1519,6 +1524,15 @@
             controls.update();
             if (starfieldParticles) starfieldParticles.rotation.y += 0.0003;
             G.gens.forEach(g => g.gems.forEach(m => { m.rotation.y += 0.03; }));
+            const now = performance.now();
+            G.pieces.forEach(p => {
+                const a = p.mesh && p.mesh.userData && p.mesh.userData.moveAnimation;
+                if (!a) return;
+                const t = Math.min(1, (now - a.start) / a.duration);
+                const eased = t * t * (3 - 2 * t);
+                p.mesh.position.set(a.from.x + (a.to.x - a.from.x) * eased, a.from.y + (a.to.y - a.from.y) * eased, a.from.z + (a.to.z - a.from.z) * eased);
+                if (t >= 1) p.mesh.userData.moveAnimation = null;
+            });
             renderer.render(scene, camera);
         }
 
@@ -1725,6 +1739,7 @@
             mesh.userData = { pieceId: piece.id };
             tile.piece = piece;
             G.pieces.push(piece);
+            G.reviewPieceRegistry[piece.id] = piece;
 
             if (type === 'bed') {
                 G.bedPos[team] = { x: rx, z: rz };
@@ -2386,10 +2401,15 @@
                 if (Math.abs(z - home) > Math.abs(piece.z - home)) teamProf.forwardMoves++;
             }
 
+            const fromPosition = piece.mesh.position.clone();
             piece.x = x; piece.z = z;
             const tile = G.boardGrid[keyOf(x, z)];
             tile.piece = piece;
-            piece.mesh.position.set(x, tile.height + 0.2, z);
+            piece.mesh.userData.moveAnimation = {
+                from: { x: fromPosition.x, y: fromPosition.y, z: fromPosition.z },
+                to: { x, y: tile.height + 0.2, z },
+                start: performance.now(), duration: 240
+            };
             collectFromGenerator(piece, tile);
             depositGems(piece);
             evaluatePieceRole(piece);
@@ -2987,6 +3007,7 @@
         }
 
         function triggerAITurnDelay() {
+            if (G.isReviewing) return;
             const mid = G.matchId;
             clearTimeout(G.aiTimer);
             const delay = getSpeedDelay(750);
@@ -3249,23 +3270,30 @@
         function aiTarget(piece) {
             const team = piece.team;
             const role = piece.role || evaluatePieceRole(piece);
+            const homeBed = bedOf(team);
+            const enemyObjective = nearestEnemyObjective(piece);
 
-            if (role === 'RETREAT_BANK' || role === 'CLUTCH_DEFEND') {
+            // Retreat only for a real carrying/health reason; don't let stale roles park units.
+            if (role === 'RETREAT_BANK' && (piece.carriedEm >= 2 || piece.carriedDia >= 4 || piece.hp / piece.maxHp < 0.25)) {
                 return aiBaseCenter(team);
             }
-            if (role === 'BOSS_HUNTER') {
-                const boss = G.pieces.find(p => p.type === 'guardian');
-                if (boss) return boss;
-            }
-            if (role === 'GATHER') {
-                let best = null, bd = Infinity;
-                G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bd) { bd = d; best = g; } } });
-                if (best) return best;
+            if (role === 'CLUTCH_DEFEND' && homeBed) {
+                const threat = G.pieces.some(p => p.team !== team && p.team !== 'neutral' && p.type !== 'bed' && cheb(p, homeBed) <= 4);
+                if (threat) return aiBaseCenter(team);
             }
 
-            const primaryTarget = nearestEnemyObjective(piece);
-            // Aim directly at a stable enemy objective. Bridge planning handles void gaps.
-            return getSquadWaypoint(piece, primaryTarget);
+            // Guardians are optional side objectives, not a reason for the whole army to stall.
+            const boss = G.pieces.find(p => p.type === 'guardian');
+            if (boss && cheb(piece, boss) <= 4 && (role === 'BOSS_HUNTER' || getAtk(piece) >= 7)) return boss;
+
+            // Collect a generator only when it is genuinely nearby and doesn't pull the unit away
+            // from an easier enemy objective. This stops the 1v1 army waiting for diamond guards.
+            if (role === 'GATHER' && enemyObjective) {
+                let bestGen = null, bestD = Infinity;
+                G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bestD) { bestD = d; bestGen = g; } } });
+                if (bestGen && bestD <= 2 && bestD < cheb(piece, enemyObjective)) return bestGen;
+            }
+            return enemyObjective ? { x: enemyObjective.x, z: enemyObjective.z } : aiBaseCenter(otherTeam(team));
         }
 
         function aiShop(team) {
@@ -3392,16 +3420,24 @@
             let best = null, bestScore = -Infinity;
             const teamPieces = G.pieces.filter(p => p.team === team && p.type !== 'bed');
 
+            const recentIds = G.aiRecentPieceIdsByTeam[team] || [];
             teamPieces.forEach(piece => {
                 const { moves, attacks } = getPieceMoves(piece);
+                // Spread activity across the squad. Without this, a single high-scoring
+                // piece can monopolize every turn and repeat a small movement cycle.
+                const repeatPenalty = recentIds.includes(piece.id) ? (recentIds.indexOf(piece.id) === 0 ? 360 : 190) : 0;
+                const scoreCandidate = raw => raw - repeatPenalty;
 
                 attacks.forEach(a => {
-                    const s = evaluateMoveScore(piece, null, a.target, 25);
+                    const s = scoreCandidate(evaluateMoveScore(piece, null, a.target, 25));
                     if (s > bestScore) { bestScore = s; best = { piece, kind: 'attack', target: a.target, score: s }; }
                 });
 
                 moves.forEach(m => {
-                    const s = evaluateMoveScore(piece, m, null, 25);
+                    let s = scoreCandidate(evaluateMoveScore(piece, m, null, 25));
+                    const recentPath = piece.moveHistory || [];
+                    if (recentPath.length >= 2 && m.x === recentPath[recentPath.length - 2].x && m.z === recentPath[recentPath.length - 2].z) s -= 1800;
+                    if (recentPath.length >= 1 && m.x === recentPath[recentPath.length - 1].x && m.z === recentPath[recentPath.length - 1].z) s -= 500;
                     if (s > bestScore) { bestScore = s; best = { piece, kind: 'move', m, score: s }; }
                 });
             });
@@ -3409,7 +3445,7 @@
         }
 
         function runAITurn() {
-            if (G.gameOver || !isCurrentAI() || G.draftPhase) return;
+            if (G.gameOver || G.isReviewing || !isCurrentAI() || G.draftPhase) return;
             const team = G.turn;
             const ctrl = G.teamControllers[team] || { level: 10 };
             const aiLevel = ctrl.level;
@@ -3524,6 +3560,57 @@
             return { tag: '👍', class: 'badge-good', label: 'Good' };
         }
 
+        function captureReviewSnapshot() {
+            if (!G.reviewSnapshots) G.reviewSnapshots = [];
+            const pieces = G.pieces.map(p => ({
+                id: p.id, x: p.x, z: p.z, hp: p.hp, maxHp: p.maxHp,
+                swordTier: p.swordTier, armorTier: p.armorTier, blocks: p.blocks,
+                carriedEm: p.carriedEm, carriedDia: p.carriedDia, pearls: p.pearls,
+                obsHp: p.obsHp, obsLock: p.obsLock, hasMoved: p.hasMoved
+            }));
+            G.reviewSnapshots.push({ pieces, turn: G.turn, turnCount: G.turnCount });
+        }
+
+        function restoreReviewSnapshot(snapshot, animate = true) {
+            if (!snapshot) return;
+            const wanted = new Map(snapshot.pieces.map(p => [p.id, p]));
+            Object.values(G.reviewPieceRegistry).forEach(piece => {
+                const state = wanted.get(piece.id);
+                const tileNow = G.boardGrid[keyOf(piece.x, piece.z)];
+                if (tileNow && tileNow.piece === piece) tileNow.piece = null;
+                if (!state) {
+                    scene.remove(piece.mesh);
+                    return;
+                }
+                const tile = G.boardGrid[keyOf(state.x, state.z)];
+                const from = piece.mesh.position.clone();
+                piece.x = state.x; piece.z = state.z;
+                piece.hp = state.hp; piece.maxHp = state.maxHp;
+                piece.swordTier = state.swordTier; piece.armorTier = state.armorTier;
+                piece.blocks = state.blocks; piece.carriedEm = state.carriedEm;
+                piece.carriedDia = state.carriedDia; piece.pearls = state.pearls;
+                piece.obsHp = state.obsHp; piece.obsLock = state.obsLock; piece.hasMoved = state.hasMoved;
+                if (tile) tile.piece = piece;
+                if (piece.mesh.parent !== scene) scene.add(piece.mesh);
+                const to = { x: state.x, y: (tile ? tile.height : 0) + 0.2, z: state.z };
+                if (animate && Math.hypot(from.x-to.x, from.z-to.z) > 0.01) {
+                    piece.mesh.userData.moveAnimation = { from: {x:from.x,y:from.y,z:from.z}, to, start:performance.now(), duration:320 };
+                } else {
+                    piece.mesh.userData.moveAnimation = null;
+                    piece.mesh.position.set(to.x, to.y, to.z);
+                }
+            });
+            G.pieces = snapshot.pieces.map(state => G.reviewPieceRegistry[state.id]).filter(Boolean);
+            G.turn = snapshot.turn;
+            G.turnCount = snapshot.turnCount;
+            renderTargetHighlights();
+        }
+
+        function selectReviewPosition(index) {
+            const snapIndex = Math.max(0, Math.min(index + 1, G.reviewSnapshots.length - 1));
+            restoreReviewSnapshot(G.reviewSnapshots[snapIndex], true);
+        }
+
         function logGameMove(piece, from, to, target, actionType, evaluation = null) {
             const badge = evaluateMoveBadge(piece, from, to, target, actionType, evaluation);
 
@@ -3538,7 +3625,12 @@
             };
 
             G.moveHistoryLog.push(entry);
+            const recent = G.aiRecentPieceIdsByTeam[piece.team] || [];
+            recent.unshift(piece.id);
+            G.aiRecentPieceIdsByTeam[piece.team] = recent.slice(0, 3);
+            G.aiLastMovedPieceByTeam[piece.team] = piece.id;
             G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
+            captureReviewSnapshot();
         }
 
         function openAnalysisModal() {
@@ -3548,12 +3640,16 @@
             } else {
                 $('btn-analysis-back-gameover').classList.add('hidden');
             }
+            G.isReviewing = true;
             G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
+            if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false);
             renderAnalysisLogUI();
             $('modal-analysis').classList.remove('hidden');
         }
 
         function returnToGameOverFromAnalysis() {
+            if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false);
+            G.isReviewing = false;
             $('modal-analysis').classList.add('hidden');
             if (G.gameOver) {
                 $('modal-game-over').classList.remove('hidden');
@@ -3643,6 +3739,7 @@
         function selectAnalysisMove(idx) {
             if (idx < 0 || idx >= G.moveHistoryLog.length) return;
             G.analysisCurrentIndex = idx;
+            selectReviewPosition(idx);
             renderAnalysisLogUI();
         }
 
@@ -3915,6 +4012,8 @@
             G.pearlMode = false; G.pearlTargets = []; G.spellMode = null; G.bestMoveHint = null;
             G.gameOver = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
             G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
+            G.reviewSnapshots = []; G.reviewPieceRegistry = {};
+            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.isReviewing = false;
             initResources();
             closeModals();
             syncBridgeButton();
@@ -3937,6 +4036,7 @@
             $('btn-sidebar-itemshop').classList.toggle('hidden', !bw);
 
             buildMapBoard(G.selectedMapId);
+            captureReviewSnapshot(); // position zero: untouched starting board
             updateTurnUI();
             updateHUDCounters();
         }
@@ -3962,7 +4062,10 @@
         }
         function openCodexModal() { $('modal-codex').classList.remove('hidden'); }
         function closeModals() {
+            const wasReviewing = G.isReviewing;
+            if (wasReviewing && G.reviewSnapshots.length) { restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false); G.isReviewing = false; }
             ['modal-spellbook', 'modal-item-shop', 'modal-codex', 'modal-game-over', 'modal-analysis'].forEach(id => $(id).classList.add('hidden'));
+            if (wasReviewing && !G.gameOver && isCurrentAI()) triggerAITurnDelay();
             if (!G.activeBattle) $('modal-d20-combat').classList.add('hidden');
         }
 
@@ -4483,7 +4586,7 @@
                         visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
                         aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(room.mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
                 activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, status: 'waiting' };
@@ -4510,6 +4613,9 @@
                 const roomRef = firestoreDB.collection('lobbies').doc(code);
                 const playerRef = roomRef.collection('players').doc(user.uid);
                 let room;
+                // Firestore transactions in this SDK accept document references, not collection queries.
+                // Read the player list before the transaction; the room/profile documents remain transactional.
+                const existingPlayersSnap = await roomRef.collection('players').get();
                 await firestoreDB.runTransaction(async tx => {
                     const profileSnap = await tx.get(userRef);
                     const roomSnap = await tx.get(roomRef);
@@ -4521,11 +4627,9 @@
                     room = roomSnap.data();
                     if (room.status !== 'waiting') throw new Error('This room is no longer accepting players.');
                     const cap = Number(room.maxPlayers || 2);
-                    const playersQuery = roomRef.collection('players');
-                    const playerQuerySnap = await tx.get(playersQuery);
-                    if (!playerSnap.exists && playerQuerySnap.size >= cap) throw new Error('This room is full (' + cap + ' players max).');
+                    if (!playerSnap.exists && existingPlayersSnap.size >= cap) throw new Error('This room is full (' + cap + ' players max).');
                     if (playerSnap.exists) tx.update(playerRef, { username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    else tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    else tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(room.mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
                 activeLobbyIsHost = room.hostUid === user.uid; activeLobbyReady = false; activeLobbyRoomData = room;
@@ -4562,13 +4666,15 @@
             activeLobbyStartBusy = true;
             const roomRef = firestoreDB.collection('lobbies').doc(activeLobbyCode);
             try {
+                // A Firestore transaction cannot read a CollectionReference with tx.get().
+                // Fetch the roster as a normal query, then transactionally verify/update the room document.
+                const playersSnap = await roomRef.collection('players').get();
+                const humans = [];
+                playersSnap.forEach(d => humans.push({ uid: d.id, ...d.data() }));
                 await firestoreDB.runTransaction(async tx => {
                     const roomSnap = await tx.get(roomRef);
-                    const playersSnap = await tx.get(roomRef.collection('players'));
                     if (!roomSnap.exists || roomSnap.data().status !== 'waiting') throw new Error('This room is no longer waiting.');
                     const room = roomSnap.data();
-                    const humans = [];
-                    playersSnap.forEach(d => humans.push({ uid: d.id, ...d.data() }));
                     if (!humans.length || !humans.every(p => p.ready === true)) throw new Error('Every human player must be ready first.');
                     const capacity = Number(room.maxPlayers || 2);
                     if (humans.length > capacity) throw new Error('The room has more players than its allowed capacity.');
