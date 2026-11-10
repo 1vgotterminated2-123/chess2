@@ -210,7 +210,7 @@
                 <i class="fa-solid fa-lightbulb text-amber-400"></i> HINT
             </button>
 
-            <button onclick="openAnalysisModal()" title="Game Move Review Drawer" class="px-2.5 py-1.5 rounded-xl bg-purple-950 border border-purple-500 text-purple-300 font-bold hover:bg-purple-900 transition flex items-center gap-1 shadow">
+            <button id="btn-review-toolbar" onclick="openAnalysisModal()" title="Game Move Review Drawer" class="hidden px-2.5 py-1.5 rounded-xl bg-purple-950 border border-purple-500 text-purple-300 font-bold hover:bg-purple-900 transition flex items-center gap-1 shadow">
                 <i class="fa-solid fa-chart-line text-purple-400"></i> REVIEW
             </button>
         </div>
@@ -358,9 +358,9 @@
             <div class="space-y-3 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
                 <div class="flex items-center justify-between">
                     <h3 class="font-orbitron text-xs font-bold text-sky-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (15 DISTINCT UNIQUE MAPS)
+                        <i class="fa-solid fa-map-location-dot"></i> 4. SELECT ARENA (22 MAPS INCLUDING 7 QUAD CHESS 2 MAPS)
                     </h3>
-                    <span id="map-count-badge" class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono">15 MAPS AVAILABLE</span>
+                    <span id="map-count-badge" class="text-[10px] bg-slate-800 text-cyan-300 px-2 py-0.5 rounded font-mono">22 MAPS AVAILABLE</span>
                 </div>
                 
                 <div id="map-cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-56 overflow-y-auto pr-1">
@@ -547,7 +547,7 @@
         </button>
 
         <!-- Game Move Analysis Drawer Button -->
-        <button onclick="openAnalysisModal()" title="Game Move Analysis &amp; Replay" class="w-10 h-10 rounded-xl glass-panel hover:bg-amber-900/50 text-amber-400 border border-amber-500/50 flex items-center justify-center transition active:scale-95 shadow glow-gold">
+        <button id="btn-review-floating" onclick="openAnalysisModal()" title="Game Move Analysis &amp; Replay" class="hidden w-10 h-10 rounded-xl glass-panel hover:bg-amber-900/50 text-amber-400 border border-amber-500/50 flex items-center justify-center transition active:scale-95 shadow glow-gold">
             <i class="fa-solid fa-chart-line"></i>
         </button>
 
@@ -797,10 +797,10 @@
                 <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
                     <div>
                         <div class="font-orbitron font-bold text-xs text-cyan-300">💥 ORBITAL LASER STRIKE</div>
-                        <div class="text-[10px] text-slate-400 font-mono">Deals 15 damage to any target tile on the board.</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Deals 8 damage to a target piece anywhere on the board in Normal mode.</div>
                     </div>
                     <button onclick="castSpell('laser')" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-xs uppercase whitespace-nowrap">
-                        4 MANA
+                        5 MANA (NORMAL) / 4
                     </button>
                 </div>
 
@@ -1053,7 +1053,7 @@
         const BASE_STATS = {
             k: { hp: 22, atk: 5, def: 4 }, q: { hp: 16, atk: 7, def: 2 }, r: { hp: 15, atk: 4, def: 5 },
             b: { hp: 11, atk: 5, def: 2 }, n: { hp: 12, atk: 5, def: 3 }, p: { hp: 9, atk: 3, def: 1 },
-            d: { hp: 18, atk: 7, def: 3 }, nec: { hp: 13, atk: 5, def: 2 }, skele: { hp: 7, atk: 2, def: 1 },
+            d: { hp: 14, atk: 5, def: 2 }, nec: { hp: 13, atk: 5, def: 2 }, skele: { hp: 7, atk: 2, def: 1 },
             bed: { hp: 30, atk: 0, def: 5 }, guardian: { hp: 14, atk: 4, def: 3 }
         };
 
@@ -1443,7 +1443,76 @@
             { id: 'donut', kind: 'classic', teams: 2, name: "The Void Donut 10x10", size: 10, theme: 'celestial', fwd: FWD_NS, desc: "Circular ring board with a hollow void pit in the center.", tile: (x, z) => (Math.sqrt(x * x + z * z) < 2.2) ? null : { h: 0 } },
             { id: 'l_shaped', kind: 'classic', teams: 2, name: "L-Shaped Arena 10x10", size: 10, theme: 'emerald', fwd: FWD_NS, desc: "Asymmetric tactical L-board challenging piece positioning.", tile: (x, z) => (x < 0 && z < 0) ? null : { h: 0 } },
             { id: 'cross_arena', kind: 'classic', teams: 2, name: "Cross Arena 12x12", size: 12, theme: 'lava', fwd: FWD_NS, desc: "12x12 Plus-shaped battlefield encouraging heavy flank attacks.", tile: (x, z) => (Math.abs(x) > 3 && Math.abs(z) > 3) ? null : { h: 0 } },
-            { id: 'dual_islands', kind: 'classic', teams: 2, name: "Dual Islands 12x12", size: 12, theme: 'sunset', fwd: FWD_NS, desc: "Two large landmasses separated by a central channel.", tile: (x, z) => (Math.abs(x) <= 1 && Math.abs(z) <= 2) ? null : { h: 0 } }
+            { id: 'dual_islands', kind: 'classic', teams: 2, name: "Dual Islands 12x12", size: 12, theme: 'sunset', fwd: FWD_NS, desc: "Two large landmasses separated by a central channel.", tile: (x, z) => (Math.abs(x) <= 1 && Math.abs(z) <= 2) ? null : { h: 0 } },
+
+            /* --- QUAD CHESS 2: FOUR-PLAYER CLASSIC MAPS --- */
+            {
+                id: 'quad_crossroads', kind: 'classic', teams: 4, name: 'Crossroads — Four Arms', W: 25, H: 25, theme: 'neon', fwd: FWD_NS,
+                desc: 'Traditional four-player cross board. Four broad arms meet in a contested central plaza.',
+                tile: (x, z) => (Math.abs(x) <= 3 || Math.abs(z) <= 3) ? { h: (Math.abs(x) <= 2 && Math.abs(z) <= 2) ? 0.35 : 0 } : null,
+                baseCenters: { red: { x: 0, z: -9 }, blue: { x: 9, z: 0 }, green: { x: 0, z: 9 }, yellow: { x: -9, z: 0 } }
+            },
+            {
+                id: 'quad_four_corners', kind: 'classic', teams: 4, name: 'Four Corners — Grand Square', W: 25, H: 25, theme: 'emerald', fwd: FWD_NS,
+                desc: 'A full square arena with four corner armies and a raised central battlefield.',
+                tile: (x, z) => ({ h: (Math.abs(x) <= 2 && Math.abs(z) <= 2) ? 0.45 : ((Math.abs(x) <= 5 && Math.abs(z) <= 5) ? 0.12 : 0) }),
+                baseCenters: { red: { x: -8, z: -8 }, blue: { x: 8, z: -8 }, green: { x: 8, z: 8 }, yellow: { x: -8, z: 8 } }
+            },
+            {
+                id: 'quad_citadel', kind: 'classic', teams: 4, name: 'The Citadel — Four Forts', W: 25, H: 25, theme: 'crystal', fwd: FWD_NS,
+                desc: 'Four elevated strongholds connected by diagonal causeways. Control the center to control the map.',
+                tile(x, z) {
+                    const corner = Math.abs(x) >= 4 && Math.abs(z) >= 4;
+                    const bridge = Math.abs(Math.abs(x) - Math.abs(z)) <= 2;
+                    const core = Math.abs(x) <= 3 && Math.abs(z) <= 3;
+                    return (corner || bridge || core) ? { h: core ? 0.55 : (corner ? 0.2 : 0) } : null;
+                },
+                baseCenters: { red: { x: -8, z: -8 }, blue: { x: 8, z: -8 }, green: { x: 8, z: 8 }, yellow: { x: -8, z: 8 } }
+            },
+            {
+                id: 'quad_islands', kind: 'classic', teams: 4, name: 'The Islands — Broken Sea', W: 25, H: 25, theme: 'sky', fwd: FWD_NS,
+                desc: 'Four starting islands linked to a small central island by narrow diagonal bridges.',
+                tile(x, z) {
+                    const bases = [[-8,-8],[8,-8],[8,8],[-8,8]].some(([cx,cz]) => Math.abs(x-cx) <= 3 && Math.abs(z-cz) <= 3);
+                    const bridge = Math.abs(Math.abs(x)-Math.abs(z)) <= 1 && Math.abs(x) <= 8 && Math.abs(z) <= 8;
+                    const center = Math.abs(x) <= 2 && Math.abs(z) <= 2;
+                    return (bases || bridge || center) ? { h: center ? 0.45 : 0 } : null;
+                },
+                baseCenters: { red: { x: -8, z: -8 }, blue: { x: 8, z: -8 }, green: { x: 8, z: 8 }, yellow: { x: -8, z: 8 } }
+            },
+            {
+                id: 'quad_ruins', kind: 'classic', teams: 4, name: 'The Ruins — Broken Bastions', W: 25, H: 25, theme: 'sunset', fwd: FWD_NS,
+                desc: 'An ancient square arena with ruined walls, broken lanes, and several routes into the center.',
+                tile(x, z) {
+                    const wall = (Math.abs(x) === 4 && Math.abs(z) <= 5) || (Math.abs(z) === 4 && Math.abs(x) <= 5);
+                    if (wall && !((Math.abs(x) === 4 && Math.abs(z) <= 1) || (Math.abs(z) === 4 && Math.abs(x) <= 1))) return null;
+                    return { h: (Math.abs(x) <= 2 && Math.abs(z) <= 2) ? 0.3 : 0 };
+                },
+                baseCenters: { red: { x: -8, z: -8 }, blue: { x: 8, z: -8 }, green: { x: 8, z: 8 }, yellow: { x: -8, z: 8 } }
+            },
+            {
+                id: 'quad_colosseum', kind: 'classic', teams: 4, name: 'The Colosseum — Grand Ring', W: 27, H: 27, theme: 'lava', fwd: FWD_NS,
+                desc: 'A circular arena with four entry spokes, an open center, and a raised outer ring.',
+                tile(x, z) {
+                    const r = Math.sqrt(x*x + z*z);
+                    const ring = r >= 5 && r <= 12;
+                    const spokes = (Math.abs(x) <= 2 || Math.abs(z) <= 2) && r <= 8;
+                    const core = r <= 3;
+                    return (ring || spokes || core) ? { h: ring ? 0.18 : (core ? 0.35 : 0) } : null;
+                },
+                baseCenters: { red: { x: 0, z: -9 }, blue: { x: 9, z: 0 }, green: { x: 0, z: 9 }, yellow: { x: -9, z: 0 } }
+            },
+            {
+                id: 'quad_rift', kind: 'classic', teams: 4, name: 'The Rift — Shattered Realm', W: 25, H: 25, theme: 'celestial', fwd: FWD_NS,
+                desc: 'Four floating territories separated by a cross-shaped void and joined by risky diagonal bridges.',
+                tile(x, z) {
+                    const island = [[-8,-8],[8,-8],[8,8],[-8,8]].some(([cx,cz]) => Math.abs(x-cx) <= 4 && Math.abs(z-cz) <= 4);
+                    const bridge = Math.abs(Math.abs(x)-Math.abs(z)) <= 1 && Math.abs(x) <= 8 && Math.abs(z) <= 8;
+                    const nexus = Math.abs(x) <= 2 && Math.abs(z) <= 2;
+                    return (island || bridge || nexus) ? { h: nexus ? 0.65 : (bridge ? 0.08 : 0.25) } : null;
+                },
+                baseCenters: { red: { x: -8, z: -8 }, blue: { x: 8, z: -8 }, green: { x: 8, z: 8 }, yellow: { x: -8, z: 8 } }
+            }
         ];
 
         const mapById = id => MAP_CATALOG.find(m => m.id === id);
@@ -2074,7 +2143,7 @@
             if (isBedwars) squad.push(['bed', 0, 0]);
             squad.push(['k', 0, 1], ['q', 1, 1]);
             squad.push(['r', -2, 0], ['r', 2, 0]);
-            squad.push(['b', -1, 1], ['b', 1, 2]);
+            squad.push(['b', -1, 1], ['b', 1, 0]);
             squad.push(['n', -2, 1], ['n', 2, 1]);
             squad.push(['p', -2, 2], ['p', -1, 2], ['p', 0, 2], ['p', 1, 2], ['p', 2, 2]);
             if (G.chaosPieces) { squad.push(['d', -1, 3], ['nec', 1, 3]); }
@@ -2134,23 +2203,19 @@
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
             const startZ = Math.min(maxZ, Math.floor(map.dims.H / 2) - 1);
             for (let c = 0; c < 8; c++) {
-                const x = c - 3.5;
-                placePiece(order[c], 'white', Math.round(x), startZ);
-                placePiece('p', 'white', Math.round(x), startZ - 1);
-                placePiece(order[c], 'black', Math.round(x), -startZ);
-                placePiece('p', 'black', Math.round(x), -startZ + 1);
+                const x = c - 4; // Eight unique files: -4 through +3.
+                placePiece(order[c], 'white', x, startZ);
+                placePiece('p', 'white', x, startZ - 1);
+                placePiece(order[c], 'black', x, -startZ);
+                placePiece('p', 'black', x, -startZ + 1);
             }
             if (G.chaosPieces) {
-                placePiece('d', 'white', -3, startZ - 2);
-                placePiece('nec', 'white', 3, startZ - 2);
-                placePiece('d', 'black', -3, -startZ + 2);
-                placePiece('nec', 'black', 3, -startZ + 2);
-            }
-            if (G.chaosPieces) {
-                placePiece('d', 'white', -3, maxZ - 2);
-                placePiece('nec', 'white', 3, maxZ - 2);
-                placePiece('d', 'black', -3, -maxZ + 2);
-                placePiece('nec', 'black', 3, -maxZ + 2);
+                // Keep the special pieces outside the eight-file formation; never stack
+                // them on top of pawns or duplicate the same dragon/necromancer.
+                placePiece('d', 'white', -5, startZ - 1);
+                placePiece('nec', 'white', 4, startZ - 1);
+                placePiece('d', 'black', -5, -startZ + 1);
+                placePiece('nec', 'black', 4, -startZ + 1);
             }
         }
 
@@ -2317,7 +2382,7 @@
                 }
             } else if (type === 'n') [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]].forEach(o => checkTile(x + o[0], z + o[1]));
             else if (type === 'd') {
-                for (let dx = -3; dx <= 3; dx++) for (let dz = -3; dz <= 3; dz++) { if (dx || dz) checkTile(x + dx, z + dz); }
+                for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) { if (dx || dz) checkTile(x + dx, z + dz); }
             } else if (type === 'nec') slide(ORTHO.concat(DIAG), 2);
 
             return { moves, attacks };
@@ -3319,11 +3384,12 @@
            MANA SPELLS
            ===================================================================== */
         const SPELL_COST = { laser: 4, swap: 3, skele: 2, shield: 3 };
+        const spellCost = type => type === 'laser' && G.mode === 'standard' ? 5 : SPELL_COST[type];
 
         function castSpell(type) {
             if (G.mode === 'bedwars' || inputBlocked()) return;
             const res = G.resources[G.turn];
-            if (!res || res.mana < SPELL_COST[type]) { showFloatingText('NOT ENOUGH MANA', null, null, '#ef4444'); return; }
+            if (!res || res.mana < spellCost(type)) { showFloatingText('NOT ENOUGH MANA', null, null, '#ef4444'); return; }
             closeModals();
             if (type === 'skele') {
                 const t = nearestFreeBaseTile(G.turn, 0, 0);
@@ -3345,10 +3411,12 @@
             if (!p) return;
             const res = G.resources[G.turn];
             if (sm.type === 'laser') {
-                res.mana -= SPELL_COST.laser;
+                res.mana -= spellCost('laser');
                 playSound('laser');
                 showFloatingText('ORBITAL LASER!', p.x, p.z, '#06b6d4');
-                applyDamage(p, 15);
+                const strikeDamage = G.mode === 'standard' ? 8 : 15;
+                applyDamage(p, strikeDamage);
+                showFloatingText(`-${strikeDamage} HP`, p.x, p.z, '#06b6d4');
                 if (p.hp <= 0) eliminatePiece(p);
                 finishSpell();
             } else if (sm.type === 'shield') {
@@ -3921,6 +3989,7 @@
         }
 
         function openAnalysisModal() {
+            if (!G.gameOver) return; // Analysis/replay is post-game only.
             if (G.gameOver) {
                 $('modal-game-over').classList.add('hidden');
                 $('btn-analysis-back-gameover').classList.remove('hidden');
@@ -4363,6 +4432,8 @@
             $('btn-sidebar-spellbook').classList.toggle('hidden', bw);
             $('btn-sidebar-itemshop').classList.toggle('hidden', !bw);
 
+            $('btn-review-toolbar').classList.add('hidden');
+            $('btn-review-floating').classList.add('hidden');
             buildMapBoard(G.selectedMapId);
             captureReviewSnapshot(); // position zero: untouched starting board
             updateTurnUI();
@@ -4380,6 +4451,8 @@
             G.activeBattle = null;
             closeModals();
             $('main-menu').classList.remove('hidden');
+            $('btn-review-toolbar').classList.add('hidden');
+            $('btn-review-floating').classList.add('hidden');
             $('hud-header').classList.add('hidden');
             $('persistent-controls-bar').classList.add('hidden');
             $('hud-sidebar').classList.add('hidden');
@@ -4409,6 +4482,8 @@
             $('winner-title').innerText = `${winnerTeam.toUpperCase()} VICTORY!`;
             $('winner-subtitle').innerText = reason || 'The enemy team has been obliterated.';
             $('modal-d20-combat').classList.add('hidden');
+            $('btn-review-toolbar').classList.remove('hidden');
+            $('btn-review-floating').classList.remove('hidden');
             $('modal-game-over').classList.remove('hidden');
         }
 
@@ -4786,7 +4861,7 @@
             }
             const teamFormat = teamSelect.value;
             const countEl = $('online-player-count');
-            if (countEl) countEl.textContent = (mode === 'bedwars' && teamFormat === '4-team' ? '4 PLAYERS' : '2 PLAYERS');
+            if (countEl) countEl.textContent = (teamFormat === '4-team' ? '4 PLAYERS' : '2 PLAYERS');
             const select = $('online-map');
             if (!select) return;
             const maps = MAP_CATALOG.filter(m => isMapAllowed(m.id, mode, teamFormat));
@@ -4928,7 +5003,7 @@
                 const map = mapById(mapId);
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
-                const maxPlayers = mode === 'bedwars' && teamFormat === '4-team' ? 4 : 2;
+                const maxPlayers = teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
                 const userRef = firestoreDB.doc('users/' + user.uid);
                 const code = lobbyCode();
