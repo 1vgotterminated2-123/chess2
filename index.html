@@ -145,6 +145,24 @@
         @keyframes mythicPulse{50%{filter:brightness(1.5);box-shadow:0 0 42px rgba(232,121,249,.95),inset 0 0 38px rgba(192,38,211,.4)}}
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
+        /* Compact persistent match toolbar: keep it a slim control strip instead of a full-width banner. */
+        #persistent-controls-bar{width:max-content!important;max-width:calc(100vw - 16px)!important;min-height:0!important;max-height:58px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;box-sizing:border-box;}
+        #persistent-controls-bar::-webkit-scrollbar{display:none}
+        #persistent-controls-bar>div{flex-shrink:0}
+        #persistent-controls-bar button{flex-shrink:0;font-size:10px}
+        #persistent-controls-bar #online-clock-controls{gap:5px!important}
+        #persistent-controls-bar #online-clock-controls>div{padding:3px 6px!important}
+        #persistent-controls-bar #online-clock-controls b{font-size:14px!important}
+        @media(max-width:700px){
+          #persistent-controls-bar{top:4px!important;padding:5px 6px!important;gap:5px!important;border-radius:12px!important;}
+          #persistent-controls-bar>div:first-child{gap:5px!important}
+          #persistent-controls-bar>div:first-child #turn-dot{width:9px;height:9px}
+          #persistent-controls-bar #turn-text{font-size:9px!important}
+          #persistent-controls-bar button{padding:5px 7px!important;font-size:9px!important}
+          #persistent-controls-bar #btn-autoplay-toggle{gap:3px!important}
+          #persistent-controls-bar #autoplay-text{display:none}
+        }
+
         /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
         :root{--theme-bg:#070d1c;--theme-panel:#123c54;--theme-accent:#8b9cff;--theme-soft:#123c54cc}
         body[class*="ui-theme-"]{background:var(--theme-bg)!important;color:#eef5ff!important;}
@@ -240,7 +258,7 @@
     <div id="floating-text-container" class="w-full h-full absolute top-0 left-0 pointer-events-none z-70 overflow-hidden"></div>
 
     <!-- PERSISTENT TOP-LEVEL CONTROL BAR -->
-    <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-4 py-2 rounded-2xl flex items-center justify-between gap-3 border-cyan-500/40 pointer-events-auto shadow-2xl hidden max-w-5xl w-[96%]">
+    <div id="persistent-controls-bar" class="fixed top-2 left-1/2 -translate-x-1/2 z-[60] glass-panel px-2 py-1.5 rounded-xl flex items-center justify-start gap-2 border-cyan-500/40 pointer-events-auto shadow-xl hidden w-fit max-w-[calc(100vw-1rem)]">
         
         <!-- Turn & Map Status -->
         <div class="flex items-center gap-2">
@@ -252,7 +270,7 @@
         </div>
 
         <!-- Dynamic AI Learned Strategy Badge Header -->
-        <div id="ai-strategy-badge-container" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-500/60 text-purple-200 text-[11px] font-mono shadow">
+        <div id="ai-strategy-badge-container" class="hidden items-center gap-2 px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-500/60 text-purple-200 text-[11px] font-mono shadow">
             <span class="animate-pulse text-amber-400">🧠</span>
             <span id="ai-strategy-text" class="font-bold text-purple-300">AI STRATEGY: INITIALIZING</span>
         </div>
@@ -4106,14 +4124,13 @@
             }, 1100);
         }
 
+        let analysisReturnToGameOver = false;
+
         function openAnalysisModal() {
             if (!G.gameOver) return; // Analysis/replay is post-game only.
-            if (G.gameOver) {
-                $('modal-game-over').classList.add('hidden');
-                $('btn-analysis-back-gameover').classList.remove('hidden');
-            } else {
-                $('btn-analysis-back-gameover').classList.add('hidden');
-            }
+            analysisReturnToGameOver = true;
+            $('modal-game-over').classList.add('hidden');
+            $('btn-analysis-back-gameover').classList.remove('hidden');
             stopAnalysisPlayback();
             G.isReviewing = true;
             // Replay always opens at the untouched starting position (snapshot zero).
@@ -4128,7 +4145,10 @@
             if (G.reviewSnapshots.length) restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false);
             G.isReviewing = false;
             $('modal-analysis').classList.add('hidden');
-            if (G.gameOver) {
+            const shouldReturnToGameOver = analysisReturnToGameOver;
+            analysisReturnToGameOver = false;
+            if (shouldReturnToGameOver) {
+                G.gameOver = true;
                 $('modal-game-over').classList.remove('hidden');
             } else {
                 returnToMainMenu();
@@ -4602,8 +4622,14 @@
         function closeModals() {
             stopAnalysisPlayback();
             const wasReviewing = G.isReviewing;
+            const wasPostGameReview = wasReviewing && analysisReturnToGameOver;
             if (wasReviewing && G.reviewSnapshots.length) { restoreReviewSnapshot(G.reviewSnapshots[G.reviewSnapshots.length - 1], false); G.isReviewing = false; }
             ['modal-spellbook', 'modal-item-shop', 'modal-codex', 'modal-game-over', 'modal-analysis'].forEach(id => $(id).classList.add('hidden'));
+            if (wasPostGameReview) {
+                analysisReturnToGameOver = false;
+                G.gameOver = true;
+                $('modal-game-over').classList.remove('hidden');
+            }
             if (wasReviewing && !G.gameOver && isCurrentAI()) triggerAITurnDelay();
             if (!G.activeBattle) $('modal-d20-combat').classList.add('hidden');
         }
