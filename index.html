@@ -5433,9 +5433,23 @@
                 if (matchData.seats && matchData.seats[myTeam] && matchData.seats[myTeam] !== user.uid) return;
                 const mode = matchData.config?.mode || 'bedwars';
                 const ratingKey = mode === 'bedwars' ? 'bedwars' : (mode === 'commander' ? 'draft' : 'classic');
-                const opponents = humans.filter((p,i) => i !== myIndex && i < teams.length);
-                if (!opponents.length) return; // AI-only results do not affect competitive Elo.
-                const opponentAverage = opponents.reduce((sum,p) => sum + Number(p.elo ?? p.ratings?.[ratingKey] ?? 300), 0) / opponents.length;
+                const lobbySnap = await firestoreDB.collection('lobbies').doc(matchCode).get();
+                const lobbyData = lobbySnap.exists ? lobbySnap.data() : {};
+                const aiPlayers = Array.isArray(lobbyData.aiPlayers) ? lobbyData.aiPlayers : [];
+                const opponents = [];
+                for (let i = 0; i < teams.length; i++) {
+                    if (i === myIndex) continue;
+                    if (i < humans.length) {
+                        const human = humans[i];
+                        opponents.push(Number(human.elo ?? human.ratings?.[ratingKey] ?? 300));
+                    } else {
+                        const ai = aiPlayers[i - humans.length] || {};
+                        const aiElo = Number(ai.elo ?? ai.basedOnAverageElo ?? 300);
+                        if (Number.isFinite(aiElo) && aiElo < 1000) opponents.push(Math.max(100, aiElo));
+                    }
+                }
+                if (!opponents.length) return;
+                const opponentAverage = opponents.reduce((sum,elo) => sum + elo, 0) / opponents.length;
                 const didWin = matchData.winner === myTeam;
                 const profileRef = firestoreDB.doc('users/' + user.uid);
                 await firestoreDB.runTransaction(async tx => {
@@ -5825,9 +5839,10 @@
                     const elos = humans.map(p => Number(p.eloType === key && p.elo ? p.elo : 300));
                     const averageElo = elos.reduce((a,b) => a+b, 0) / elos.length;
                     const level = aiLevelFromAverageElo(averageElo);
+                    const aiElo = Math.max(100, Math.min(999, Math.round(averageElo)));
                     const aiPlayers = Array.from({ length: capacity - humans.length }, (_, i) => ({
                         id: 'ai_' + (i + 1), name: 'AI Opponent ' + (i + 1), level,
-                        basedOnAverageElo: Math.round(averageElo), ratingType: key
+                        elo: aiElo, basedOnAverageElo: Math.round(averageElo), ratingType: key
                     }));
                     tx.update(roomRef, { status: 'started', aiPlayers, startedAt: firebase.firestore.FieldValue.serverTimestamp(), startedBy: firebaseAuth.currentUser.uid });
                 });
