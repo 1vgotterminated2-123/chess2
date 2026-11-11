@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHESS 2</title>
+    <title>CHESS 2: ULTIMATE EXPANSION &amp; ROBLOX BEDWARS REALMS</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -113,6 +113,15 @@
         .rarity-mythic{border-color:#e879f9!important;box-shadow:0 0 24px rgba(232,121,249,.32),inset 0 0 28px rgba(192,38,211,.16)}
         .theme-swatch{height:76px;border-radius:13px;background-size:cover;border:1px solid rgba(255,255,255,.22);position:relative;overflow:hidden}
         .theme-swatch:after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.16),transparent 42%,rgba(0,0,0,.12));}
+        .theme-preview{height:76px;padding:9px;display:flex;flex-direction:column;gap:7px;background:var(--preview-bg)!important;border-color:color-mix(in srgb,var(--preview-accent) 35%,#64748b)!important}
+        .theme-preview:after{display:none}
+        .theme-preview-top{height:12px;border-radius:5px;background:var(--preview-panel);border:1px solid color-mix(in srgb,var(--preview-accent) 20%,transparent)}
+        .theme-preview-body{display:flex;align-items:center;gap:6px;flex:1}
+        .theme-preview-body span{height:25px;width:34%;border-radius:5px;background:var(--preview-panel);border:1px solid color-mix(in srgb,var(--preview-accent) 25%,transparent)}
+        .theme-preview-body i{height:25px;flex:1;border-radius:5px;background:var(--preview-panel);position:relative}
+        .theme-preview-body i:after{content:'';position:absolute;left:6px;top:7px;width:45%;height:4px;border-radius:4px;background:var(--preview-accent)}
+        .theme-preview-body b{height:25px;width:18%;border-radius:5px;background:var(--preview-accent);opacity:.9}
+        @media(max-width:640px){#modal-item-shop>div{max-height:94dvh}#modal-item-shop .text-left{font-size:11px}}
         #theme-shop-list>div,#inventory-theme-list>div{border-width:1px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 
         .ui-theme-dark{--ui-accent:#94a3b8;--ui-panel:#111827;--ui-glow:rgba(148,163,184,.2)}
@@ -907,13 +916,13 @@
     </div>
 
     <!-- IN-BASE BEDWARS SHOP MODAL -->
-    <div id="modal-item-shop" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto">
-        <div class="glass-panel rounded-3xl p-6 border-emerald-500/50 max-w-xl w-full text-center shadow-2xl relative">
+    <div id="modal-item-shop" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 backdrop-blur-md hidden pointer-events-auto p-2 sm:p-4 overflow-y-auto">
+        <div class="glass-panel rounded-2xl sm:rounded-3xl p-3 sm:p-5 border-emerald-500/50 max-w-3xl w-full max-h-[94dvh] overflow-y-auto overscroll-contain text-center shadow-2xl relative my-auto">
             <button onclick="closeModals()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
 
             <div class="flex items-center justify-center gap-2 mb-1">
                 <span class="text-2xl">🛒</span>
-                <h3 class="font-orbitron font-black text-2xl text-emerald-400 text-glow-emerald uppercase tracking-wider">BEDWARS ITEM SHOP</h3>
+                <h3 class="font-orbitron font-black text-lg sm:text-2xl text-emerald-400 text-glow-emerald uppercase tracking-wider">BEDWARS ITEM SHOP</h3>
             </div>
             <p id="shop-piece-label" class="text-[11px] text-slate-300 font-mono mb-2">Select a piece</p>
 
@@ -969,11 +978,11 @@
                 <p id="shop-enchant-status" class="text-[10px] text-slate-300 mb-2">Build a team enchanting table, then spend 2 emeralds to roll a random enchant.</p>
                 <div class="flex items-center gap-2">
                     <button id="btn-build-enchanting-table" onclick="buildEnchantingTable()" class="flex-1 py-2 rounded-lg bg-fuchsia-700 hover:bg-fuchsia-600 text-white text-[10px] font-bold">BUILD TABLE • 10 💎</button>
-                    <button id="btn-roll-enchant" onclick="rollTeamEnchant()" class="flex-1 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold" disabled>ROLL ENCHANT • 2 🟢</button>
+                    <button id="btn-roll-enchant" onclick="rollTeamEnchant()" class="hidden flex-1 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[10px] font-bold" disabled>ROLL ENCHANT • 2 🟢</button>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left max-h-[52vh] overflow-y-auto pr-1 font-mono">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left pr-1 font-mono">
 
                 <!-- 1. SWORD -->
                 <div class="p-3 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-1 sm:col-span-2">
@@ -3189,12 +3198,16 @@
             const roll = $('btn-roll-enchant');
             if (res.enchantingTable) {
                 if (build) { build.textContent = 'TABLE BUILT'; build.disabled = true; }
+                if (roll) {
+                    roll.classList.remove('hidden');
+                    roll.disabled = res.em < 2;
+                    roll.textContent = 'ROLL ENCHANT • 2 🟢';
+                }
                 const current = BEDWARS_ENCHANTS.find(e => e.id === (res.enchant && res.enchant.id));
                 if (status) status.textContent = current ? `${current.icon} ${current.name} • ${current.desc} Roll again for a different random enchant.` : 'Table ready! Spend 2 emeralds to roll your first team enchant.';
-                if (roll) { roll.disabled = res.em < 2; roll.textContent = 'ROLL ENCHANT • 2 🟢'; }
             } else {
                 if (build) { build.disabled = res.dia < 10; build.textContent = 'BUILD TABLE • 10 💎'; }
-                if (roll) { roll.disabled = true; }
+                if (roll) { roll.classList.add('hidden'); roll.disabled = true; }
                 if (status) status.textContent = 'Build a team enchanting table, then spend 2 emeralds to roll a random enchant.';
             }
         }
@@ -5859,21 +5872,21 @@
 
         // THEME SHOP: themes are cosmetic and paid for with Material.
         const UI_THEMES=[
-          {id:'midnight',name:'Midnight',cost:0,rarity:'common',desc:'Deep navy, restrained cyan, and soft violet highlights.',colors:['#070d1c','#123c54','#8b9cff']},
-          {id:'dark',name:'Slate',cost:0,rarity:'common',desc:'Quiet graphite surfaces with crisp silver accents.',colors:['#111827','#334155','#cbd5e1']},
-          {id:'light',name:'Arctic',cost:0,rarity:'common',desc:'Clean frost surfaces with cool blue contrast.',colors:['#f1f5f9','#bfdbfe','#1d4ed8']},
-          {id:'nebula',name:'Nebula',cost:80,rarity:'uncommon',desc:'A balanced cosmic violet with midnight-blue depth.',colors:['#17152d','#51418f','#c4b5fd']},
-          {id:'verdant',name:'Verdant',cost:100,rarity:'uncommon',desc:'Forest greens softened with sage and mint.',colors:['#10231d','#28634b','#a7d7b5']},
-          {id:'ocean',name:'Abyssal Ocean',cost:140,rarity:'rare',desc:'Layered deep-sea blues with bright glacial highlights.',colors:['#0b1e2b','#155e75','#67e8f9']},
-          {id:'rose',name:'Rose Quartz',cost:160,rarity:'rare',desc:'Muted plum, dusty rose, and warm blush.',colors:['#241522','#85445f','#f4b4c7']},
-          {id:'solar',name:'Solar Flare',cost:190,rarity:'epic',desc:'Smoky bronze and molten amber, tuned for readability.',colors:['#211a14','#8a4b20','#f6c66b']},
-          {id:'glacier',name:'Glacier',cost:230,rarity:'epic',desc:'Ice-blue gradients over cool charcoal panels.',colors:['#101d2a','#376b87','#b9e6f7']},
-          {id:'royal',name:'Royal Amethyst',cost:280,rarity:'legendary',desc:'Regal indigo with jewel-toned violet accents.',colors:['#17142c','#5b3c91','#e0c4ff']},
-          {id:'aurora',name:'Aurora',cost:380,rarity:'mythic',desc:'Northern-light teal and lavender over deep polar night.',colors:['#081b24','#176b69','#c5b6ff']}
+          {id:'midnight',name:'Midnight',cost:0,rarity:'common',desc:'Ink navy, muted steel-blue panels, and a clear ice accent.',colors:['#0b1220','#1b2a3d','#7dd3fc']},
+          {id:'dark',name:'Graphite',cost:0,rarity:'common',desc:'Neutral charcoal surfaces with cool silver highlights.',colors:['#15191f','#292f38','#c4ccd6']},
+          {id:'light',name:'Porcelain',cost:0,rarity:'common',desc:'Soft off-white surfaces, slate text, and restrained blue accents.',colors:['#edf1f5','#d8e0e9','#315d91']},
+          {id:'nebula',name:'Nebula',cost:80,rarity:'uncommon',desc:'Deep blue-violet with a soft lavender highlight.',colors:['#171629','#302d50','#b8a5ef']},
+          {id:'verdant',name:'Verdant',cost:100,rarity:'uncommon',desc:'Pine green, dark moss panels, and gentle mint accents.',colors:['#101d19','#263d34','#9bc9ad']},
+          {id:'ocean',name:'Abyssal',cost:140,rarity:'rare',desc:'Blue-black depths with desaturated sea-glass highlights.',colors:['#0d1b24','#203b49','#83c5d1']},
+          {id:'rose',name:'Rosewood',cost:160,rarity:'rare',desc:'Smoky plum surfaces with warm dusty-rose accents.',colors:['#211820','#3d2937','#d69aaa']},
+          {id:'solar',name:'Ember',cost:190,rarity:'epic',desc:'Dark umber panels with a warm, readable amber accent.',colors:['#1d1713','#3b2b21','#e7b66b']},
+          {id:'glacier',name:'Glacier',cost:230,rarity:'epic',desc:'Cool slate-blue surfaces with pale frost highlights.',colors:['#111d29','#293f52','#a9d6e8']},
+          {id:'royal',name:'Amethyst',cost:280,rarity:'legendary',desc:'Midnight indigo with soft violet and pearl accents.',colors:['#19172a','#35304f','#d0b9ee']},
+          {id:'aurora',name:'Aurora',cost:380,rarity:'mythic',desc:'Deep evergreen-blue with a quiet teal and lilac glow.',colors:['#0e1c20','#244440','#b9b0df']}
         ];
         function applyUITheme(id){const chosen=UI_THEMES.some(t=>t.id===id)?id:'midnight';document.body.classList.remove(...UI_THEMES.map(t=>'ui-theme-'+t.id));document.body.classList.add('ui-theme-'+chosen);document.body.dataset.uiTheme=chosen;const t=UI_THEMES.find(x=>x.id===chosen);if(t){document.documentElement.style.setProperty('--theme-bg',t.colors[0]);document.documentElement.style.setProperty('--theme-panel',t.colors[1]);document.documentElement.style.setProperty('--theme-accent',t.colors[2]);document.documentElement.style.setProperty('--theme-soft',t.colors[1]+'cc');}}
         async function openThemeShop(){if(!currentAccount||requirePermanentAccount('the theme shop'))return;openHubPage('theme-shop-modal');renderThemeShop();}
-        function themeCard(t,owned,active,inventory=false){return `<div class="rounded-2xl bg-slate-950 border border-slate-700 p-3 space-y-2 rarity-${t.rarity}"><div class="theme-swatch" style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]})"></div><div class="flex justify-between items-center gap-2"><b class="text-xs">${t.name}</b><span class="theme-rarity theme-rarity-${t.rarity}">${t.rarity}</span></div><p class="text-[10px] text-slate-400">${t.desc}</p>${inventory?`<button onclick="equipUITheme('${t.id}')" class="w-full py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-indigo-700 text-white'} text-[10px] font-bold">${active?'EQUIPPED':'EQUIP THEME'}</button>`:`<div class="flex items-center justify-between"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+t.cost+' MATERIAL'}</span><button onclick="${owned?`equipUITheme('${t.id}')`:`buyUITheme('${t.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-indigo-700 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div>`}</div>`;}
+        function themeCard(t,owned,active,inventory=false){return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-${t.rarity}"><div class="theme-swatch theme-preview" style="--preview-bg:${t.colors[0]};--preview-panel:${t.colors[1]};--preview-accent:${t.colors[2]}"><div class="theme-preview-top"></div><div class="theme-preview-body"><span></span><i></i><b></b></div></div><div class="flex justify-between items-center gap-2"><b class="text-xs">${t.name}</b><span class="theme-rarity theme-rarity-${t.rarity}">${t.rarity}</span></div><p class="text-[10px] text-slate-400">${t.desc}</p>${inventory?`<button onclick="equipUITheme('${t.id}')" class="w-full py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':'EQUIP THEME'}</button>`:`<div class="flex items-center justify-between"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+t.cost+' MATERIAL'}</span><button onclick="${owned?`equipUITheme('${t.id}')`:`buyUITheme('${t.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div>`}</div>`;}
         function renderThemeShop(){const unlocked=new Set(currentAccount.unlockedThemes||['midnight','dark','light']);$('theme-shop-balance').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};$('theme-shop-list').innerHTML=[...UI_THEMES].sort((a,b)=>rarityOrder[b.rarity]-rarityOrder[a.rarity]||a.cost-b.cost).map(t=>themeCard(t,unlocked.has(t.id),(currentAccount.activeTheme||'midnight')===t.id)).join('');}
         function openInventoryPage(){if(!currentAccount)return;openHubPage('inventory-page');renderInventory();}
         function renderInventory(){if(!currentAccount)return;const unlocked=new Set(['midnight','dark','light',...(currentAccount.unlockedThemes||[])]);const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};$('inventory-theme-list').innerHTML=UI_THEMES.filter(t=>unlocked.has(t.id)).sort((a,b)=>rarityOrder[b.rarity]-rarityOrder[a.rarity]||a.cost-b.cost).map(t=>themeCard(t,true,(currentAccount.activeTheme||'midnight')===t.id,true)).join('')||'<p class="text-sm text-slate-400">No themes owned yet.</p>';}
