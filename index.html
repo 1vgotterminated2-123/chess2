@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CHESS 2: ULTIMATE EXPANSION &amp; ROBLOX BEDWARS REALMS</title>
+    <title>CHESS 2</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -246,6 +246,23 @@
         <div id="ai-strategy-badge-container" class="hidden md:flex items-center gap-2 px-3 py-1 rounded-xl bg-purple-950/80 border border-purple-500/60 text-purple-200 text-[11px] font-mono shadow">
             <span class="animate-pulse text-amber-400">🧠</span>
             <span id="ai-strategy-text" class="font-bold text-purple-300">AI STRATEGY: INITIALIZING</span>
+        </div>
+
+        <!-- Online chess-style clock and resignation controls -->
+        <div id="online-clock-controls" class="hidden items-center gap-2 font-mono text-xs">
+            <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-cyan-700">
+                <span id="online-clock-team-a" class="text-[9px] text-slate-400">WHITE</span>
+                <b id="online-clock-a" class="text-lg text-cyan-300 tabular-nums">10:00</b>
+            </div>
+            <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-slate-700">
+                <span id="online-clock-team-b" class="text-[9px] text-slate-400">BLACK</span>
+                <b id="online-clock-b" class="text-lg text-slate-300 tabular-nums">10:00</b>
+            </div>
+            <select id="online-clock-minutes" title="Starting time for both teams" class="bg-slate-950 border border-slate-600 rounded-lg px-1 py-2 text-cyan-200">
+                <option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option><option value="8">8 min</option><option value="9">9 min</option><option value="10" selected>10 min</option><option value="11">11 min</option><option value="12">12 min</option><option value="13">13 min</option><option value="14">14 min</option><option value="15">15 min</option><option value="16">16 min</option><option value="17">17 min</option><option value="18">18 min</option><option value="19">19 min</option><option value="20">20 min</option><option value="21">21 min</option><option value="22">22 min</option><option value="23">23 min</option><option value="24">24 min</option><option value="25">25 min</option><option value="26">26 min</option><option value="27">27 min</option><option value="28">28 min</option><option value="29">29 min</option><option value="30">30 min</option>
+            </select>
+            <button onclick="setOnlineClockTime()" class="px-2 py-2 rounded-lg bg-slate-800 border border-cyan-700 text-cyan-200">SET</button>
+            <button onclick="resignOnlineMatch()" class="px-2 py-2 rounded-lg bg-red-950 border border-red-600 text-red-300 font-bold">RESIGN</button>
         </div>
 
         <!-- Playback Speed Controls & Steppers -->
@@ -4512,6 +4529,7 @@
             resetMatchState();
             $('main-menu').classList.add('hidden');
             $('online-multiplayer-page').classList.add('hidden');
+            if(!activeLobbyCode) $('online-clock-controls')?.classList.add('hidden');
             $('hud-header').classList.remove('hidden');
             $('persistent-controls-bar').classList.remove('hidden');
             $('hud-sidebar').classList.remove('hidden');
@@ -4530,6 +4548,12 @@
         }
 
         function returnToMainMenu() {
+            if (activeLobbyCode && onlineMatchRef && !G.gameOver) {
+                const leaveAsResign = confirm('Leaving an online match counts as a RESIGNATION. The other team will win. Are you sure you want to resign and return to the main menu?');
+                if (!leaveAsResign) return;
+                resignOnlineMatch(true, true);
+                return;
+            }
             clearTimeout(G.aiTimer);
             G.matchId++;
             G.paused = false;
@@ -4549,7 +4573,10 @@
             $('piece-inspector-card').classList.add('hidden');
             $('commander-draft-bar').classList.add('hidden');
             if (onlineMatchUnsubscribe) onlineMatchUnsubscribe();
+            stopOnlineClockTicker();
+            $('online-clock-controls')?.classList.add('hidden');
             onlineMatchUnsubscribe = null; onlineMatchRef = null; onlineMatchVersion = -1;
+            activeLobbyCode = null; onlineLocalTeam = null;
             const teamBanner = $('online-team-banner'); if (teamBanner) teamBanner.classList.add('hidden');
         }
 
@@ -4622,6 +4649,62 @@
         let onlineMatchUnsubscribe = null;
         let onlineMatchRef = null;
         let onlineMatchVersion = -1;
+        let onlineClock = { whiteMs:600000, blackMs:600000, activeTeam:null, activeSinceMs:Date.now(), minutes:10 };
+        let onlineClockInterval = null;
+        let onlineClockFinishing = false;
+        function onlineClockKey(team) { return team + 'Ms'; }
+        function onlineClockRemaining(team, clock=onlineClock, now=Date.now()) {
+            const base = Number(clock[onlineClockKey(team)] || 0);
+            return Math.max(0, base - (clock.activeTeam === team ? Math.max(0, now - Number(clock.activeSinceMs || now)) : 0));
+        }
+        function formatOnlineClock(ms) { const sec=Math.ceil(Math.max(0,ms)/1000); return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); }
+        function renderOnlineClock() {
+            if (!activeLobbyCode || !onlineClock) return;
+            const teams=G.teams||['white','black'];
+            const a=teams[0], b=teams[1]||teams[0];
+            const now=Date.now(), ams=onlineClockRemaining(a,onlineClock,now), bms=onlineClockRemaining(b,onlineClock,now);
+            const ea=$('online-clock-a'), eb=$('online-clock-b');
+            if(ea) { ea.textContent=formatOnlineClock(ams); ea.classList.toggle('text-red-400',ams<=10000); ea.classList.toggle('text-cyan-300',ams>10000); }
+            if(eb) { eb.textContent=formatOnlineClock(bms); eb.classList.toggle('text-red-400',bms<=10000); eb.classList.toggle('text-slate-300',bms>10000); }
+            const la=$('online-clock-team-a'), lb=$('online-clock-team-b');
+            if(la) la.textContent=a.toUpperCase()+(onlineClock.activeTeam===a?' • RUNNING':'');
+            if(lb) lb.textContent=b.toUpperCase()+(onlineClock.activeTeam===b?' • RUNNING':'');
+            if(!G.gameOver && onlineClock.activeTeam && (ams<=0 || bms<=0)) finishOnlineOnTime(ams<=0?a:b);
+        }
+        function startOnlineClockTicker() {
+            if(onlineClockInterval) clearInterval(onlineClockInterval);
+            onlineClockInterval=setInterval(renderOnlineClock,200);
+            renderOnlineClock();
+        }
+        function stopOnlineClockTicker(){ if(onlineClockInterval) clearInterval(onlineClockInterval); onlineClockInterval=null; }
+        function onlineClockForNextTurn(nextTeam) {
+            const now=Date.now(), previous=onlineClock.activeTeam;
+            const out={activeTeam:nextTeam,activeSinceMs:now,minutes:onlineClock.minutes||10};
+            (G.teams||['white','black']).forEach(team=>{out[onlineClockKey(team)]=onlineClockRemaining(team,onlineClock,now);});
+            return out;
+        }
+        async function setOnlineClockTime() {
+            if(!onlineMatchRef||!firebaseAuth?.currentUser) return;
+            const minutes=Math.max(1,Math.min(30,Number($('online-clock-minutes')?.value||10)));
+            const ms=minutes*60000, now=Date.now();
+            try { await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists||snap.data().status!=='active')throw new Error('This match is no longer active.');const d=snap.data(),clock={activeTeam:d.turn,activeSinceMs:now,minutes};(G.teams||['white','black']).forEach(t=>clock[onlineClockKey(t)]=ms);tx.update(onlineMatchRef,{clock,version:(d.version||0)+1,lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'clock-set'},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}); }
+            catch(e){alert('Could not set the match clock: '+e.message);}
+        }
+        async function resignOnlineMatch(returnHome=false, alreadyConfirmed=false) {
+            if(!onlineMatchRef||!firebaseAuth?.currentUser)return;
+            if(!alreadyConfirmed && !confirm('Resign this online match? The other team will immediately win.')) return;
+            const user=firebaseAuth.currentUser;
+            try {
+                await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return;const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
+                G.gameOver=true; stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
+                if(returnHome){const btn=$('main-menu'); if(btn){clearTimeout(G.aiTimer);G.matchId++;if(onlineMatchUnsubscribe)onlineMatchUnsubscribe();onlineMatchUnsubscribe=null;onlineMatchRef=null;onlineMatchVersion=-1;activeLobbyCode=null;onlineLocalTeam=null;stopOnlineClockTicker();$('online-clock-controls')?.classList.add('hidden');['hud-header','persistent-controls-bar','hud-sidebar','bottom-hud-bar'].forEach(id=>$(id)?.classList.add('hidden'));$('main-menu').classList.remove('hidden');}}
+            } catch(e){alert('Could not resign: '+e.message);}
+        }
+        async function finishOnlineOnTime(loserTeam) {
+            if(onlineClockFinishing||!onlineMatchRef||!firebaseAuth?.currentUser)return; onlineClockFinishing=true;
+            try { await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists||snap.data().status!=='active')return;const d=snap.data(),clock=d.clock||onlineClock;const now=Date.now();const remaining=Math.max(0,Number(clock[loserTeam+'Ms']||0)-(clock.activeTeam===loserTeam?Math.max(0,now-Number(clock.activeSinceMs||now)):0));if(remaining>0)return;const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==loserTeam);tx.update(onlineMatchRef,{status:'finished',winner,timeoutTeam:loserTeam,version:(d.version||0)+1,lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'timeout',winner},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}); }
+            catch(e){console.warn('Clock timeout update failed:',e);} finally{onlineClockFinishing=false;}
+        }
         let applyingOnlineState = false;
         let onlinePublishBusy = false;
 
@@ -5246,6 +5329,7 @@
                     },
                     state:initial,
                     turn:G.turn,
+                    clock:Object.assign({activeTeam:G.turn,activeSinceMs:Date.now(),minutes:10},Object.fromEntries(G.teams.map(t=>[onlineClockKey(t),600000]))),
                     version:0,
                     status:'active',
                     lastAction:{type:'match-created', by:user.uid, team:G.turn},
@@ -5262,6 +5346,14 @@
                 const data = snap.data();
                 if (typeof data.version !== 'number' || data.version <= onlineMatchVersion) return;
                 onlineMatchVersion = data.version;
+                if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
+                if (data.status === 'finished') {
+                    G.gameOver = true; stopOnlineClockTicker();
+                    const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
+                    if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
+                    if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
+                    $('modal-game-over')?.classList.remove('hidden'); return;
+                }
                 if (data.lastAction && data.lastAction.by === user.uid) return;
                 if (data.state) applyOnlineSnapshot(data.state);
             }, err => { console.error('Online match sync failed:', err); setLobbyStatus('Live sync error: ' + err.message, true); });
@@ -5288,6 +5380,7 @@
                     if (data.seats && data.seats[actingTeam] && data.seats[actingTeam] !== user.uid) throw new Error('This browser does not own that team.');
                     tx.update(onlineMatchRef, {
                         state, turn:G.turn, status:G.gameOver ? 'finished' : 'active',
+                        clock:onlineClockForNextTurn(G.turn),
                         version:(data.version || 0) + 1,
                         lastAction:{by:user.uid, team:actingTeam, type:'turn-complete'},
                         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
@@ -5372,6 +5465,7 @@
                     teamBanner.style.borderColor = cfg.color;
                     teamBanner.classList.remove('hidden');
                 }
+                const clockControls=$('online-clock-controls'); if(clockControls) clockControls.classList.remove('hidden');
                 await startOnlineBoardSync();
                 setLobbyStatus('You are ' + myTeam.toUpperCase() + '. You can control only ' + myTeam.toUpperCase() +
                     '; other human teams are controlled by their players. ' +
