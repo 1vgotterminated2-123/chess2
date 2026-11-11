@@ -2474,7 +2474,13 @@
            INPUT & INTERACTION
            ===================================================================== */
         const isCurrentAI = () => G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'ai';
-        const isHumanTurn = () => !G.paused && !isCurrentAI() && !G.autoPlayActive;
+        // In online matches, this browser may control ONLY its assigned team.
+        // "remote" teams are controlled by another browser (or by the host's AI).
+        const isHumanTurn = () => {
+            if (G.paused || isCurrentAI() || G.autoPlayActive) return false;
+            if (onlineLocalTeam) return G.turn === onlineLocalTeam;
+            return !!(G.teamControllers[G.turn] && G.teamControllers[G.turn].type === 'human');
+        };
         const inputBlocked = () => G.paused || G.gameOver || !!G.activeBattle || !isHumanTurn();
 
         function pickAt(event) {
@@ -2566,6 +2572,8 @@
         }
 
         function selectPiece(piece) {
+            if (inputBlocked() || !piece || piece.team !== G.turn) return;
+            if (onlineLocalTeam && G.turn !== onlineLocalTeam) return;
             G.pearlMode = false; G.pearlTargets = []; G.spellMode = null; G.bestMoveHint = null;
             G.selectedPiece = piece;
             const { moves, attacks } = getPieceMoves(piece);
@@ -4601,6 +4609,10 @@
         let activeLobbyReady = false;
         let activeLobbyPlayers = [];
         let activeLobbyStartBusy = false;
+        // Set separately in every browser after the shared lobby roster is loaded.
+        let onlineLocalTeam = null;
+        let onlineLocalUid = null;
+        let onlineHostUid = null;
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -5070,26 +5082,70 @@
             if (!room || room.status !== 'started' || lobbyLaunchHandled) return;
             lobbyLaunchHandled = true;
             try {
+                if (!firebaseAuth || !firebaseAuth.currentUser) {
+                    throw new Error('Sign in again before loading this match.');
+                }
+                const myUid = firebaseAuth.currentUser.uid;
                 const mode = ['bedwars','standard','commander'].includes(room.mode) ? room.mode : 'bedwars';
                 const fmt = room.teamFormat === '4-team' ? '4-team' : '2-team';
                 const teams = TEAM_FORMATS[fmt] || ['white','black'];
                 const map = MAP_CATALOG.find(m => m.id === room.mapId && isMapAllowed(m.id, mode, fmt));
                 if (!map) throw new Error('The room map is no longer available for this mode.');
+
                 const rosterSnap = await firestoreDB.collection('lobbies').doc(activeLobbyCode).collection('players').get();
-                const humans = rosterSnap.docs.map(d => ({uid:d.id, ...d.data()})).sort((a,b)=>String(a.uid).localeCompare(String(b.uid)));
+                // Every browser sorts the same UID roster, so every human receives the same seat.
+                const humans = rosterSnap.docs
+                    .map(d => ({ uid: d.id, ...d.data() }))
+                    .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
+
+                if (!humans.some(p => p.uid === myUid)) {
+                    throw new Error('Your account is not in this room roster. Rejoin the lobby.');
+                }
+                if (humans.length > teams.length) {
+                    throw new Error('The lobby has more human players than available team seats.');
+                }
+
+                const mySeatIndex = humans.findIndex(p => p.uid === myUid);
+                const myTeam = teams[mySeatIndex];
                 const aiPlayers = Array.isArray(room.aiPlayers) ? room.aiPlayers : [];
-                G.mode = mode; G.teamFormat = fmt; G.teams = [...teams]; G.selectedMapId = map.id;
-                G.chaosPieces = !!room.chaosPieces; G.enableAIStrategy = true; G.enablePieceRoles = true;
+                if (aiPlayers.length < teams.length - humans.length) {
+                    throw new Error('The room is missing AI fill-in players. The host should restart the lobby.');
+                }
+
+                G.mode = mode;
+                G.teamFormat = fmt;
+                G.teams = [...teams];
+                G.selectedMapId = map.id;
+                G.chaosPieces = !!room.chaosPieces;
+                G.enableAIStrategy = true;
+                G.enablePieceRoles = true;
+
+                onlineLocalTeam = myTeam;
+                onlineLocalUid = myUid;
+                onlineHostUid = room.hostUid || null;
+
+                // IMPORTANT: only this browser's seat is "human".
+                // Other human seats are "remote"; only the host runs AI turns.
+                const isHostBrowser = myUid === room.hostUid;
                 G.teamControllers = Object.assign({}, G.teamControllers);
                 teams.forEach((team, index) => {
                     const human = humans[index];
-                    const ai = aiPlayers[index - humans.length];
-                    G.teamControllers[team] = human
-                        ? {type:'human', level:10, uid:human.uid, name:human.username || 'Player'}
-                        : {type:'ai', level:Math.max(1,Math.min(50,Number(ai && ai.level || 10))), name:(ai && ai.name) || 'AI Opponent'};
+                    if (human) {
+                        G.teamControllers[team] = human.uid === myUid
+                            ? { type:'human', level:10, uid:human.uid, name:human.username || 'You' }
+                            : { type:'remote', level:10, uid:human.uid, name:human.username || 'Opponent' };
+                    } else {
+                        const ai = aiPlayers[index - humans.length] || {};
+                        G.teamControllers[team] = isHostBrowser
+                            ? { type:'ai', level:Math.max(1,Math.min(50,Number(ai.level || 10))), name:ai.name || 'AI Opponent' }
+                            : { type:'remote', level:10, uid:null, name:ai.name || 'Host-controlled AI' };
+                    }
                 });
+
                 launchGameMatch();
-                setLobbyStatus('Match loaded. ' + humans.length + ' human player(s), ' + aiPlayers.length + ' AI opponent(s).');
+                setLobbyStatus('You are ' + myTeam.toUpperCase() + '. You can control only ' + myTeam.toUpperCase() +
+                    '; other human teams are controlled by their players. ' +
+                    (isHostBrowser ? 'This device runs the room AI.' : 'The host device runs the room AI.'));
             } catch (err) {
                 lobbyLaunchHandled = false;
                 console.error('Could not load started lobby:', err);
@@ -5266,7 +5322,7 @@
             if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true));
         }
         function resetLobbyUI() {
-            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false;
+            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false; onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = null;
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
             const ready = $('lobby-ready-button'); if (ready) ready.textContent = "I'M READY";
             activeLobbyPlayers = [];
@@ -5520,6 +5576,6 @@
             restoreAccountSession();
         };
     </script>
-    <script src="chess2-firestore-multiplayer.js"></script>
+    <script src="./chess2-firestore-multiplayer.js"></script>
 </body>
 </html>
