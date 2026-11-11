@@ -145,28 +145,62 @@
         @keyframes mythicPulse{50%{filter:brightness(1.5);box-shadow:0 0 42px rgba(232,121,249,.95),inset 0 0 38px rgba(192,38,211,.4)}}
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
-        /* Match toolbar sits above the bottom HUD and wraps instead of clipping clocks/actions. */
+        /* Compact match toolbar: move it into the clear top edge of the board. */
         #persistent-controls-bar{
-          top:auto!important;bottom:76px!important;left:12px!important;right:12px!important;
+          top:8px!important;bottom:auto!important;left:10px!important;right:10px!important;
           transform:none!important;width:auto!important;max-width:none!important;
-          min-height:0!important;max-height:none!important;overflow:visible!important;
-          white-space:normal!important;box-sizing:border-box;flex-wrap:wrap!important;
-          justify-content:center!important;gap:6px!important;padding:7px 9px!important;
+          min-height:0!important;max-height:86px!important;overflow:visible!important;
+          box-sizing:border-box;flex-wrap:wrap!important;
+          align-items:center!important;justify-content:center!important;
+          gap:5px!important;padding:5px 7px!important;border-radius:13px!important;
+          background:rgba(15,23,42,.94)!important;
+          border:1px solid rgba(56,189,248,.32)!important;
+          box-shadow:0 8px 24px rgba(0,0,0,.28)!important;
         }
-        #persistent-controls-bar>div{flex:0 1 auto;min-width:0;flex-wrap:wrap!important;justify-content:center}
-        #persistent-controls-bar button{flex:0 0 auto;font-size:10px}
-        #persistent-controls-bar #online-clock-controls{display:flex!important;align-items:center;gap:5px!important;flex-wrap:wrap!important}
-        #persistent-controls-bar #online-clock-controls>div{padding:3px 6px!important}
-        #persistent-controls-bar #online-clock-controls b{font-size:14px!important}
+        #persistent-controls-bar>div{
+          flex:0 1 auto;min-width:0;flex-wrap:nowrap!important;
+          align-items:center!important;justify-content:center!important;gap:5px!important;
+        }
+        #persistent-controls-bar>div:first-child{padding:0 5px}
+        #persistent-controls-bar #turn-text{font-size:10px!important;white-space:nowrap}
+        #persistent-controls-bar button{
+          flex:0 0 auto;font-size:9px!important;line-height:1.15!important;
+          padding:6px 8px!important;border-radius:9px!important;white-space:nowrap;
+        }
+        #persistent-controls-bar #online-clock-controls{
+          display:flex!important;align-items:center!important;gap:4px!important;
+          flex-wrap:nowrap!important;font-size:10px!important;
+        }
+        #persistent-controls-bar #online-clock-controls>div{
+          padding:2px 6px!important;min-width:55px;
+        }
+        #persistent-controls-bar #online-clock-controls b{font-size:13px!important}
+        #persistent-controls-bar #online-clock-minutes{padding:5px 4px!important;font-size:10px!important}
+        #persistent-controls-bar #autoplay-speed-select{max-width:108px;font-size:10px!important}
+        #persistent-controls-bar #btn-autoplay-toggle{gap:4px!important}
+        @media(min-width:1100px){
+          /* Keep clear of the open game-review drawer on the right. */
+          #persistent-controls-bar{right:calc(32.5vw + 14px)!important}
+        }
+        @media(max-width:1099px){
+          #persistent-controls-bar{max-height:104px!important}
+          #persistent-controls-bar>div{flex-wrap:wrap!important}
+        }
         @media(max-width:700px){
-          #persistent-controls-bar{left:6px!important;right:6px!important;bottom:72px!important;padding:6px!important;gap:4px!important;border-radius:12px!important}
-          #persistent-controls-bar>div:first-child{gap:5px!important}
+          #persistent-controls-bar{
+            top:5px!important;left:5px!important;right:5px!important;
+            max-height:118px!important;padding:5px!important;gap:4px!important;
+            border-radius:11px!important;
+          }
+          #persistent-controls-bar>div:first-child{gap:4px!important;padding:0 2px}
           #persistent-controls-bar>div:first-child #turn-dot{width:9px;height:9px}
           #persistent-controls-bar #turn-text{font-size:9px!important}
-          #persistent-controls-bar button{padding:5px 7px!important;font-size:9px!important}
-          #persistent-controls-bar #btn-autoplay-toggle{gap:3px!important}
+          #persistent-controls-bar button{padding:5px 6px!important;font-size:8px!important}
           #persistent-controls-bar #autoplay-text{display:none}
-          #persistent-controls-bar #online-clock-controls>div{min-width:58px}
+          #persistent-controls-bar #online-clock-controls{gap:3px!important}
+          #persistent-controls-bar #online-clock-controls>div{min-width:48px;padding:2px 4px!important}
+          #persistent-controls-bar #online-clock-controls b{font-size:11px!important}
+          #persistent-controls-bar #autoplay-speed-select{max-width:86px}
         }
 
         /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
