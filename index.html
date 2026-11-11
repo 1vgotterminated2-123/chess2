@@ -135,6 +135,32 @@
         @keyframes legendaryPulse{50%{filter:brightness(1.35);box-shadow:0 0 34px rgba(245,158,11,.8),inset 0 0 30px rgba(245,158,11,.3)}}
         @keyframes mythicPulse{50%{filter:brightness(1.5);box-shadow:0 0 42px rgba(232,121,249,.95),inset 0 0 38px rgba(192,38,211,.4)}}
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
+
+        /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
+        :root{--theme-bg:#070d1c;--theme-panel:#123c54;--theme-accent:#8b9cff;--theme-soft:#123c54cc}
+        body[class*="ui-theme-"]{background:var(--theme-bg)!important;color:#eef5ff!important;}
+        body[class*="ui-theme-"] .glass-panel,
+        body[class*="ui-theme-"] .bg-slate-950,
+        body[class*="ui-theme-"] .bg-slate-900,
+        body[class*="ui-theme-"] .bg-slate-800{background-color:color-mix(in srgb,var(--theme-panel) 72%,var(--theme-bg))!important;border-color:color-mix(in srgb,var(--theme-accent) 32%,#334155)!important;}
+        body[class*="ui-theme-"] .bg-slate-700{background-color:color-mix(in srgb,var(--theme-panel) 86%,#64748b)!important}
+        body[class*="ui-theme-"] .border-slate-700,
+        body[class*="ui-theme-"] .border-slate-800,
+        body[class*="ui-theme-"] .border-slate-600{border-color:color-mix(in srgb,var(--theme-accent) 26%,#475569)!important}
+        body[class*="ui-theme-"] .text-cyan-300,body[class*="ui-theme-"] .text-cyan-200,
+        body[class*="ui-theme-"] .text-indigo-300{color:var(--theme-accent)!important}
+        body[class*="ui-theme-"] button:not(.achievement-card):not(.hub-nav-btn){transition:background-color .18s,border-color .18s,box-shadow .18s}
+        body[class*="ui-theme-"] .hub-nav-btn{background:color-mix(in srgb,var(--theme-panel) 70%,var(--theme-bg))!important;border-color:color-mix(in srgb,var(--theme-accent) 34%,transparent)!important}
+        body[class*="ui-theme-"] .hub-nav-btn:hover{box-shadow:0 0 18px color-mix(in srgb,var(--theme-accent) 35%,transparent)!important}
+        body[class*="ui-theme-"] input,body[class*="ui-theme-"] select,body[class*="ui-theme-"] textarea{background-color:color-mix(in srgb,var(--theme-bg) 78%,var(--theme-panel))!important;color:#f8fafc!important;border-color:color-mix(in srgb,var(--theme-accent) 30%,#475569)!important}
+        body[class*="ui-theme-"] .achievement-card{background:radial-gradient(ellipse at 50% 0%,color-mix(in srgb,var(--theme-accent) 18%,transparent),transparent 68%),linear-gradient(155deg,color-mix(in srgb,var(--theme-panel) 80%,var(--theme-bg)),var(--theme-bg))!important}
+        body[class*="ui-theme-"] .theme-swatch{border-color:color-mix(in srgb,var(--theme-accent) 45%,white)!important}
+        body.ui-theme-light{color:#172033!important}
+        body.ui-theme-light .glass-panel,body.ui-theme-light .bg-slate-950,body.ui-theme-light .bg-slate-900,body.ui-theme-light .bg-slate-800{background-color:#f8fafc!important;color:#172033!important}
+        body.ui-theme-light .text-white,body.ui-theme-light .text-slate-100,body.ui-theme-light .text-slate-200,body.ui-theme-light .text-slate-300{color:#1e293b!important}
+        body.ui-theme-light input,body.ui-theme-light select,body.ui-theme-light textarea{background:#fff!important;color:#172033!important}
+        body.ui-theme-light .hub-nav-btn{background:#e2e8f0!important;color:#1e293b!important}
+
 </style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
@@ -4569,6 +4595,7 @@
         let lobbyPlayersUnsubscribe = null;
         let publicLobbyUnsubscribe = null;
         let activeLobbyRoomData = null;
+        let lobbyLaunchHandled = false;
         let activeLobbyCode = null;
         let activeLobbyIsHost = false;
         let activeLobbyReady = false;
@@ -5039,6 +5066,36 @@
                     : 'All human players must be ready before the host can start.';
             }
         }
+        async function launchStartedLobby(room) {
+            if (!room || room.status !== 'started' || lobbyLaunchHandled) return;
+            lobbyLaunchHandled = true;
+            try {
+                const mode = ['bedwars','standard','commander'].includes(room.mode) ? room.mode : 'bedwars';
+                const fmt = room.teamFormat === '4-team' ? '4-team' : '2-team';
+                const teams = TEAM_FORMATS[fmt] || ['white','black'];
+                const map = MAP_CATALOG.find(m => m.id === room.mapId && isMapAllowed(m.id, mode, fmt));
+                if (!map) throw new Error('The room map is no longer available for this mode.');
+                const rosterSnap = await firestoreDB.collection('lobbies').doc(activeLobbyCode).collection('players').get();
+                const humans = rosterSnap.docs.map(d => ({uid:d.id, ...d.data()})).sort((a,b)=>String(a.uid).localeCompare(String(b.uid)));
+                const aiPlayers = Array.isArray(room.aiPlayers) ? room.aiPlayers : [];
+                G.mode = mode; G.teamFormat = fmt; G.teams = [...teams]; G.selectedMapId = map.id;
+                G.chaosPieces = !!room.chaosPieces; G.enableAIStrategy = true; G.enablePieceRoles = true;
+                G.teamControllers = Object.assign({}, G.teamControllers);
+                teams.forEach((team, index) => {
+                    const human = humans[index];
+                    const ai = aiPlayers[index - humans.length];
+                    G.teamControllers[team] = human
+                        ? {type:'human', level:10, uid:human.uid, name:human.username || 'Player'}
+                        : {type:'ai', level:Math.max(1,Math.min(50,Number(ai && ai.level || 10))), name:(ai && ai.name) || 'AI Opponent'};
+                });
+                launchGameMatch();
+                setLobbyStatus('Match loaded. ' + humans.length + ' human player(s), ' + aiPlayers.length + ' AI opponent(s).');
+            } catch (err) {
+                lobbyLaunchHandled = false;
+                console.error('Could not load started lobby:', err);
+                setLobbyStatus('Room started, but the match could not load: ' + err.message, true);
+            }
+        }
         function watchLobby(code) {
             stopLobbyListeners(); activeLobbyCode = code;
             if (currentAccount) currentAccount.activeLobbyCode = code;
@@ -5057,7 +5114,7 @@
                 activeLobbyRoomData = doc.data();
                 const room = activeLobbyRoomData;
                 $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : String(room.status || 'WAITING').toUpperCase();
-                if (room.status === 'started') { if((room.aiPlayers||[]).length){G.enableAIStrategy=true;G.enablePieceRoles=true;G.chaosPieces=!!room.chaosPieces;} setLobbyStatus('Match started with ' + ((room.aiPlayers || []).length) + ' AI fill-in(s). Adaptive AI and Dynamic Piece Roles are ON.'); }
+                if (room.status === 'started') { setLobbyStatus('Match is starting…'); launchStartedLobby(room); }
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard Chess 2', commander: 'Commander Draft' };
                 $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • Host: ' + (room.hostName || 'Player');
                 setLobbyStatus('Room is open. Share the code with friends or get ready.');
@@ -5209,7 +5266,7 @@
             if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true));
         }
         function resetLobbyUI() {
-            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null;
+            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false;
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
             const ready = $('lobby-ready-button'); if (ready) ready.textContent = "I'M READY";
             activeLobbyPlayers = [];
@@ -5434,7 +5491,7 @@
           {id:'royal',name:'Royal Amethyst',cost:280,rarity:'legendary',desc:'Regal indigo with jewel-toned violet accents.',colors:['#17142c','#5b3c91','#e0c4ff']},
           {id:'aurora',name:'Aurora',cost:380,rarity:'mythic',desc:'Northern-light teal and lavender over deep polar night.',colors:['#081b24','#176b69','#c5b6ff']}
         ];
-        function applyUITheme(id){document.body.classList.remove(...UI_THEMES.map(t=>'ui-theme-'+t.id));document.body.classList.add('ui-theme-'+(UI_THEMES.some(t=>t.id===id)?id:'midnight'));}
+        function applyUITheme(id){const chosen=UI_THEMES.some(t=>t.id===id)?id:'midnight';document.body.classList.remove(...UI_THEMES.map(t=>'ui-theme-'+t.id));document.body.classList.add('ui-theme-'+chosen);document.body.dataset.uiTheme=chosen;const t=UI_THEMES.find(x=>x.id===chosen);if(t){document.documentElement.style.setProperty('--theme-bg',t.colors[0]);document.documentElement.style.setProperty('--theme-panel',t.colors[1]);document.documentElement.style.setProperty('--theme-accent',t.colors[2]);document.documentElement.style.setProperty('--theme-soft',t.colors[1]+'cc');}}
         async function openThemeShop(){if(!currentAccount||requirePermanentAccount('the theme shop'))return;openHubPage('theme-shop-modal');renderThemeShop();}
         function themeCard(t,owned,active,inventory=false){return `<div class="rounded-2xl bg-slate-950 border border-slate-700 p-3 space-y-2 rarity-${t.rarity}"><div class="theme-swatch" style="background:linear-gradient(135deg,${t.colors[0]},${t.colors[1]},${t.colors[2]})"></div><div class="flex justify-between items-center gap-2"><b class="text-xs">${t.name}</b><span class="theme-rarity theme-rarity-${t.rarity}">${t.rarity}</span></div><p class="text-[10px] text-slate-400">${t.desc}</p>${inventory?`<button onclick="equipUITheme('${t.id}')" class="w-full py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-indigo-700 text-white'} text-[10px] font-bold">${active?'EQUIPPED':'EQUIP THEME'}</button>`:`<div class="flex items-center justify-between"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+t.cost+' MATERIAL'}</span><button onclick="${owned?`equipUITheme('${t.id}')`:`buyUITheme('${t.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-indigo-700 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div>`}</div>`;}
         function renderThemeShop(){const unlocked=new Set(currentAccount.unlockedThemes||['midnight','dark','light']);$('theme-shop-balance').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};$('theme-shop-list').innerHTML=[...UI_THEMES].sort((a,b)=>rarityOrder[b.rarity]-rarityOrder[a.rarity]||a.cost-b.cost).map(t=>themeCard(t,unlocked.has(t.id),(currentAccount.activeTheme||'midnight')===t.id)).join('');}
