@@ -146,11 +146,12 @@
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
         /* Compact, full-width match toolbar. Horizontal scrolling keeps it from covering the board. */
-        #persistent-controls-bar{
+        #persistent-controls-bar:not(.hidden){
+          display:flex!important;
           position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:auto!important;
           transform:none!important;width:100vw!important;max-width:none!important;min-width:0!important;
           min-height:0!important;height:auto!important;max-height:54px!important;box-sizing:border-box!important;
-          display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;
+          flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;
           gap:7px!important;padding:5px 10px!important;border-radius:0 0 10px 10px!important;
           overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;
           background:rgba(8,15,30,.97)!important;border:0!important;border-bottom:1px solid rgba(56,189,248,.35)!important;
@@ -160,7 +161,7 @@
         #persistent-controls-bar>div:first-child{padding:0 5px}
         #persistent-controls-bar #turn-text{font-size:10px!important;white-space:nowrap}
         #persistent-controls-bar button{flex:0 0 auto!important;font-size:9px!important;line-height:1!important;padding:5px 7px!important;border-radius:7px!important;white-space:nowrap}
-        #persistent-controls-bar #online-clock-controls{display:flex!important;align-items:center!important;gap:4px!important;flex-wrap:nowrap!important;font-size:10px!important}
+        #persistent-controls-bar #online-clock-controls:not(.hidden){display:flex!important;align-items:center!important;gap:4px!important;flex-wrap:nowrap!important;font-size:10px!important}
         #persistent-controls-bar #online-clock-controls>div{padding:1px 5px!important;min-width:48px}
         #persistent-controls-bar #online-clock-controls b{font-size:12px!important}
         #persistent-controls-bar #online-clock-minutes{padding:3px 4px!important;font-size:9px!important}
@@ -504,6 +505,12 @@
                             <select id="online-map" onchange="renderOnlineMapPreview()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs"></select>
                         </label>
                         <label class="col-span-2 flex items-center justify-between rounded-xl bg-slate-950 border border-purple-500/30 p-3 text-xs text-purple-200"><span>🐲 CHAOS PIECES</span><input id="online-chaos-pieces" type="checkbox" checked class="accent-purple-500 w-4 h-4"></label>
+                        <label class="col-span-2 space-y-1 text-[10px] text-slate-400">RANKED MATCH
+                            <select id="online-ranked" class="w-full rounded-xl bg-slate-950 border border-amber-500/40 text-amber-200 px-3 py-2.5 text-xs">
+                                <option value="false" selected>Unranked — no ELO changes</option><option value="true">Ranked — ELO changes</option>
+                            </select>
+                            <span class="block text-[9px] text-slate-500">Ranked AI rooms are available to players below 500 ELO.</span>
+                        </label>
                         <label class="col-span-2 space-y-1 text-[10px] text-slate-400">MATCH TIMER (PER PLAYER)
                             <select id="online-lobby-clock-minutes" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
                                 <option value="1">1 minute</option><option value="3">3 minutes</option><option value="5">5 minutes</option><option value="10" selected>10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option>
@@ -4580,7 +4587,7 @@
             resetMatchState();
             $('main-menu').classList.add('hidden');
             $('online-multiplayer-page').classList.add('hidden');
-            if(!activeLobbyCode) $('online-clock-controls')?.classList.add('hidden');
+            if(!activeLobbyCode) { $('online-clock-controls')?.classList.add('hidden'); stopOnlineClockTicker(); }
             $('hud-header').classList.remove('hidden');
             $('persistent-controls-bar').classList.remove('hidden');
             $('hud-sidebar').classList.remove('hidden');
@@ -5417,7 +5424,7 @@
         const onlineEloUpdatesInFlight = new Set();
         async function recordOnlineMatchElo(matchData, matchCode) {
             const user = firebaseAuth?.currentUser;
-            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchData.winner || !matchCode) return;
+            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchData.winner || !matchCode || matchData.config?.ranked !== true) return;
             if (onlineEloUpdatesInFlight.has(matchCode)) return;
             onlineEloUpdatesInFlight.add(matchCode);
             try {
@@ -5528,6 +5535,7 @@
                     config:{
                         mode:G.mode,
                         teamFormat:G.teamFormat,
+                        ranked:!!activeLobbyRoomData?.ranked,
                         mapId:G.selectedMapId,
                         chaosPieces:!!G.chaosPieces
                     },
@@ -5552,9 +5560,8 @@
                 onlineMatchVersion = data.version;
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
                 if (data.status === 'finished') {
-                    recordOnlineMatchElo(data, code);
+                    recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true; stopOnlineClockTicker();
-                    releaseLobbyAfterMatch();
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
                     if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
@@ -5703,7 +5710,7 @@
                 $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : String(room.status || 'WAITING').toUpperCase();
                 if (room.status === 'started') { setLobbyStatus('Match is starting…'); launchStartedLobby(room); }
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard Chess 2', commander: 'Commander Draft' };
-                $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • Host: ' + (room.hostName || 'Player');
+                $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • ' + (room.ranked ? 'RANKED' : 'UNRANKED') + ' • Host: ' + (room.hostName || 'Player');
                 setLobbyStatus('Room is open. Share the code with friends or get ready.');
             }, err => setLobbyStatus('Lobby update failed: ' + err.message, true));
             lobbyPlayersUnsubscribe = roomRef.collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
@@ -5724,6 +5731,7 @@
                 const map = mapById(mapId);
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
+                const ranked = $('online-ranked')?.value === 'true';
                 const clockMinutes = Math.max(1, Math.min(30, Number($('online-lobby-clock-minutes')?.value || 10)));
                 const maxPlayers = teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
@@ -5739,13 +5747,13 @@
                     if (roomSnap.exists) throw new Error('Room code collision. Please try again.');
                     tx.set(roomRef, {
                         code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
-                        visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
+                        visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers, ranked,
                         chaosPieces: !!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI: true, dynamicPieceRoles: true, aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
-                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, chaosPieces:!!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
+                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, ranked, chaosPieces:!!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
                 watchLobby(code);
                 setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
@@ -5837,6 +5845,9 @@
                     if (humans.length > capacity) throw new Error('The room has more players than its allowed capacity.');
                     const key = room.mode === 'bedwars' ? 'bedwars' : (room.mode === 'commander' ? 'draft' : 'classic');
                     const elos = humans.map(p => Number(p.eloType === key && p.elo ? p.elo : 300));
+                    if (room.ranked === true && humans.length === 1 && elos[0] >= 500) {
+                        throw new Error('Ranked matches against AI are available only below 500 ELO. Choose unranked or invite another player.');
+                    }
                     const averageElo = elos.reduce((a,b) => a+b, 0) / elos.length;
                     const level = aiLevelFromAverageElo(averageElo);
                     const aiElo = Math.max(100, Math.min(999, Math.round(averageElo)));
