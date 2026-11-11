@@ -5112,24 +5112,94 @@
             };
         }
 
+        // Apply a remote snapshot without rebuilding every piece mesh.
+        // Existing pieces glide from their current position to the new square;
+        // newly-created pieces appear at their destination and captured pieces are removed.
         function applyOnlineSnapshot(state) {
             if (!state || !Array.isArray(state.pieces)) return;
             applyingOnlineState = true;
             try {
-                G.pieces.forEach(p => { if (p.mesh) scene.remove(p.mesh); });
+                const oldById = new Map(G.pieces.map(p => [String(p.id), p]));
+                const nextPieces = [];
                 Object.values(G.boardGrid).forEach(t => { if (t) t.piece = null; });
-                G.pieces = [];
+
                 state.pieces.forEach(data => {
                     const tile = G.boardGrid[keyOf(data.x, data.z)];
                     if (!tile) return;
-                    const mesh = createPieceMesh(data.type, data.team);
-                    mesh.position.set(data.x, tile.height + 0.2, data.z);
-                    mesh.userData = { pieceId:data.id };
-                    scene.add(mesh);
-                    const piece = Object.assign({}, data, {mesh, tpMarker:null, obsMesh:null});
+
+                    let piece = oldById.get(String(data.id));
+                    let mesh;
+
+                    if (piece && piece.mesh) {
+                        mesh = piece.mesh;
+                        oldById.delete(String(data.id));
+
+                        // Stop an earlier remote animation if a newer snapshot arrives.
+                        if (mesh.userData && mesh.userData.remoteMoveFrame) {
+                            cancelAnimationFrame(mesh.userData.remoteMoveFrame);
+                            mesh.userData.remoteMoveFrame = null;
+                        }
+
+                        const from = mesh.position.clone();
+                        const to = new THREE.Vector3(data.x, tile.height + 0.2, data.z);
+                        const distance = from.distanceTo(to);
+
+                        if (distance > 0.015) {
+                            const duration = Math.min(650, Math.max(220, distance * 170));
+                            const startedAt = performance.now();
+                            const animateRemoteMove = now => {
+                                const raw = Math.min(1, (now - startedAt) / duration);
+                                // Smooth ease-in/ease-out.
+                                const eased = raw < 0.5
+                                    ? 4 * raw * raw * raw
+                                    : 1 - Math.pow(-2 * raw + 2, 3) / 2;
+                                mesh.position.lerpVectors(from, to, eased);
+                                if (raw < 1) {
+                                    mesh.userData.remoteMoveFrame = requestAnimationFrame(animateRemoteMove);
+                                } else {
+                                    mesh.position.copy(to);
+                                    mesh.userData.remoteMoveFrame = null;
+                                }
+                            };
+                            mesh.userData.remoteMoveFrame = requestAnimationFrame(animateRemoteMove);
+                        } else {
+                            mesh.position.copy(to);
+                        }
+
+                        Object.keys(piece).forEach(k => {
+                            if (!['mesh', 'tpMarker', 'obsMesh'].includes(k) && !(k in data)) {
+                                delete piece[k];
+                            }
+                        });
+                        Object.assign(piece, data, { mesh, tpMarker:piece.tpMarker || null, obsMesh:piece.obsMesh || null });
+                    } else {
+                        mesh = createPieceMesh(data.type, data.team);
+                        mesh.position.set(data.x, tile.height + 0.2, data.z);
+                        mesh.userData = { pieceId:data.id };
+                        scene.add(mesh);
+                        piece = Object.assign({}, data, { mesh, tpMarker:null, obsMesh:null });
+                    }
+
+                    if (!mesh.parent) scene.add(mesh);
+                    mesh.userData = mesh.userData || {};
+                    mesh.userData.pieceId = data.id;
                     tile.piece = piece;
-                    G.pieces.push(piece);
+                    nextPieces.push(piece);
                 });
+
+                // Anything left in oldById was captured or otherwise removed.
+                oldById.forEach(piece => {
+                    if (piece.mesh) {
+                        if (piece.mesh.userData && piece.mesh.userData.remoteMoveFrame) {
+                            cancelAnimationFrame(piece.mesh.userData.remoteMoveFrame);
+                        }
+                        scene.remove(piece.mesh);
+                    }
+                    if (piece.tpMarker) scene.remove(piece.tpMarker);
+                    if (piece.obsMesh) scene.remove(piece.obsMesh);
+                });
+
+                G.pieces = nextPieces;
                 if (state.resources) G.resources = state.resources;
                 if (Array.isArray(state.gens)) state.gens.forEach(saved => {
                     const gen = G.gens.find(g => g.x === saved.x && g.z === saved.z);
