@@ -22,8 +22,6 @@
       this.onError = options.onError || console.error;
       this.lastVersion = -1;
       this.myTeam = null;
-      this.hostUid = null;
-      this.seats = {};
       this.stopped = false;
     }
 
@@ -72,6 +70,7 @@
         }
 
         transaction.set(matchRef, {
+          protocol: 1,
           lobbyId: lobbyId,
           roomCode: lobbyId,
           hostUid: user.uid,
@@ -107,9 +106,7 @@
       if (!snapshot.exists) throw new Error("Match not found.");
 
       const match = snapshot.data();
-      this.seats = match.seats || {};
-      this.hostUid = match.hostUid || null;
-      this.myTeam = this.findMyTeam(this.seats, user.uid);
+      this.myTeam = this.findMyTeam(match.seats || {}, user.uid);
 
       if (!this.myTeam) {
         throw new Error("You are not a player in this match.");
@@ -123,11 +120,10 @@
 
           const data = snapshot.data();
 
-          if (typeof data.version !== "number" || data.version <= this.lastVersion) return;
+          if (data.version === this.lastVersion) return;
 
           this.lastVersion = data.version;
-          this.seats = data.seats || this.seats;
-          this.onState(data, { team: this.myTeam, host: user.uid === this.hostUid });
+          this.onState(data, { team: this.myTeam });
         },
         error => this.onError(error)
       );
@@ -196,36 +192,6 @@
           },
           updatedAt:
             firebase.firestore.FieldValue.serverTimestamp()
-        });
-      });
-    }
-
-    // The host may publish turns for AI-controlled seats. Human clients may
-    // publish only their own seat. Both paths use a versioned transaction.
-    async submitHostTurn(options) {
-      options = options || {};
-      const user = Chess2FirestoreMultiplayer.requireUser(this.auth);
-      if (!this.hostUid || user.uid !== this.hostUid) {
-        throw new Error("Only the host can publish AI turns.");
-      }
-      const expectedVersion = options.expectedVersion ?? this.lastVersion;
-      await this.db.runTransaction(async transaction => {
-        const snapshot = await transaction.get(this.matchRef);
-        if (!snapshot.exists) throw new Error("Match not found.");
-        const match = snapshot.data();
-        if (match.status !== "active") throw new Error("Match is not active.");
-        if (match.version !== expectedVersion) throw new Error("Match changed. Please sync before publishing.");
-        if (match.turn !== options.actingTeam) throw new Error("The shared turn changed.");
-        if (match.seats && match.seats[options.actingTeam]) {
-          throw new Error("That team is assigned to a human player.");
-        }
-        transaction.update(this.matchRef, {
-          state: options.state,
-          turn: options.nextTurn,
-          status: options.status || "active",
-          version: match.version + 1,
-          lastAction: { type: options.actionType || "ai-turn", by: user.uid, team: options.actingTeam },
-          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
       });
     }
