@@ -145,22 +145,28 @@
         @keyframes mythicPulse{50%{filter:brightness(1.5);box-shadow:0 0 42px rgba(232,121,249,.95),inset 0 0 38px rgba(192,38,211,.4)}}
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
-        /* Compact persistent match toolbar: keep it a slim control strip instead of a full-width banner. */
-        #persistent-controls-bar{width:max-content!important;max-width:calc(100vw - 16px)!important;min-height:0!important;max-height:58px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;scrollbar-width:none;box-sizing:border-box;}
-        #persistent-controls-bar::-webkit-scrollbar{display:none}
-        #persistent-controls-bar>div{flex-shrink:0}
-        #persistent-controls-bar button{flex-shrink:0;font-size:10px}
-        #persistent-controls-bar #online-clock-controls{gap:5px!important}
+        /* Match toolbar sits above the bottom HUD and wraps instead of clipping clocks/actions. */
+        #persistent-controls-bar{
+          top:auto!important;bottom:76px!important;left:12px!important;right:12px!important;
+          transform:none!important;width:auto!important;max-width:none!important;
+          min-height:0!important;max-height:none!important;overflow:visible!important;
+          white-space:normal!important;box-sizing:border-box;flex-wrap:wrap!important;
+          justify-content:center!important;gap:6px!important;padding:7px 9px!important;
+        }
+        #persistent-controls-bar>div{flex:0 1 auto;min-width:0;flex-wrap:wrap!important;justify-content:center}
+        #persistent-controls-bar button{flex:0 0 auto;font-size:10px}
+        #persistent-controls-bar #online-clock-controls{display:flex!important;align-items:center;gap:5px!important;flex-wrap:wrap!important}
         #persistent-controls-bar #online-clock-controls>div{padding:3px 6px!important}
         #persistent-controls-bar #online-clock-controls b{font-size:14px!important}
         @media(max-width:700px){
-          #persistent-controls-bar{top:4px!important;padding:5px 6px!important;gap:5px!important;border-radius:12px!important;}
+          #persistent-controls-bar{left:6px!important;right:6px!important;bottom:72px!important;padding:6px!important;gap:4px!important;border-radius:12px!important}
           #persistent-controls-bar>div:first-child{gap:5px!important}
           #persistent-controls-bar>div:first-child #turn-dot{width:9px;height:9px}
           #persistent-controls-bar #turn-text{font-size:9px!important}
           #persistent-controls-bar button{padding:5px 7px!important;font-size:9px!important}
           #persistent-controls-bar #btn-autoplay-toggle{gap:3px!important}
           #persistent-controls-bar #autoplay-text{display:none}
+          #persistent-controls-bar #online-clock-controls>div{min-width:58px}
         }
 
         /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
@@ -5340,6 +5346,32 @@
             } finally { applyingOnlineState = false; }
         }
 
+        let finishedLobbyCleanupCode = null;
+        async function releaseLobbyAfterMatch() {
+            const code = activeLobbyCode;
+            const user = firebaseAuth && firebaseAuth.currentUser;
+            if (!code || !user || finishedLobbyCleanupCode === code) return;
+            finishedLobbyCleanupCode = code;
+
+            // A finished match is no longer an active room for this player.
+            // Keep the match document so replay/review can still use its local snapshots.
+            activeLobbyCode = null;
+            if (currentAccount) currentAccount.activeLobbyCode = null;
+            try {
+                const batch = firestoreDB.batch();
+                batch.update(firestoreDB.doc('users/' + user.uid), { activeLobbyCode: null });
+                batch.delete(firestoreDB.collection('lobbies').doc(code).collection('players').doc(user.uid));
+                await batch.commit();
+            } catch (err) {
+                console.warn('Could not clear finished-room membership:', err);
+                // Still clear the local session so the finished match does not trap the player in the room.
+                await firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }).catch(() => {});
+            }
+            resetLobbyUI();
+            setLobbyStatus('Match finished. You have left the room.');
+            refreshPublicLobbyList();
+        }
+
         async function startOnlineBoardSync() {
             if (!activeLobbyCode || !firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) return;
             const code = activeLobbyCode;
@@ -5388,6 +5420,7 @@
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
                 if (data.status === 'finished') {
                     G.gameOver = true; stopOnlineClockTicker();
+                    releaseLobbyAfterMatch();
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
                     if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
@@ -5517,6 +5550,7 @@
         }
         function watchLobby(code) {
             stopLobbyListeners(); activeLobbyCode = code;
+            if (finishedLobbyCleanupCode !== code) finishedLobbyCleanupCode = null;
             if (currentAccount) currentAccount.activeLobbyCode = code;
             const createButton = $('create-lobby-button'); if (createButton) { createButton.disabled = true; createButton.classList.add('opacity-40'); createButton.textContent = 'ALREADY IN A ROOM'; }
             $('lobby-room-panel').classList.remove('hidden');
