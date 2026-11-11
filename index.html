@@ -482,7 +482,7 @@
                 <div><div class="text-[10px] text-slate-400 font-mono mb-2">PLAYERS IN ROOM</div><div id="lobby-player-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div></div>
                 <div class="flex flex-wrap gap-2"><button id="lobby-ready-button" onclick="toggleLobbyReady()" class="flex-1 px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold">I'M READY</button><button id="lobby-start-button" onclick="startLobbyWithAIs()" class="hidden px-4 py-2.5 rounded-xl bg-cyan-700 hover:bg-cyan-600 text-white text-xs font-bold">START MATCH</button><button onclick="leaveLobby()" class="px-4 py-2.5 rounded-xl bg-red-950 border border-red-500/40 text-red-200 text-xs font-bold">LEAVE ROOM</button></div>
                 <p id="lobby-ai-info" class="text-[10px] text-slate-400">All human players must be ready before the host can start.</p>
-                <p class="text-[10px] text-amber-300/80">Starting records AI fill-ins and their Elo-scaled difficulty in the room. Live synchronized board moves between different browsers are a separate multiplayer feature and are not implemented yet.</p>
+                <p class="text-[10px] text-amber-300/80">Starting records AI fill-ins and their Elo-scaled difficulty in the room. Live board state, captures, resources, and turn changes sync between players through Firestore.</p>
             </section>
             <div id="lobby-feedback" class="text-xs text-slate-400 min-h-5" role="status" aria-live="polite"></div>
         </div>
@@ -558,6 +558,7 @@
 
     <!-- HUD OVERLAY HEADER -->
     <header id="hud-header" class="absolute top-16 left-3 right-3 z-20 flex flex-wrap justify-between items-center gap-2 pointer-events-none hidden">
+        <div id="online-team-banner" class="hidden w-full rounded-xl border-2 px-4 py-2 font-orbitron text-xs font-black tracking-widest shadow-xl" style="background:rgba(2,6,23,.94)">YOUR TEAM</div>
         <div id="hud-team-cards-bar" class="w-full flex flex-wrap items-center justify-between gap-2">
             <!-- Dynamic Team Cards Injected Here -->
         </div>
@@ -3395,6 +3396,7 @@
 
             updateTurnUI();
             updateHUDCounters();
+            if (onlineLocalTeam && !applyingOnlineState && (ending === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid && G.teamControllers[ending] && G.teamControllers[ending].type === 'ai'))) publishOnlineBoard(ending);
 
             if (!G.gameOver && !G.paused && (isCurrentAI() || G.autoPlayActive)) {
                 triggerAITurnDelay();
@@ -4546,6 +4548,9 @@
             $('bottom-hud-bar').classList.add('hidden');
             $('piece-inspector-card').classList.add('hidden');
             $('commander-draft-bar').classList.add('hidden');
+            if (onlineMatchUnsubscribe) onlineMatchUnsubscribe();
+            onlineMatchUnsubscribe = null; onlineMatchRef = null; onlineMatchVersion = -1;
+            const teamBanner = $('online-team-banner'); if (teamBanner) teamBanner.classList.add('hidden');
         }
 
         function openSpellbookModal() {
@@ -4575,6 +4580,7 @@
             $('btn-review-toolbar').classList.remove('hidden');
             $('btn-review-floating').classList.remove('hidden');
             $('modal-game-over').classList.remove('hidden');
+            if (onlineLocalTeam && !applyingOnlineState && (G.turn === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid))) publishOnlineBoard(G.turn);
         }
 
 
@@ -4613,6 +4619,11 @@
         let onlineLocalTeam = null;
         let onlineLocalUid = null;
         let onlineHostUid = null;
+        let onlineMatchUnsubscribe = null;
+        let onlineMatchRef = null;
+        let onlineMatchVersion = -1;
+        let applyingOnlineState = false;
+        let onlinePublishBusy = false;
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -5078,6 +5089,117 @@
                     : 'All human players must be ready before the host can start.';
             }
         }
+        // Firestore board replication. The host creates the canonical initial state;
+        // each seated browser publishes only after its own team's turn has completed.
+        function makeOnlineSnapshot() {
+            const pieces = G.pieces.map(p => {
+                const out = {};
+                Object.keys(p).forEach(k => {
+                    if (['mesh','tpMarker','obsMesh'].includes(k)) return;
+                    const v = p[k];
+                    if (v === undefined || typeof v === 'function') return;
+                    try { out[k] = JSON.parse(JSON.stringify(v)); } catch (_) {}
+                });
+                return out;
+            });
+            return {
+                pieces,
+                resources: JSON.parse(JSON.stringify(G.resources || {})),
+                gens: (G.gens || []).map(g => ({x:g.x,z:g.z,stock:g.stock,timer:g.timer})),
+                turn:G.turn, turnIndex:G.turnIndex, turnCount:G.turnCount,
+                gameOver:!!G.gameOver, bridgesThisTurn:G.bridgesThisTurn || 0,
+                collapseDone:!!G.collapseDone
+            };
+        }
+
+        function applyOnlineSnapshot(state) {
+            if (!state || !Array.isArray(state.pieces)) return;
+            applyingOnlineState = true;
+            try {
+                G.pieces.forEach(p => { if (p.mesh) scene.remove(p.mesh); });
+                Object.values(G.boardGrid).forEach(t => { if (t) t.piece = null; });
+                G.pieces = [];
+                state.pieces.forEach(data => {
+                    const tile = G.boardGrid[keyOf(data.x, data.z)];
+                    if (!tile) return;
+                    const mesh = createPieceMesh(data.type, data.team);
+                    mesh.position.set(data.x, tile.height + 0.2, data.z);
+                    mesh.userData = { pieceId:data.id };
+                    scene.add(mesh);
+                    const piece = Object.assign({}, data, {mesh, tpMarker:null, obsMesh:null});
+                    tile.piece = piece;
+                    G.pieces.push(piece);
+                });
+                if (state.resources) G.resources = state.resources;
+                if (Array.isArray(state.gens)) state.gens.forEach(saved => {
+                    const gen = G.gens.find(g => g.x === saved.x && g.z === saved.z);
+                    if (gen) { gen.stock = saved.stock; gen.timer = saved.timer; refreshGenVisual(gen); }
+                });
+                G.turn = state.turn || G.turn;
+                G.turnIndex = Number.isInteger(state.turnIndex) ? state.turnIndex : G.teams.indexOf(G.turn);
+                G.turnCount = state.turnCount || G.turnCount;
+                G.gameOver = !!state.gameOver;
+                G.bridgesThisTurn = state.bridgesThisTurn || 0;
+                G.collapseDone = !!state.collapseDone;
+                G.selectedPiece = null;
+                updateTurnUI(); updateHUDCounters(); updateBedBadges();
+                if (onlineHostUid && firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid && !G.gameOver && !G.paused && isCurrentAI()) triggerAITurnDelay();
+                if (G.gameOver) { $('winner-title').innerText = 'MATCH FINISHED'; $('winner-subtitle').innerText = "The match has ended on the opponent board."; $('modal-game-over').classList.remove('hidden'); }
+            } finally { applyingOnlineState = false; }
+        }
+
+        async function startOnlineBoardSync() {
+            if (!activeLobbyCode || !firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) return;
+            const code = activeLobbyCode;
+            onlineMatchRef = firestoreDB.collection('matches').doc(code);
+            const user = firebaseAuth.currentUser;
+            const initial = makeOnlineSnapshot();
+            if (user.uid === onlineHostUid) {
+                await onlineMatchRef.set({
+                    lobbyId:code, hostUid:user.uid, seats:Object.fromEntries(G.teams.map(t => [t, G.teamControllers[t] && G.teamControllers[t].uid || null])),
+                    state:initial, turn:G.turn, version:0, status:'active', updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                }, {merge:false}).catch(async err => {
+                    const existing = await onlineMatchRef.get();
+                    if (!existing.exists) throw err;
+                });
+            }
+            if (onlineMatchUnsubscribe) onlineMatchUnsubscribe();
+            onlineMatchUnsubscribe = onlineMatchRef.onSnapshot(snap => {
+                if (!snap.exists) return;
+                const data = snap.data();
+                if (typeof data.version !== 'number' || data.version <= onlineMatchVersion) return;
+                onlineMatchVersion = data.version;
+                if (data.lastAction && data.lastAction.by === user.uid) return;
+                if (data.state) applyOnlineSnapshot(data.state);
+            }, err => { console.error('Online match sync failed:', err); setLobbyStatus('Live sync error: ' + err.message, true); });
+        }
+
+        async function publishOnlineBoard(actingTeam) {
+            if (!onlineMatchRef || applyingOnlineState || onlinePublishBusy || !firebaseAuth || !firebaseAuth.currentUser) return;
+            onlinePublishBusy = true;
+            const user = firebaseAuth.currentUser;
+            const state = makeOnlineSnapshot();
+            try {
+                await firestoreDB.runTransaction(async tx => {
+                    const snap = await tx.get(onlineMatchRef);
+                    if (!snap.exists) throw new Error('Online match record is missing.');
+                    const data = snap.data();
+                    if (data.status !== 'active') return;
+                    if (data.turn !== actingTeam) throw new Error('The shared turn changed. Wait for the board to sync.');
+                    if (data.seats && data.seats[actingTeam] && data.seats[actingTeam] !== user.uid) throw new Error('This browser does not own that team.');
+                    tx.update(onlineMatchRef, {
+                        state, turn:G.turn, status:G.gameOver ? 'finished' : 'active',
+                        version:(data.version || 0) + 1,
+                        lastAction:{by:user.uid, team:actingTeam, type:'turn-complete'},
+                        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                });
+            } catch (err) {
+                console.error('Could not publish online board:', err);
+                setLobbyStatus('Move sync failed: ' + err.message, true);
+            } finally { onlinePublishBusy = false; }
+        }
+
         async function launchStartedLobby(room) {
             if (!room || room.status !== 'started' || lobbyLaunchHandled) return;
             lobbyLaunchHandled = true;
@@ -5143,6 +5265,15 @@
                 });
 
                 launchGameMatch();
+                const teamBanner = $('online-team-banner');
+                if (teamBanner) {
+                    const cfg = TEAM_CONFIGS[myTeam] || TEAM_CONFIGS.white;
+                    teamBanner.textContent = 'YOU ARE PLAYING: ' + myTeam.toUpperCase();
+                    teamBanner.style.color = cfg.color;
+                    teamBanner.style.borderColor = cfg.color;
+                    teamBanner.classList.remove('hidden');
+                }
+                await startOnlineBoardSync();
                 setLobbyStatus('You are ' + myTeam.toUpperCase() + '. You can control only ' + myTeam.toUpperCase() +
                     '; other human teams are controlled by their players. ' +
                     (isHostBrowser ? 'This device runs the room AI.' : 'The host device runs the room AI.'));
