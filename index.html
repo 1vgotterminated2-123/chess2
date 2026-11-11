@@ -145,62 +145,35 @@
         @keyframes mythicPulse{50%{filter:brightness(1.5);box-shadow:0 0 42px rgba(232,121,249,.95),inset 0 0 38px rgba(192,38,211,.4)}}
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
-        /* Compact match toolbar: move it into the clear top edge of the board. */
+        /* Compact, full-width match toolbar. Horizontal scrolling keeps it from covering the board. */
         #persistent-controls-bar{
-          top:8px!important;bottom:auto!important;left:10px!important;right:10px!important;
-          transform:none!important;width:auto!important;max-width:none!important;
-          min-height:0!important;max-height:86px!important;overflow:visible!important;
-          box-sizing:border-box;flex-wrap:wrap!important;
-          align-items:center!important;justify-content:center!important;
-          gap:5px!important;padding:5px 7px!important;border-radius:13px!important;
-          background:rgba(15,23,42,.94)!important;
-          border:1px solid rgba(56,189,248,.32)!important;
-          box-shadow:0 8px 24px rgba(0,0,0,.28)!important;
+          position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:auto!important;
+          transform:none!important;width:100vw!important;max-width:none!important;min-width:0!important;
+          min-height:0!important;height:auto!important;max-height:54px!important;box-sizing:border-box!important;
+          display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:flex-start!important;
+          gap:7px!important;padding:5px 10px!important;border-radius:0 0 10px 10px!important;
+          overflow-x:auto!important;overflow-y:hidden!important;white-space:nowrap!important;
+          background:rgba(8,15,30,.97)!important;border:0!important;border-bottom:1px solid rgba(56,189,248,.35)!important;
+          box-shadow:0 5px 16px rgba(0,0,0,.22)!important;scrollbar-width:thin;
         }
-        #persistent-controls-bar>div{
-          flex:0 1 auto;min-width:0;flex-wrap:nowrap!important;
-          align-items:center!important;justify-content:center!important;gap:5px!important;
-        }
+        #persistent-controls-bar>div{flex:0 0 auto!important;min-width:0;flex-wrap:nowrap!important;align-items:center!important;gap:5px!important}
         #persistent-controls-bar>div:first-child{padding:0 5px}
         #persistent-controls-bar #turn-text{font-size:10px!important;white-space:nowrap}
-        #persistent-controls-bar button{
-          flex:0 0 auto;font-size:9px!important;line-height:1.15!important;
-          padding:6px 8px!important;border-radius:9px!important;white-space:nowrap;
-        }
-        #persistent-controls-bar #online-clock-controls{
-          display:flex!important;align-items:center!important;gap:4px!important;
-          flex-wrap:nowrap!important;font-size:10px!important;
-        }
-        #persistent-controls-bar #online-clock-controls>div{
-          padding:2px 6px!important;min-width:55px;
-        }
-        #persistent-controls-bar #online-clock-controls b{font-size:13px!important}
-        #persistent-controls-bar #online-clock-minutes{padding:5px 4px!important;font-size:10px!important}
-        #persistent-controls-bar #autoplay-speed-select{max-width:108px;font-size:10px!important}
+        #persistent-controls-bar button{flex:0 0 auto!important;font-size:9px!important;line-height:1!important;padding:5px 7px!important;border-radius:7px!important;white-space:nowrap}
+        #persistent-controls-bar #online-clock-controls{display:flex!important;align-items:center!important;gap:4px!important;flex-wrap:nowrap!important;font-size:10px!important}
+        #persistent-controls-bar #online-clock-controls>div{padding:1px 5px!important;min-width:48px}
+        #persistent-controls-bar #online-clock-controls b{font-size:12px!important}
+        #persistent-controls-bar #online-clock-minutes{padding:3px 4px!important;font-size:9px!important}
+        #persistent-controls-bar #online-clock-controls button{padding:4px 6px!important}
+        #persistent-controls-bar #autoplay-speed-select{max-width:100px;font-size:9px!important}
         #persistent-controls-bar #btn-autoplay-toggle{gap:4px!important}
-        @media(min-width:1100px){
-          /* Keep clear of the open game-review drawer on the right. */
-          #persistent-controls-bar{right:calc(32.5vw + 14px)!important}
-        }
-        @media(max-width:1099px){
-          #persistent-controls-bar{max-height:104px!important}
-          #persistent-controls-bar>div{flex-wrap:wrap!important}
-        }
         @media(max-width:700px){
-          #persistent-controls-bar{
-            top:5px!important;left:5px!important;right:5px!important;
-            max-height:118px!important;padding:5px!important;gap:4px!important;
-            border-radius:11px!important;
-          }
-          #persistent-controls-bar>div:first-child{gap:4px!important;padding:0 2px}
-          #persistent-controls-bar>div:first-child #turn-dot{width:9px;height:9px}
+          #persistent-controls-bar{max-height:48px!important;padding:4px 6px!important;gap:4px!important}
+          #persistent-controls-bar button{padding:4px 5px!important;font-size:8px!important}
           #persistent-controls-bar #turn-text{font-size:9px!important}
-          #persistent-controls-bar button{padding:5px 6px!important;font-size:8px!important}
+          #persistent-controls-bar #online-clock-controls>div{min-width:42px}
+          #persistent-controls-bar #online-clock-controls b{font-size:10px!important}
           #persistent-controls-bar #autoplay-text{display:none}
-          #persistent-controls-bar #online-clock-controls{gap:3px!important}
-          #persistent-controls-bar #online-clock-controls>div{min-width:48px;padding:2px 4px!important}
-          #persistent-controls-bar #online-clock-controls b{font-size:11px!important}
-          #persistent-controls-bar #autoplay-speed-select{max-width:86px}
         }
 
         /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
@@ -531,6 +504,11 @@
                             <select id="online-map" onchange="renderOnlineMapPreview()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs"></select>
                         </label>
                         <label class="col-span-2 flex items-center justify-between rounded-xl bg-slate-950 border border-purple-500/30 p-3 text-xs text-purple-200"><span>🐲 CHAOS PIECES</span><input id="online-chaos-pieces" type="checkbox" checked class="accent-purple-500 w-4 h-4"></label>
+                        <label class="col-span-2 space-y-1 text-[10px] text-slate-400">MATCH TIMER (PER PLAYER)
+                            <select id="online-lobby-clock-minutes" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
+                                <option value="1">1 minute</option><option value="3">3 minutes</option><option value="5">5 minutes</option><option value="10" selected>10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option>
+                            </select>
+                        </label>
                         <div class="col-span-2 rounded-xl bg-slate-950 border border-cyan-500/20 p-3"><div class="text-[10px] font-bold text-cyan-200 mb-1">ONLINE AI RULES</div><p class="text-[10px] text-slate-400">When a room starts with AI fill-ins, Adaptive AI Strategy and Dynamic Piece Roles are automatically forced ON.</p></div>
                         <div class="col-span-2 rounded-xl bg-slate-950/70 p-2"><canvas id="online-map-preview" class="map-preview-canvas" width="720" height="405"></canvas><p id="online-map-preview-desc" class="text-[10px] text-slate-500 mt-1"></p><div class="flex gap-3 text-[9px] text-slate-400"><span class="text-emerald-300">● Emerald gen</span><span class="text-sky-300">● Diamond gen</span></div></div>
                         <label class="space-y-1 text-[10px] text-slate-400">ROOM VISIBILITY
@@ -4780,9 +4758,38 @@
             } catch(e){alert('Could not resign: '+e.message);}
         }
         async function finishOnlineOnTime(loserTeam) {
-            if(onlineClockFinishing||!onlineMatchRef||!firebaseAuth?.currentUser)return; onlineClockFinishing=true;
-            try { await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists||snap.data().status!=='active')return;const d=snap.data(),clock=d.clock||onlineClock;const now=Date.now();const remaining=Math.max(0,Number(clock[loserTeam+'Ms']||0)-(clock.activeTeam===loserTeam?Math.max(0,now-Number(clock.activeSinceMs||now)):0));if(remaining>0)return;const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==loserTeam);tx.update(onlineMatchRef,{status:'finished',winner,timeoutTeam:loserTeam,version:(d.version||0)+1,lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'timeout',winner},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}); }
-            catch(e){console.warn('Clock timeout update failed:',e);} finally{onlineClockFinishing=false;}
+            if (onlineClockFinishing || !onlineMatchRef || !firebaseAuth?.currentUser) return;
+            onlineClockFinishing = true;
+            try {
+                const result = await firestoreDB.runTransaction(async tx => {
+                    const snap = await tx.get(onlineMatchRef);
+                    if (!snap.exists || snap.data().status !== 'active') return null;
+                    const d = snap.data(), clock = d.clock || onlineClock, now = Date.now();
+                    const remaining = Math.max(0, Number(clock[loserTeam + 'Ms'] || 0) -
+                        (clock.activeTeam === loserTeam ? Math.max(0, now - Number(clock.activeSinceMs || now)) : 0));
+                    if (remaining > 0) return null;
+                    const winner = (G.teams || Object.keys(d.seats || {})).find(t => t !== loserTeam);
+                    tx.update(onlineMatchRef, {
+                        status:'finished', winner, timeoutTeam:loserTeam,
+                        version:(d.version || 0) + 1,
+                        lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'timeout',winner},
+                        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    return {winner, loserTeam};
+                });
+                if (result) {
+                    G.gameOver = true;
+                    stopOnlineClockTicker();
+                    if ($('winner-title')) $('winner-title').textContent = 'TIME OUT';
+                    if ($('winner-subtitle')) $('winner-subtitle').textContent =
+                        String(result.winner || 'The opposing team').toUpperCase() + ' WINS — opponent ran out of time.';
+                    $('modal-game-over')?.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.warn('Clock timeout update failed:', e);
+            } finally {
+                onlineClockFinishing = false;
+            }
         }
         let applyingOnlineState = false;
         let onlinePublishBusy = false;
@@ -5406,11 +5413,89 @@
             refreshPublicLobbyList();
         }
 
+
+        const onlineEloUpdatesInFlight = new Set();
+        async function recordOnlineMatchElo(matchData, matchCode) {
+            const user = firebaseAuth?.currentUser;
+            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchData.winner || !matchCode) return;
+            if (onlineEloUpdatesInFlight.has(matchCode)) return;
+            onlineEloUpdatesInFlight.add(matchCode);
+            try {
+                const rosterSnap = await firestoreDB.collection('lobbies').doc(matchCode).collection('players').get();
+                const humans = rosterSnap.docs.map(d => ({ uid:d.id, ...d.data() }))
+                    .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
+                const fmt = matchData.config?.teamFormat === '4-team' ? '4-team' : '2-team';
+                const teams = TEAM_FORMATS[fmt] || ['white','black'];
+                const myIndex = humans.findIndex(p => p.uid === user.uid);
+                if (myIndex < 0 || myIndex >= teams.length) return;
+                const myTeam = teams[myIndex];
+                // Confirm the persisted seat mapping before changing a rating.
+                if (matchData.seats && matchData.seats[myTeam] && matchData.seats[myTeam] !== user.uid) return;
+                const mode = matchData.config?.mode || 'bedwars';
+                const ratingKey = mode === 'bedwars' ? 'bedwars' : (mode === 'commander' ? 'draft' : 'classic');
+                const opponents = humans.filter((p,i) => i !== myIndex && i < teams.length);
+                if (!opponents.length) return; // AI-only results do not affect competitive Elo.
+                const opponentAverage = opponents.reduce((sum,p) => sum + Number(p.elo ?? p.ratings?.[ratingKey] ?? 300), 0) / opponents.length;
+                const didWin = matchData.winner === myTeam;
+                const profileRef = firestoreDB.doc('users/' + user.uid);
+                await firestoreDB.runTransaction(async tx => {
+                    const profileSnap = await tx.get(profileRef);
+                    if (!profileSnap.exists) return;
+                    const profile = profileSnap.data() || {};
+                    const processed = Array.isArray(profile.processedMatchIds) ? profile.processedMatchIds : [];
+                    if (processed.includes(matchCode)) return;
+                    const ratings = Object.assign({classic:300,draft:300,bedwars:300}, profile.ratings || {});
+                    const before = Number(ratings[ratingKey] ?? 300);
+                    const expected = 1 / (1 + Math.pow(10, (opponentAverage - before) / 400));
+                    const change = Math.round(32 * ((didWin ? 1 : 0) - expected));
+                    const after = Math.max(0, before + change);
+                    ratings[ratingKey] = after;
+                    const oldStats = profile.stats || {};
+                    const stats = {
+                        gamesPlayed:Number(oldStats.gamesPlayed || 0) + 1,
+                        wins:Number(oldStats.wins || 0) + (didWin ? 1 : 0),
+                        losses:Number(oldStats.losses || 0) + (didWin ? 0 : 1),
+                        winStreak:didWin ? Number(oldStats.winStreak || 0) + 1 : 0,
+                        bestWinStreak:Math.max(Number(oldStats.bestWinStreak || 0), didWin ? Number(oldStats.winStreak || 0) + 1 : 0)
+                    };
+                    const history = Array.isArray(profile.eloHistory) ? profile.eloHistory.slice(-99) : [];
+                    history.push({ classic:ratings.classic, draft:ratings.draft, bedwars:ratings.bedwars,
+                        mode:ratingKey, rating:after, change, before, result:didWin?'win':'loss',
+                        matchId:matchCode, timestamp:Date.now() });
+                    tx.update(profileRef, {
+                        ratings, stats, eloHistory:history,
+                        processedMatchIds:firebase.firestore.FieldValue.arrayUnion(matchCode)
+                    });
+                    if (currentAccount && currentAccount.id === user.uid) {
+                        currentAccount.ratings = ratings;
+                        currentAccount.stats = stats;
+                        currentAccount.eloHistory = history;
+                    }
+                });
+                if (currentAccount && currentAccount.id === user.uid) {
+                    ['classic','draft','bedwars'].forEach(k => {
+                        const top = $('rating-' + k), page = $('profile-page-' + k);
+                        if (top) top.textContent = currentAccount.ratings[k];
+                        if (page) page.textContent = currentAccount.ratings[k];
+                    });
+                }
+            } catch (err) {
+                console.warn('Could not update online Elo:', err);
+            } finally {
+                onlineEloUpdatesInFlight.delete(matchCode);
+            }
+        }
+
         async function startOnlineBoardSync() {
             if (!activeLobbyCode || !firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) return;
             const code = activeLobbyCode;
             onlineMatchRef = firestoreDB.collection('matches').doc(code);
             const user = firebaseAuth.currentUser;
+            const lobbyMinutes = Math.max(1, Math.min(30, Number(activeLobbyRoomData?.clockMinutes || 10)));
+            const lobbyClockMs = lobbyMinutes * 60000;
+            onlineClock = { whiteMs:lobbyClockMs, blackMs:lobbyClockMs, activeTeam:G.turn, activeSinceMs:Date.now(), minutes:lobbyMinutes };
+            if ($('online-clock-minutes')) $('online-clock-minutes').value = String(lobbyMinutes);
+            onlineMatchVersion = -1;
             const initial = makeOnlineSnapshot();
             if (user.uid === onlineHostUid) {
                 await onlineMatchRef.set({
@@ -5434,7 +5519,7 @@
                     },
                     state:initial,
                     turn:G.turn,
-                    clock:Object.assign({activeTeam:G.turn,activeSinceMs:Date.now(),minutes:10},Object.fromEntries(G.teams.map(t=>[onlineClockKey(t),600000]))),
+                    clock:Object.assign({activeTeam:G.turn,activeSinceMs:Date.now(),minutes:lobbyMinutes},Object.fromEntries(G.teams.map(t=>[onlineClockKey(t),lobbyClockMs]))),
                     version:0,
                     status:'active',
                     lastAction:{type:'match-created', by:user.uid, team:G.turn},
@@ -5453,6 +5538,7 @@
                 onlineMatchVersion = data.version;
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
                 if (data.status === 'finished') {
+                    recordOnlineMatchElo(data, code);
                     G.gameOver = true; stopOnlineClockTicker();
                     releaseLobbyAfterMatch();
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
@@ -5624,6 +5710,7 @@
                 const map = mapById(mapId);
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
+                const clockMinutes = Math.max(1, Math.min(30, Number($('online-lobby-clock-minutes')?.value || 10)));
                 const maxPlayers = teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
                 const userRef = firestoreDB.doc('users/' + user.uid);
@@ -5639,12 +5726,12 @@
                     tx.set(roomRef, {
                         code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
                         visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers,
-                        chaosPieces: !!$('online-chaos-pieces')?.checked, adaptiveAI: true, dynamicPieceRoles: true, aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        chaosPieces: !!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI: true, dynamicPieceRoles: true, aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
-                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, chaosPieces:!!$('online-chaos-pieces')?.checked, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
+                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, chaosPieces:!!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
                 watchLobby(code);
                 setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
