@@ -5036,7 +5036,7 @@
             stopPublicLobbyListener();
             $('public-lobby-status').textContent = 'Listening for public rooms...';
             // Query only the public visibility field. Private rooms are never returned in this list.
-            publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').limit(40).onSnapshot(snapshot => {
+            publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').where('status', '==', 'waiting').limit(40).onSnapshot(snapshot => {
                 renderPublicLobbyList(snapshot);
                 $('public-lobby-status').textContent = 'Live room list • refreshed automatically';
             }, err => {
@@ -5156,8 +5156,31 @@
             const initial = makeOnlineSnapshot();
             if (user.uid === onlineHostUid) {
                 await onlineMatchRef.set({
-                    lobbyId:code, hostUid:user.uid, seats:Object.fromEntries(G.teams.map(t => [t, G.teamControllers[t] && G.teamControllers[t].uid || null])),
-                    state:initial, turn:G.turn, version:0, status:'active', updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                    protocol:1,
+                    lobbyId:code,
+                    roomCode:code,
+                    hostUid:user.uid,
+                    seats:Object.fromEntries(G.teams.map(t => {
+                        const controller = G.teamControllers[t] || {};
+                        // The host is the authenticated controller for AI seats.
+                        // This lets Firestore authorize host-run AI turns without
+                        // granting the host control of another human's seat.
+                        const seatUid = controller.uid || (controller.type === 'ai' ? user.uid : null);
+                        return [t, seatUid];
+                    })),
+                    config:{
+                        mode:G.mode,
+                        teamFormat:G.teamFormat,
+                        mapId:G.selectedMapId,
+                        chaosPieces:!!G.chaosPieces
+                    },
+                    state:initial,
+                    turn:G.turn,
+                    version:0,
+                    status:'active',
+                    lastAction:{type:'match-created', by:user.uid, team:G.turn},
+                    createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
                 }, {merge:false}).catch(async err => {
                     const existing = await onlineMatchRef.get();
                     if (!existing.exists) throw err;
@@ -5172,6 +5195,12 @@
                 if (data.lastAction && data.lastAction.by === user.uid) return;
                 if (data.state) applyOnlineSnapshot(data.state);
             }, err => { console.error('Online match sync failed:', err); setLobbyStatus('Live sync error: ' + err.message, true); });
+
+            // The host is responsible for AI seats. Do not wait for a remote
+            // snapshot to trigger the first AI move.
+            if (user.uid === onlineHostUid && !G.gameOver && !G.paused && isCurrentAI()) {
+                triggerAITurnDelay();
+            }
         }
 
         async function publishOnlineBoard(actingTeam) {
@@ -5384,7 +5413,7 @@
                     if (room.status !== 'waiting') throw new Error('This room is no longer accepting players.');
                     const cap = Number(room.maxPlayers || 2);
                     if (!playerSnap.exists && existingPlayersSnap.size >= cap) throw new Error('This room is full (' + cap + ' players max).');
-                    if (playerSnap.exists) tx.update(playerRef, { username: currentAccount.username, ready: false, joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    if (playerSnap.exists) tx.update(playerRef, { ready: false });
                     else tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(room.mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
