@@ -336,6 +336,19 @@
         .name-effect-divine{text-shadow:0 0 4px #fff,0 0 12px #fde68a,0 0 24px #f59e0b,0 0 36px rgba(255,255,255,.55)!important}
         .name-effect-bloodmoon{text-shadow:0 0 4px #fecaca,0 0 12px #dc2626,0 0 25px #7f1d1d!important}
         .name-effect-aurora{text-shadow:0 0 4px #ccfbf1,0 0 12px #2dd4bf,0 0 22px #818cf8,0 0 30px #c084fc!important}
+        /* Transcendent effects: distinct animated ornaments that do not alter font metrics. */
+        .player-name-cosmetic.name-effect-divine,
+        .player-name-cosmetic.name-effect-aurora{position:relative!important;display:inline-block!important;isolation:isolate;overflow:visible!important;vertical-align:baseline}
+        .player-name-cosmetic.name-effect-divine{color:inherit;text-shadow:0 0 2px #fff,0 0 8px #fff7ad,0 0 17px #fbbf24,0 0 29px rgba(251,191,36,.9),0 0 44px rgba(255,255,255,.55)!important;filter:drop-shadow(0 0 5px rgba(253,230,138,.9))}
+        .player-name-cosmetic.name-effect-divine:before{content:"";position:absolute;z-index:-1;left:-.18em;right:-.18em;top:50%;height:1.48em;transform:translateY(-50%) rotate(-9deg);border:2px solid rgba(253,230,138,.9);border-left-color:rgba(255,255,255,.2);border-right-color:rgba(251,191,36,.35);border-radius:50%;box-shadow:0 0 7px #fff7ad,0 0 18px rgba(245,158,11,.9),inset 0 0 9px rgba(255,255,255,.35);animation:divineOrbit 5s linear infinite;pointer-events:none}
+        .player-name-cosmetic.name-effect-divine:after{content:"✦  ·  ✧";position:absolute;z-index:1;right:-.45em;top:-.75em;color:#fff7ad;font-size:.58em;letter-spacing:.35em;text-shadow:0 0 5px #fff,0 0 13px #f59e0b;white-space:nowrap;animation:divineSpark 2.6s ease-in-out infinite;pointer-events:none}
+        .player-name-cosmetic.name-effect-aurora{ text-shadow:0 0 3px #ecfeff,0 0 9px #5eead4,0 0 19px #818cf8,0 0 32px #c084fc!important;filter:drop-shadow(0 0 5px rgba(45,212,191,.8)) }
+        .player-name-cosmetic.name-effect-aurora:before{content:"";position:absolute;z-index:-1;inset:-.55em -.42em;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 9%,rgba(45,212,191,.85) 17%,rgba(129,140,248,.78) 33%,transparent 46%,rgba(192,132,252,.82) 62%,rgba(45,212,191,.72) 78%,transparent 91%);filter:blur(9px);opacity:.8;animation:auroraCorona 7s linear infinite;pointer-events:none}
+        .player-name-cosmetic.name-effect-aurora:after{content:"〰";position:absolute;z-index:1;left:50%;top:-.88em;transform:translateX(-50%);font-size:.8em;letter-spacing:.18em;color:#99f6e4;text-shadow:0 0 7px #2dd4bf,0 0 16px #818cf8,0 0 24px #c084fc;white-space:nowrap;animation:auroraWave 3.8s ease-in-out infinite;pointer-events:none}
+        @keyframes divineOrbit{to{transform:translateY(-50%) rotate(351deg)}}
+        @keyframes divineSpark{0%,100%{opacity:.55;transform:translateY(2px) scale(.85)}50%{opacity:1;transform:translateY(-3px) scale(1.15)}}
+        @keyframes auroraCorona{0%{transform:rotate(0deg) scaleX(.94);filter:blur(9px) hue-rotate(0deg)}50%{transform:rotate(180deg) scaleX(1.08);filter:blur(12px) hue-rotate(35deg)}100%{transform:rotate(360deg) scaleX(.94);filter:blur(9px) hue-rotate(0deg)}}
+        @keyframes auroraWave{0%,100%{opacity:.55;transform:translate(-50%,3px) scaleX(.88)}50%{opacity:1;transform:translate(-50%,-3px) scaleX(1.12)}}
         @keyframes apotheosis{to{filter:brightness(1.6) drop-shadow(0 0 13px rgba(255,255,255,.95));letter-spacing:.08em}}@keyframes orbitSpark{to{transform:rotate(360deg)}}@keyframes horizonPulse{50%{text-shadow:0 0 8px #020617,0 0 20px #a78bfa,0 0 32px #22d3ee}}@keyframes frostPulse{to{filter:brightness(1.5)}}
 
         /* Reliable custom profile-badge tooltip (instead of browser-native title popups). */
@@ -7118,9 +7131,9 @@
           {id:'effect-toxic',name:'Toxic Radiance',type:'effect',className:'name-effect-toxic',cost:1050,rarity:'mythic',desc:'A vivid radioactive-lime aura.'},
           {id:'effect-arcane',name:'Arcane Pulse',type:'effect',className:'name-effect-arcane',cost:1350,rarity:'mythic',desc:'A layered violet and magenta spell glow.'},
           {id:'effect-glitch',name:'Glitchcore',type:'effect',className:'name-effect-glitch',cost:1750,rarity:'mythic',desc:'Offset cyan and crimson chromatic lettering.'},
-          {id:'effect-divine',name:'Divine Halo',type:'effect',className:'name-effect-divine',cost:2800,rarity:'transcendent',desc:'A brilliant golden-white celestial radiance.'},
+          {id:'effect-divine',name:'Celestial Crown',type:'effect',className:'name-effect-divine',cost:4200,rarity:'transcendent',desc:'A rotating golden orbital crown, floating star sigils, and a brilliant solar aura.'},
           {id:'effect-bloodmoon',name:'Blood Moon',type:'effect',className:'name-effect-bloodmoon',cost:2100,rarity:'legendary',desc:'A deep scarlet lunar aura.'},
-          {id:'effect-aurora',name:'Aurora Veil',type:'effect',className:'name-effect-aurora',cost:3200,rarity:'transcendent',desc:'A cool northern-lights glow blending teal, indigo, and violet.'}
+          {id:'effect-aurora',name:'Prismatic Singularity',type:'effect',className:'name-effect-aurora',cost:4600,rarity:'transcendent',desc:'A living chromatic corona rotates behind your name while spectral aurora ribbons ripple overhead.'}
         ];
         let nameShopType='font', inventoryTab='themes';
         const NAME_RARITY_ORDER={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5,transcendent:6};
