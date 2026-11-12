@@ -149,7 +149,7 @@
         /* The match toolbar must never override the Tailwind hidden state. */
         #persistent-controls-bar.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
         #persistent-controls-bar:not(.hidden){
-          display:flex!important;visibility:visible!important;z-index:40!important;
+          display:flex!important;visibility:visible!important;z-index:25!important;
           position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:auto!important;
           transform:none!important;width:100vw!important;max-width:none!important;min-width:0!important;
           min-height:0!important;height:auto!important;max-height:54px!important;box-sizing:border-box!important;
@@ -178,6 +178,11 @@
           #persistent-controls-bar #online-clock-controls b{font-size:10px!important}
           #persistent-controls-bar #autoplay-text{display:none}
         }
+
+        /* Match controls stay below every modal; the shop always owns its close button. */
+        #modal-item-shop{z-index:130!important}
+        #modal-item-shop>div{position:relative}
+        #modal-item-shop>div>button:first-child{z-index:5!important;pointer-events:auto!important}
 
         /* Unified UI theme layer: apply the equipped palette to the whole interface, not only panels. */
         :root{--theme-bg:#070d1c;--theme-panel:#123c54;--theme-accent:#8b9cff;--theme-soft:#123c54cc}
@@ -643,7 +648,7 @@
     </div>
 
     <!-- RIGHT SIDE ACTION HUD BUTTONS -->
-    <div id="hud-sidebar" class="absolute top-36 right-3 z-20 flex flex-col gap-2 pointer-events-auto hidden">
+    <div id="hud-sidebar" class="absolute top-[190px] right-3 z-20 flex flex-col gap-2 pointer-events-auto hidden">
         <button onclick="setCameraPreset('orbit')" title="Orbit 3D View" class="w-10 h-10 rounded-xl glass-panel hover:bg-slate-800 text-slate-200 border border-slate-700 flex items-center justify-center transition active:scale-95 shadow">
             <i class="fa-solid fa-cube"></i>
         </button>
@@ -5371,6 +5376,10 @@
                     if (!mesh.parent) scene.add(mesh);
                     mesh.userData = mesh.userData || {};
                     mesh.userData.pieceId = data.id;
+                    // Keep the replay registry complete on every client, including
+                    // pieces first seen in a remote snapshot (summons/spawns).
+                    G.reviewPieceRegistry = G.reviewPieceRegistry || {};
+                    G.reviewPieceRegistry[piece.id] = piece;
                     tile.piece = piece;
                     nextPieces.push(piece);
                 });
@@ -5399,7 +5408,9 @@
                 G.gameOver = !!state.gameOver;
                 G.bridgesThisTurn = state.bridgesThisTurn || 0;
                 G.collapseDone = !!state.collapseDone;
-                if (Array.isArray(state.reviewSnapshots) && state.reviewSnapshots.length) {
+                if (Array.isArray(state.reviewSnapshots)) {
+                    // Replace both arrays together, even when the remote history is
+                    // empty, so a stale local replay can never leak into this match.
                     G.reviewSnapshots = state.reviewSnapshots;
                     G.moveHistoryLog = Array.isArray(state.moveHistoryLog) ? state.moveHistoryLog : [];
                     G.analysisCurrentIndex = G.moveHistoryLog.length - 1;
@@ -5609,6 +5620,10 @@
                 onlineMatchVersion = data.version;
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
                 if (data.status === 'finished') {
+                    // Apply the final board + replay log before opening the result UI.
+                    // Previously this branch returned early, so the opponent could
+                    // review the position from one move before the actual finish.
+                    if (data.state) applyOnlineSnapshot(data.state);
                     recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true; stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
