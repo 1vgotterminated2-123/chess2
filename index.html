@@ -3120,7 +3120,7 @@
             mesh.receiveShadow = true;
             mesh.userData = { tileX: x, tileZ: z };
             scene.add(mesh);
-            G.boardGrid[keyOf(x, z)] = { tileMesh: mesh, x, z, height: 0, isVoid: false, isGenerator: false, genType: null, baseTeam: null, piece: null, wool: true };
+            G.boardGrid[keyOf(x, z)] = { tileMesh: mesh, x, z, height: 0, isVoid: false, isGenerator: false, genType: null, baseTeam: null, piece: null, wool: true, woolTeam: piece.team };
 
             playSound('bridge');
             showFloatingText('WOOL PLACED', x, z, '#f59e0b');
@@ -5631,6 +5631,8 @@
                 pieces,
                 resources: JSON.parse(JSON.stringify(G.resources || {})),
                 gens: (G.gens || []).map(g => ({x:g.x,z:g.z,stock:g.stock,timer:g.timer})),
+                // Wool bridges are board tiles, not pieces, so replicate them separately.
+                woolTiles: Object.values(G.boardGrid || {}).filter(t => t && t.wool).map(t => ({x:t.x,z:t.z,team:t.woolTeam || 'white'})),
                 turn:G.turn, turnIndex:G.turnIndex, turnCount:G.turnCount,
                 gameOver:!!G.gameOver, winnerTeam:G.winnerTeam || null, bridgesThisTurn:G.bridgesThisTurn || 0,
                 collapseDone:!!G.collapseDone,
@@ -5650,6 +5652,38 @@
                 const oldById = new Map(G.pieces.map(p => [String(p.id), p]));
                 const nextPieces = [];
                 Object.values(G.boardGrid).forEach(t => { if (t) t.piece = null; });
+
+                // Draw wool bridges received from the authoritative online snapshot.
+                // Keep existing meshes when possible to avoid flicker on every update.
+                if (Array.isArray(state.woolTiles)) {
+                    const wantedWool = new Map(state.woolTiles.map(t => [keyOf(t.x, t.z), t]));
+                    Object.entries(G.boardGrid).forEach(([key, tile]) => {
+                        if (tile && tile.wool && !wantedWool.has(key)) {
+                            if (tile.tileMesh) scene.remove(tile.tileMesh);
+                            delete G.boardGrid[key];
+                        }
+                    });
+                    wantedWool.forEach((saved, key) => {
+                        const existing = G.boardGrid[key];
+                        const team = saved.team || 'white';
+                        if (existing && existing.wool) {
+                            existing.woolTeam = team;
+                            const cfg = TEAM_CONFIGS[team] || TEAM_CONFIGS.white;
+                            if (existing.tileMesh && existing.tileMesh.material && existing.tileMesh.material.color) {
+                                existing.tileMesh.material.color.setHex(cfg.hex);
+                            }
+                            return;
+                        }
+                        if (existing && existing.tileMesh) scene.remove(existing.tileMesh);
+                        const cfg = TEAM_CONFIGS[team] || TEAM_CONFIGS.white;
+                        const mesh = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.4, 0.95), new THREE.MeshStandardMaterial({ color: cfg.hex, roughness: 0.9 }));
+                        mesh.position.set(saved.x, 0, saved.z);
+                        mesh.receiveShadow = true;
+                        mesh.userData = { tileX: saved.x, tileZ: saved.z, wool: true };
+                        scene.add(mesh);
+                        G.boardGrid[key] = { tileMesh: mesh, x:saved.x, z:saved.z, height:0, isVoid:false, isGenerator:false, genType:null, baseTeam:null, piece:null, wool:true, woolTeam:team };
+                    });
+                }
 
                 state.pieces.forEach(data => {
                     const tile = G.boardGrid[keyOf(data.x, data.z)];
