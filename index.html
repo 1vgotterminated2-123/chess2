@@ -429,7 +429,7 @@
                     <div id="team-controllers-container" class="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                         <!-- Dynamic team controllers injected here -->
                     </div>
-
+                    <p id="ai-training-memory-status" class="text-[10px] text-slate-500">AI training memory: loading...</p>
 
                 </div>
 
@@ -1288,6 +1288,8 @@
             reviewPieceRegistry: {},
             aiLastMovedPieceByTeam: {},
             aiRecentPieceIdsByTeam: {},
+            aiTrainingTrace: [],
+            aiTrainingRecorded: false,
             isReviewing: false,
 
             selectedMapId: 'archipelago',
@@ -2841,7 +2843,8 @@
            ACCELERATED D20 COMBAT
            ===================================================================== */
         function initiateD20Combat(attacker, defender) {
-            G.activeBattle = { attacker, defender, rolling: false };
+            const evaluation = captureMoveEvaluation(attacker, null, defender);
+            G.activeBattle = { attacker, defender, rolling: false, evaluation };
             $('d20-atk-name').innerText = `${attacker.team.toUpperCase()} ${TYPE_NAMES[attacker.type].toUpperCase()}`;
             $('d20-atk-stat').innerText = `ATK: ${getAtk(attacker)}`;
             $('d20-def-name').innerText = `${defender.team.toUpperCase()} ${TYPE_NAMES[defender.type].toUpperCase()}`;
@@ -2887,7 +2890,7 @@
         function resolveD20Combat() {
             if (!G.activeBattle || G.activeBattle.rolling) return;
             G.activeBattle.rolling = true;
-            const { attacker, defender } = G.activeBattle;
+            const { attacker, defender, evaluation } = G.activeBattle;
             const mid = G.matchId;
 
             const roll = Math.floor(Math.random() * 20) + 1;
@@ -2929,7 +2932,7 @@
                     const fromX = attacker.x, fromZ = attacker.z;
                     if (defender.hp <= 0) {
                         const dx = defender.x, dz = defender.z;
-                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: dx, z: dz }, defender, 'Combat Capture');
+                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: dx, z: dz }, defender, 'Combat Capture', evaluation);
                         eliminatePiece(defender, attacker);
                         if (G.gameOver) return;
                         cancelTeleportChannel(attacker);
@@ -2939,7 +2942,7 @@
                         endTurn();
                     } else {
                         attacker.hasMoved = true;
-                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: fromX, z: fromZ }, defender, 'Combat Strike');
+                        logGameMove(attacker, { x: fromX, z: fromZ }, { x: fromX, z: fromZ }, defender, 'Combat Strike', evaluation);
                         if (G.gameOver) return;
                         deselectPiece();
                         endTurn();
@@ -3033,7 +3036,8 @@
             const tile = G.boardGrid[keyOf(x, z)];
             if (!tile || !tile.isVoid) return false;
             if (piece.blocks < 1) { showFloatingText('NEED WOOL! (BUY IN BASE)', piece.x, piece.z, '#ef4444'); return false; }
-            if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) { showFloatingText('WOOL LIMIT: 2 PER TURN', piece.x, piece.z, '#ef4444'); return false; }
+            const bridgeLimit = isCurrentAI() ? MAX_BRIDGES_PER_TURN * 2 : MAX_BRIDGES_PER_TURN;
+            if (G.bridgesThisTurn >= bridgeLimit) { showFloatingText(`WOOL LIMIT: ${bridgeLimit} PER TURN`, piece.x, piece.z, '#ef4444'); return false; }
             piece.blocks--;
             G.bridgesThisTurn++;
 
@@ -3737,6 +3741,89 @@
         }
 
         /* =====================================================================
+           PERSISTENT AI TRAINING MEMORY
+           Training is saved locally so matches played in this browser improve
+           future AI matches. The model learns from team outcomes, not just ELO.
+           ===================================================================== */
+        const AI_LEARNING_STORAGE_KEY = 'chess2_bedwars_ai_learning_v1';
+        const AI_LEARNING_RATE = 0.035;
+        function loadAILearning() {
+            const fallback = { games: 0, decisions: 0, weights: { progress: 1, generator: 1.5, attack: 1.5, bedAttack: 2, center: 0.3, leaveBase: 1.2, exposed: -1, repeat: -1.2 } };
+            try {
+                const saved = JSON.parse(localStorage.getItem(AI_LEARNING_STORAGE_KEY) || 'null');
+                if (!saved || typeof saved !== 'object') return fallback;
+                return { ...fallback, ...saved, weights: { ...fallback.weights, ...(saved.weights || {}) } };
+            } catch (e) { return fallback; }
+        }
+        let AI_LEARNING = loadAILearning();
+        function updateAILearningStatus() {
+            const el = $('ai-training-memory-status');
+            if (el) el.textContent = `AI TRAINING MEMORY: ${AI_LEARNING.games || 0} matches • ${(AI_LEARNING.decisions || 0).toLocaleString()} AI decisions learned (this browser)`;
+        }
+        function saveAILearning() {
+            try { localStorage.setItem(AI_LEARNING_STORAGE_KEY, JSON.stringify(AI_LEARNING)); } catch (e) { console.warn('AI training memory could not be saved:', e); }
+            updateAILearningStatus();
+        }
+        function aiTrainingFeatures(piece, move, attackTarget) {
+            const target = aiFinalTarget(piece);
+            const fromD = target ? cheb(piece, target) : 0;
+            const toD = move && target ? cheb(move, target) : fromD;
+            const fromBase = inBase(piece);
+            const toBase = move ? isPosInBase(move.x, move.z, piece.team) : fromBase;
+            const tile = move ? G.boardGrid[keyOf(move.x, move.z)] : null;
+            const enemiesNear = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed' && move && cheb(p, move) <= 2).length;
+            return {
+                progress: Math.max(-1, Math.min(1, (fromD - toD) / 4)),
+                generator: tile && tile.isGenerator ? 1 : 0,
+                attack: attackTarget ? 1 : 0,
+                bedAttack: attackTarget && attackTarget.type === 'bed' ? 1 : 0,
+                center: move ? Math.max(0, 1 - cheb(move, { x: 0, z: 0 }) / 20) : 0,
+                leaveBase: fromBase && !toBase ? 1 : 0,
+                exposed: enemiesNear > 0 && !attackTarget ? Math.min(1, enemiesNear / 3) : 0,
+                repeat: move && (piece.moveHistory || []).some(h => h.x === move.x && h.z === move.z) ? 1 : 0
+            };
+        }
+        function learnedAIMoveBonus(features) {
+            if (!features) return 0;
+            const weights = AI_LEARNING.weights || {};
+            let bonus = 0;
+            Object.keys(features).forEach(k => { bonus += (Number(weights[k]) || 0) * Number(features[k] || 0); });
+            return Math.max(-180, Math.min(180, bonus * 18));
+        }
+        function recordAIDecision(choice) {
+            if (!choice || !choice.piece || !G.teamControllers?.[choice.piece.team] || G.teamControllers[choice.piece.team].type !== 'ai') return;
+            const move = choice.kind === 'move' ? choice.m : null;
+            const target = choice.kind === 'attack' ? choice.target : null;
+            const features = aiTrainingFeatures(choice.piece, move, target);
+            G.aiTrainingTrace = G.aiTrainingTrace || [];
+            G.aiTrainingTrace.push({ team: choice.piece.team, features });
+            if (G.aiTrainingTrace.length > 500) G.aiTrainingTrace.shift();
+        }
+        function trainAIFromFinishedMatch(winnerTeam) {
+            if (G.aiTrainingRecorded) return;
+            G.aiTrainingRecorded = true;
+            const trace = G.aiTrainingTrace || [];
+            const byTeam = new Map();
+            trace.forEach(row => { if (!byTeam.has(row.team)) byTeam.set(row.team, []); byTeam.get(row.team).push(row.features); });
+            if (!byTeam.size) return;
+            byTeam.forEach((decisions, team) => {
+                const reward = team === winnerTeam ? 1 : -0.55;
+                decisions.forEach(features => {
+                    Object.keys(features).forEach(key => {
+                        const current = Number(AI_LEARNING.weights[key]) || 0;
+                        AI_LEARNING.weights[key] = Math.max(-4, Math.min(4, current + reward * Number(features[key] || 0) * AI_LEARNING_RATE));
+                    });
+                });
+                AI_LEARNING.decisions += decisions.length;
+            });
+            AI_LEARNING.games++;
+            saveAILearning();
+            console.info(`AI training memory updated: ${AI_LEARNING.games} games, ${AI_LEARNING.decisions} decisions`);
+        }
+
+        updateAILearningStatus();
+
+        /* =====================================================================
            GOD-AI ENGINE WITH WAYPOINT NAVIGATION & SQUAD BRIDGING
            ===================================================================== */
         function aiBaseCenter(team) {
@@ -3792,9 +3879,7 @@
             // Wool carriers deliberately secure an intermediate resource island before rushing.
             if (G.mode === 'bedwars' && piece.aiRouteKind && !piece.aiRouteDone) {
                 const wantedType = piece.aiRouteKind === 'mid' ? 'em' : 'dia';
-                const candidates = G.gens.filter(g => g.type === wantedType);
-                const home = aiBaseCenter(team);
-                const gen = candidates.slice().sort((a, b) => cheb(home, a) - cheb(home, b))[0];
+                const gen = nearestGeneratorForTeam(team, wantedType);
                 if (gen && cheb(piece, gen) > 1) return gen;
                 if (gen) piece.aiRouteDone = true;
             }
@@ -3807,28 +3892,30 @@
             return enemyObjective ? { x: enemyObjective.x, z: enemyObjective.z } : aiBaseCenter(otherTeam(team));
         }
 
-        // Cardinal A* pathing over both islands and void cells. The route is reused
-        // as a movement waypoint, and its first void cell becomes the next wool tile.
+        // Grid route planner: void cells are valid planned bridge segments,
+        // while occupied squares are avoided unless they are the destination.
         function findAISquadPath(piece, target) {
-            if (!piece || !target) return [];
+            if (!piece || !target || !G.mapData?.dims) return [];
             const start = { x: Math.round(piece.x), z: Math.round(piece.z) };
             const goal = { x: Math.round(target.x), z: Math.round(target.z) };
+            const { W, H, offX, offZ } = G.mapData.dims;
+            const inBounds = (x, z) => x >= -offX && x < W - offX && z >= -offZ && z < H - offZ;
             const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
             if (startKey === goalKey) return [start];
-            const queue = [start];
-            const cameFrom = new Map([[startKey, null]]);
+            const queue = [start], cameFrom = new Map([[startKey, null]]);
             const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
             let found = false;
-            for (let head = 0; head < queue.length && head < 5000; head++) {
+            for (let head = 0; head < queue.length; head++) {
                 const cur = queue[head];
                 const nexts = dirs.map(([dx,dz]) => ({x:cur.x+dx,z:cur.z+dz}));
                 nexts.sort((a,b) => (Math.abs(a.x-goal.x)+Math.abs(a.z-goal.z)) - (Math.abs(b.x-goal.x)+Math.abs(b.z-goal.z)));
                 for (const next of nexts) {
-                    const key = keyOf(next.x,next.z);
-                    if (cameFrom.has(key)) continue;
-                    const tile = G.boardGrid[key];
-                    if (!tile) continue;
+                    if (!inBounds(next.x,next.z)) continue;
+                    const key = keyOf(next.x,next.z), tile = G.boardGrid[key];
+                    if (!tile || cameFrom.has(key)) continue;
                     if (tile.piece && tile.piece.id !== piece.id && key !== goalKey) continue;
+                    // Void cells are deliberately traversable in the PLAN; the
+                    // bridge builder turns those planned cells into real tiles.
                     cameFrom.set(key, keyOf(cur.x,cur.z));
                     if (key === goalKey) { found = true; break; }
                     queue.push(next);
@@ -3836,25 +3923,26 @@
                 if (found) break;
             }
             if (!found) return [];
-            const path = [];
-            let key = goalKey;
+            const path = []; let key = goalKey;
             while (key) {
-                const parts = key.split(',').map(Number);
-                path.push({x:parts[0],z:parts[1]});
-                key = cameFrom.get(key);
+                const [x,z] = key.split(',').map(Number); path.push({x,z}); key = cameFrom.get(key);
             }
-            path.reverse();
-            return path;
+            return path.reverse();
+        }
+
+        function nearestGeneratorForTeam(team, type) {
+            const home = aiBaseCenter(team);
+            const candidates = G.gens.filter(g => g.type === type);
+            return candidates.sort((a,b) => (Math.abs(a.x-home.x)+Math.abs(a.z-home.z)) - (Math.abs(b.x-home.x)+Math.abs(b.z-home.z)))[0] || null;
         }
 
         function aiTarget(piece) {
             const finalTarget = aiFinalTarget(piece);
-            if (G.mode !== 'bedwars' || !piece.blocks) return finalTarget;
+            if (G.mode !== 'bedwars' || !piece.blocks || !finalTarget) return finalTarget;
             const path = findAISquadPath(piece, finalTarget);
-            if (path.length > 1) {
-                // Move to the edge first; once the next cell is void, aiTryBridge fills it.
-                const firstVoid = path.findIndex((step, i) => i > 0 && G.boardGrid[keyOf(step.x,step.z)]?.isVoid);
-                if (firstVoid > 1) return path[1];
+            if (path.length > 2) {
+                const nextVoid = path.findIndex((step, i) => i > 0 && G.boardGrid[keyOf(step.x,step.z)]?.isVoid);
+                if (nextVoid > 1) return path[Math.max(1, nextVoid - 1)];
             }
             return finalTarget;
         }
@@ -3866,31 +3954,27 @@
             const res = G.resources[team];
             if (!res) return;
 
-            // Keep wool on a small group of bridge units instead of spending the
-            // team's entire iron reserve filling every piece's inventory.
-            const routeCarriers = G.pieces.filter(p => p.team === team && p.aiRouteKind && p.blocks > 0);
-            if (routeCarriers.length < 2) {
-                const candidates = mine.filter(p => p.blocks < 4 && (p.type === 'q' || p.type === 'r'));
-                const lowWoolPiece = candidates.sort((a, b) => {
-                    const ta = nearestEnemyObjective(a), tb = nearestEnemyObjective(b);
-                    return (ta ? cheb(a, ta) : 999) - (tb ? cheb(b, tb) : 999);
-                })[0];
-                if (lowWoolPiece && res.iron >= WOOL_COST && buyItem(lowWoolPiece, 'wool')) {
-                    lowWoolPiece.aiRouteKind = routeCarriers.length === 0 ? 'dia' : 'mid';
-                    lowWoolPiece.aiRouteDone = false;
-                }
+            let carriers = G.pieces.filter(p => p.team === team && p.aiRouteKind && p.type !== 'bed');
+            const routeTypes = ['dia', 'mid'];
+            for (const routeKind of routeTypes) {
+                if (carriers.some(p => p.aiRouteKind === routeKind)) continue;
+                const candidate = mine.filter(p => !p.aiRouteKind && p.blocks < WOOL_QTY * 2 && ['q','r'].includes(p.type))
+                    .sort((a,b) => cheb(a, nearestEnemyObjective(a) || aiBaseCenter(team)) - cheb(b, nearestEnemyObjective(b) || aiBaseCenter(team)))[0];
+                if (candidate) { candidate.aiRouteKind = routeKind; candidate.aiRouteDone = false; carriers.push(candidate); }
             }
+            carriers.filter(p => inBase(p) && p.blocks < WOOL_QTY * 2).forEach(piece => {
+                while (piece.blocks < WOOL_QTY * 2 && res.iron >= WOOL_COST) {
+                    if (!buyItem(piece, 'wool')) break;
+                }
+            });
 
-            // Spend remaining iron on combat upgrades, but do not loop-buy wool.
-            for (let round = 0; round < 8; round++) {
+            // Keep investing in combat and bed defense after bridge units are supplied.
+            for (let round = 0; round < 6; round++) {
                 let bought = false;
                 const bed = bedOf(team);
-                if (bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) {
-                    bought = buyItem(mine[0], 'obsidian');
-                }
+                if (bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) bought = buyItem(mine[0], 'obsidian');
                 if (!bought) {
-                    const order = mine.slice().sort((a, b) => getAtk(b) - getAtk(a));
-                    for (const piece of order) {
+                    for (const piece of mine.slice().sort((a,b) => getAtk(b)-getAtk(a))) {
                         if (buyItem(piece, 'sword') || buyItem(piece, 'armor')) { bought = true; break; }
                     }
                 }
@@ -3898,21 +3982,34 @@
             }
         }
 
-        // ENHANCED WOOL BRIDGING PATHFINDER FOR SQUAD AI
+        // Lay a continuous bridge from the carrier's current island toward its
+        // assigned generator/bed. The previous version only inspected path[1],
+        // so it stopped as soon as it reached the island edge.
         function aiTryBridge(team) {
             if (G.mode !== 'bedwars') return;
-            const carriers = G.pieces.filter(p => p.team === team && p.blocks > 0 && p.aiRouteKind && p.type !== 'bed');
+            const carriers = G.pieces.filter(p => p.team === team && p.aiRouteKind && p.type !== 'bed');
+            const teamRes = G.resources[team];
             for (const piece of carriers) {
-                if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) break;
+                const aiBridgeLimit = MAX_BRIDGES_PER_TURN * 2;
+                if (G.bridgesThisTurn >= aiBridgeLimit) break;
                 const target = aiFinalTarget(piece);
                 if (!target) continue;
                 const path = findAISquadPath(piece, target);
                 if (path.length < 2) continue;
-                const next = path[1];
-                const nextTile = G.boardGrid[keyOf(next.x,next.z)];
-                // Place only the next missing segment. The unit advances onto it on a later turn,
-                // then extends the same route, preventing disconnected wool piles.
-                if (nextTile && nextTile.isVoid) placeBridgeTile(piece, next.x, next.z);
+                for (let i = 1; i < path.length && G.bridgesThisTurn < aiBridgeLimit; i++) {
+                    const step = path[i], tile = G.boardGrid[keyOf(step.x,step.z)];
+                    if (!tile) break;
+                    if (tile.piece && tile.piece.id !== piece.id) break;
+                    if (tile.isVoid) {
+                        // The carrier can draw another wool bundle from its team's
+                        // iron reserve while extending a planned route. Without this,
+                        // long gaps consumed the initial bundle and the bridge stalled.
+                        if (piece.blocks < 1 && teamRes && teamRes.iron >= WOOL_COST) {
+                            teamRes.iron -= WOOL_COST; piece.blocks += WOOL_QTY;
+                        }
+                        if (piece.blocks < 1 || !placeBridgeTile(piece, step.x, step.z)) break;
+                    }
+                }
             }
         }
 
@@ -3922,10 +4019,10 @@
             const target = aiTarget(piece);
 
             if (attackTarget) {
-                score += 80 + getAtk(attackTarget) * 5;
-                if (attackTarget.type === 'bed') score += 180;
-                if (attackTarget.type === 'k') score += 120;
-                if (attackTarget.type === 'guardian') score += 130;
+                score += 260 + getAtk(attackTarget) * 8;
+                if (attackTarget.type === 'bed') score += 520;
+                if (attackTarget.type === 'k') score += 260;
+                if (attackTarget.type === 'guardian') score += 210;
                 score += Math.max(0, 15 - attackTarget.hp) * 4;
             } else if (move) {
                 if (target) {
@@ -3967,8 +4064,14 @@
 
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
                 if (move.isCastle) score += 50;
-                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 50;
+                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 110;
+                if (G.mode === 'bedwars' && !defensiveRole && target && cheb(move, target) <= cheb(piece, target)) score += 35;
+                // Don't send valuable carriers onto squares adjacent to several enemies.
+                const nearbyEnemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed' && cheb(p, move) <= 1).length;
+                if (nearbyEnemies) score -= nearbyEnemies * (piece.carriedEm + piece.carriedDia > 0 ? 125 : 55);
             }
+
+            score += learnedAIMoveBonus(aiTrainingFeatures(piece, move, attackTarget));
 
             // Heavy anti-oscillation penalty (-300 multiplier for repeated positions)
             if (move && piece.moveHistory && piece.moveHistory.length > 0) {
@@ -4058,6 +4161,7 @@
 
             const best = calculateBestMoveForTeam(team, aiLevel);
             if (!best) { endTurn(); return; }
+            recordAIDecision(best);
             if (best.kind === 'attack') initiateD20Combat(best.piece, best.target);
             else executeMove(best.piece, best.m.x, best.m.z, best.m);
         }
@@ -4065,41 +4169,25 @@
         /* =====================================================================
            FULL MOVE LOG & CHESS EVALUATION ANNOTATIONS & REPLAY STEPPER
            ===================================================================== */
-        // Compare a move only with the alternatives available to the SAME piece,
-        // using the board position before the move is executed.
+        // Compare a move against the team's available choices, not just moves by
+        // that same piece. Same-piece-only comparisons made nearly every move look best.
         function captureMoveEvaluation(piece, chosenMove, attackTarget) {
-            const { moves, attacks } = getPieceMoves(piece);
-            let bestScore = -Infinity;
-            let bestTarget = null;
-            let bestKind = 'move';
-
-            attacks.forEach(a => {
-                const score = evaluateMoveScore(piece, null, a.target, 25);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestTarget = a.target;
-                    bestKind = 'attack';
-                }
+            let bestScore = -Infinity, bestTarget = null, bestKind = 'move';
+            const candidateScores = [];
+            const consider = (score, target, kind) => {
+                candidateScores.push(score);
+                if (score > bestScore) { bestScore = score; bestTarget = target; bestKind = kind; }
+            };
+            G.pieces.filter(p => p.team === piece.team && p.type !== 'bed').forEach(candidatePiece => {
+                const { moves, attacks } = getPieceMoves(candidatePiece);
+                attacks.forEach(a => consider(evaluateMoveScore(candidatePiece, null, a.target, 25), a.target, 'attack'));
+                moves.forEach(m => consider(evaluateMoveScore(candidatePiece, m, null, 25), null, 'move'));
             });
-            moves.forEach(m => {
-                const score = evaluateMoveScore(piece, m, null, 25);
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestTarget = null;
-                    bestKind = 'move';
-                }
-            });
-
             const chosenScore = attackTarget
                 ? evaluateMoveScore(piece, null, attackTarget, 25)
                 : evaluateMoveScore(piece, chosenMove, null, 25);
-
-            return {
-                bestScore: Number.isFinite(bestScore) ? bestScore : chosenScore,
-                chosenScore,
-                bestTarget,
-                bestKind
-            };
+            const bestCount = candidateScores.filter(score => bestScore - score <= 5).length;
+            return { bestScore: Number.isFinite(bestScore) ? bestScore : chosenScore, chosenScore, bestTarget, bestKind, bestCount };
         }
 
         function evaluateMoveBadge(piece, from, to, target, actionType, evaluation) {
@@ -4128,13 +4216,14 @@
                 }
             }
 
-            // This is a heuristic review, not a full chess engine. Keep the
-            // thresholds conservative to avoid marking ordinary moves as blunders.
-            if (delta > 180) return { tag: '??', class: 'badge-blunder', label: 'Blunder' };
-            if (delta > 100) return { tag: '?', class: 'badge-mistake', label: 'Mistake' };
-            if (delta > 45) return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
-            if (delta <= 5) return { tag: '⭐', class: 'badge-best', label: 'Best' };
-            return { tag: '👍', class: 'badge-good', label: 'Good' };
+            // These are strategic heuristics, not a full chess engine. A move is
+            // only Best when it is near the team's top option AND creates real value.
+            if (delta > 900) return { tag: '??', class: 'badge-blunder', label: 'Blunder' };
+            if (delta > 520) return { tag: '?', class: 'badge-mistake', label: 'Mistake' };
+            if (delta > 220) return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
+            if (delta <= 5 && evaluation.chosenScore >= 35 && evaluation.bestCount === 1) return { tag: '⭐', class: 'badge-best', label: 'Best' };
+            if (delta <= 80) return { tag: '👍', class: 'badge-good', label: 'Good' };
+            return { tag: '?!', class: 'badge-inaccuracy', label: 'Inaccuracy' };
         }
 
         function captureReviewSnapshot() {
@@ -4664,7 +4753,7 @@
             G.gameOver = false; G.matchRewarded = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
             G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
             G.reviewSnapshots = []; G.reviewPieceRegistry = {};
-            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.isReviewing = false;
+            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.aiTrainingTrace = []; G.aiTrainingRecorded = false; G.isReviewing = false;
             initResources();
             closeModals();
             syncBridgeButton();
@@ -4766,6 +4855,7 @@
         function triggerGameOver(winnerTeam, reason) {
             G.gameOver = true;
             G.winnerTeam = winnerTeam;
+            trainAIFromFinishedMatch(winnerTeam);
             $('persistent-controls-bar')?.classList.add('hidden');
             clearTimeout(G.aiTimer);
             const localHumanTeam = (G.teams || []).find(t => G.teamControllers && G.teamControllers[t] && G.teamControllers[t].type === 'human') || (G.teams || [])[0];
@@ -6246,7 +6336,11 @@
         async function setAchievementShowcase(id){if(!(currentAccount.unlockedAchievements||[]).includes(id))return;try{await firestoreDB.doc('users/'+currentAccount.id).update({showcaseAchievement:id});currentAccount.showcaseAchievement=id;renderOwnProfileStats();closeAchievementInspect();closeHubPage('achievements-page');if(viewingPlayerUid===currentAccount.id)loadPublicProfile(currentAccount.id);}catch(e){alert('Could not update displayed achievement: '+e.message);}}
         async function grantEligibleAchievements(stats,allowMaterial=true){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB)return;const userRef=firestoreDB.doc('users/'+currentAccount.id);for(const a of ACHIEVEMENTS){if((currentAccount.unlockedAchievements||[]).includes(a.id)||!a.test(stats,currentAccount))continue;try{const awarded=await firestoreDB.runTransaction(async tx=>{const ownerRef=firestoreDB.doc(`achievementOwners/${a.id}/owners/${currentAccount.id}`);const owner=await tx.get(ownerRef);const user=await tx.get(userRef);if(owner.exists)return false;const data=user.data()||{};tx.set(ownerRef,{uid:currentAccount.id,username:currentAccount.username,unlockedAt:firebase.firestore.FieldValue.serverTimestamp()});tx.update(userRef,{...(allowMaterial?{material:Number(data.material||0)+a.reward}:{}),unlockedAchievements:firebase.firestore.FieldValue.arrayUnion(a.id)});return true;});if(!awarded)continue;if(allowMaterial)currentAccount.material=Number(currentAccount.material||0)+a.reward;currentAccount.unlockedAchievements=(currentAccount.unlockedAchievements||[]).concat(a.id);accountStatus('Achievement unlocked: '+a.name+(allowMaterial?' (+'+a.reward+' Material)':' (no Material in AI-only match)'));}catch(e){console.warn('Achievement award failed:',a.id,e);}}renderOwnProfileStats();}
         async function recordRecentOpponents(){if(!currentAccount||currentAccount.isAnonymous||!activeLobbyCode)return;try{const snap=await firestoreDB.collection(`lobbies/${activeLobbyCode}/players`).get();const batch=firestoreDB.batch();snap.docs.filter(d=>d.id!==currentAccount.id).forEach(d=>{const data=d.data();batch.set(firestoreDB.doc(`users/${currentAccount.id}/recentOpponents/${d.id}`),{uid:d.id,username:data.username||'Player',playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});batch.set(firestoreDB.doc(`users/${d.id}/recentOpponents/${currentAccount.id}`),{uid:currentAccount.id,username:currentAccount.username,playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});});await batch.commit();}catch(e){console.warn('Recent opponents save:',e);}}
-        async function awardMatchProgress(won){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB||G.matchRewarded)return;G.matchRewarded=true;const humanCount=(G.teams||[]).filter(t=>G.teamControllers&&G.teamControllers[t]&&G.teamControllers[t].type==='human').length;const allowMaterial=humanCount>=1;const st=Object.assign({gamesPlayed:0,wins:0,losses:0,winStreak:0,bestWinStreak:0},currentAccount.stats||{});st.gamesPlayed++;if(won){st.wins++;st.winStreak++;st.bestWinStreak=Math.max(st.bestWinStreak,st.winStreak);}else{st.losses++;st.winStreak=0;}currentAccount.stats=st;try{const ratings=currentAccount.ratings||{classic:300,draft:300,bedwars:300};const snap={at:Date.now(),classic:Number(ratings.classic??300),draft:Number(ratings.draft??300),bedwars:Number(ratings.bedwars??300)};currentAccount.eloHistory=[...(currentAccount.eloHistory||[]),snap].slice(-60);const patch={stats:st,eloHistory:currentAccount.eloHistory};if(allowMaterial){patch.material=firebase.firestore.FieldValue.increment(won?15:10);currentAccount.material=Number(currentAccount.material||0)+(won?15:10);}await firestoreDB.doc('users/'+currentAccount.id).update(patch);await grantEligibleAchievements(st,allowMaterial);if(allowMaterial)await recordRecentOpponents();renderOwnProfileStats();if(!allowMaterial)accountStatus('Match recorded. Material rewards require at least one human-controlled player.');}catch(e){console.warn('Match progress save failed:',e);}}
+        async function awardMatchProgress(won){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB||G.matchRewarded)return;
+            // Profile match totals are for online matches only. Local/offline AI games
+            // can still train the AI, but must not affect account progression.
+            if(!onlineMatchRef||!activeLobbyCode)return;
+            G.matchRewarded=true;const humanCount=(G.teams||[]).filter(t=>G.teamControllers&&G.teamControllers[t]&&G.teamControllers[t].type==='human').length;const allowMaterial=humanCount>=1;const st=Object.assign({gamesPlayed:0,wins:0,losses:0,winStreak:0,bestWinStreak:0},currentAccount.stats||{});st.gamesPlayed++;if(won){st.wins++;st.winStreak++;st.bestWinStreak=Math.max(st.bestWinStreak,st.winStreak);}else{st.losses++;st.winStreak=0;}currentAccount.stats=st;try{const ratings=currentAccount.ratings||{classic:300,draft:300,bedwars:300};const snap={at:Date.now(),classic:Number(ratings.classic??300),draft:Number(ratings.draft??300),bedwars:Number(ratings.bedwars??300)};currentAccount.eloHistory=[...(currentAccount.eloHistory||[]),snap].slice(-60);const patch={stats:st,eloHistory:currentAccount.eloHistory};if(allowMaterial){patch.material=firebase.firestore.FieldValue.increment(won?15:10);currentAccount.material=Number(currentAccount.material||0)+(won?15:10);}await firestoreDB.doc('users/'+currentAccount.id).update(patch);await grantEligibleAchievements(st,allowMaterial);if(allowMaterial)await recordRecentOpponents();renderOwnProfileStats();if(!allowMaterial)accountStatus('Match recorded. Material rewards require at least one human-controlled player.');}catch(e){console.warn('Match progress save failed:',e);}}
 
         // THEME SHOP: themes are cosmetic and paid for with Material.
         const UI_THEMES=[
