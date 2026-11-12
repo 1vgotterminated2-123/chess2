@@ -259,7 +259,10 @@
         body[data-theme-style="glitch"] .glass-panel{border:1px solid rgba(213,255,79,.48)!important;box-shadow:4px 0 rgba(255,0,150,.12),-4px 0 rgba(0,240,255,.12),0 0 24px rgba(213,255,79,.09)!important}
         body[data-theme-style="glitch"] .hub-nav-btn:hover,body[data-theme-style="glitch"] button:hover{filter:hue-rotate(18deg) saturate(1.5);text-shadow:1px 0 #ff3ea5,-1px 0 #00f0ff}
         @keyframes voidDrift{to{transform:translate3d(0,40px,0)}}
-        body[data-theme-style="void"]>*{position:relative;z-index:1}
+        /* Keep the cosmic backdrop behind the app without changing fixed/absolute UI positioning. */
+        body[data-theme-style="void"]{isolation:isolate}
+        body[data-theme-style="void"]:before{z-index:-1}
+        body[data-theme-style="void"]>*{z-index:1}
 
         /* Reliable custom profile-badge tooltip (instead of browser-native title popups). */
         #profile-badge-tooltip{position:fixed;z-index:99999;display:none;max-width:min(300px,calc(100vw - 24px));padding:10px 12px;border:1px solid rgba(56,189,248,.55);border-radius:10px;background:rgba(2,6,23,.98);color:#e2e8f0;box-shadow:0 12px 32px rgba(0,0,0,.55);font:12px/1.45 Inter,sans-serif;white-space:normal;pointer-events:none}
@@ -6660,10 +6663,10 @@
             const ids=[...new Set(badgeIds||[])];
             if(Number.isFinite(accountNumber)&&accountNumber>0) ids.push('account_number');
             host.innerHTML=ids.map(id=>{
-                const lbMatch=id.match(/^leaderboard_(overall|classic|draft|bedwars|stats)_(\d+)$/);
+                const lbMatch=id.match(/^leaderboard_(overall|classic|draft|bedwars|wins|games|winrate|streak)_(\d+)$/);
                 const lbCategory=lbMatch?({overall:'Overall Elo',classic:'Classic Elo',draft:'Draft Elo',bedwars:'Bedwars Elo',wins:'Most Wins',games:'Most Games Played',winrate:'Highest Win Rate',streak:'Best Win Streak'}[lbMatch[1]]):null;
                 const lbPlace=lbMatch?Number(lbMatch[2]):null;
-                const d=lbMatch?{name:`${ordinalNumber(lbPlace)} Place · ${lbCategory}`,description:`This player is currently #${lbPlace} on the ${lbCategory} leaderboard.`,icon:String(lbPlace),cls:'border-amber-400/80 bg-amber-950 text-amber-200'}:PROFILE_BADGE_DEFS[id]; if(!d)return '';
+                const d=lbMatch?{name:`${ordinalNumber(lbPlace)} Place · ${lbCategory}`,description:`Top 10 on the ${lbCategory} leaderboard. Current position: #${lbPlace}. A separate badge is earned for each leaderboard where this player ranks in the top 10.`,icon:String(lbPlace),cls:'border-amber-400/80 bg-amber-950 text-amber-200'}:PROFILE_BADGE_DEFS[id]; if(!d)return '';
                 const name=id==='account_number'?`#${accountNumber} Account`:d.name;
                 const desc=id==='account_number'?`The ${ordinalNumber(accountNumber)} account to join Chess 2`:d.description;
                 const obtained=lbMatch?'Current leaderboard position':((badgeAwardedAt&&badgeAwardedAt[id]) || fallbackDate);
@@ -6716,7 +6719,7 @@
         }
         function leaderboardElo(user,category){return category==='overall'?getOverallElo(user.ratings):Math.round(Number(user.ratings?.[category]??300));}
         async function getPlayerLeaderboardBadges(uid){
-            try{const users=await getLeaderboardUsers();const eligible=users.filter(u=>Number(u.stats?.rankedMatches||0)>=3);const out=[];
+            try{const users=await getLeaderboardUsers(true);const eligible=users.filter(u=>Number(u.stats?.rankedMatches||0)>=3);const out=[];
                 for(const category of ['overall','classic','draft','bedwars']){const sorted=eligible.slice().sort((a,b)=>leaderboardElo(b,category)-leaderboardElo(a,category)||String(a.username||'').localeCompare(String(b.username||'')));const index=sorted.findIndex(u=>u.id===uid);if(index>=0&&index<10)out.push(`leaderboard_${category}_${index+1}`);}
                 const statDefs={wins:u=>Number(u.stats?.wins||0),games:u=>Number(u.stats?.gamesPlayed||0),winrate:u=>{const g=Number(u.stats?.gamesPlayed||0);return g?Number(u.stats?.wins||0)/g*100:0;},streak:u=>Number(u.stats?.bestWinStreak||0)};
                 for(const [category,metric] of Object.entries(statDefs)){const sorted=users.filter(u=>Number(u.stats?.gamesPlayed||0)>0).sort((a,b)=>metric(b)-metric(a)||String(a.username||'').localeCompare(String(b.username||'')));const index=sorted.findIndex(u=>u.id===uid);if(index>=0&&index<10)out.push(`leaderboard_${category}_${index+1}`);}
@@ -6972,7 +6975,26 @@
           {id:'void-crown',name:'Crown of the Void',cost:1400,rarity:'mythic',desc:'An animated cosmic-black interface with a shifting nebula backdrop, prismatic outlines, and radiant controls.',colors:['#070510','#1b1030','#e7a8ff'],style:'void'},
           {id:'glitch',name:'Glitch Monarch',cost:1800,rarity:'mythic',desc:'A corrupted neon interface: animated scanlines, split-color edges, and pulsing magenta-lime accents.',colors:['#090d12','#172027','#d5ff4f'],style:'glitch'}
         ];
-        function applyUITheme(id){const chosen=UI_THEMES.some(t=>t.id===id)?id:'midnight';document.body.classList.remove(...UI_THEMES.map(t=>'ui-theme-'+t.id));document.body.classList.add('ui-theme-'+chosen);document.body.dataset.uiTheme=chosen;const t=UI_THEMES.find(x=>x.id===chosen);if(t){document.documentElement.style.setProperty('--theme-bg',t.colors[0]);document.documentElement.style.setProperty('--theme-panel',t.colors[1]);document.documentElement.style.setProperty('--theme-accent',t.colors[2]);document.documentElement.style.setProperty('--theme-soft',t.colors[1]+'cc');document.body.dataset.themeStyle=t.style||'classic';}}
+        function applyUITheme(id){
+            // Unknown/legacy theme IDs safely fall back to the default palette.
+            const aliases={'mythic-void':'void-crown','mythic_void':'void-crown','void':'void-crown'};
+            const requested=aliases[id]||id;
+            const chosen=UI_THEMES.some(t=>t.id===requested)?requested:'midnight';
+            const body=document.body, root=document.documentElement;
+            body.classList.remove(...UI_THEMES.map(t=>'ui-theme-'+t.id));
+            body.classList.add('ui-theme-'+chosen);
+            body.dataset.uiTheme=chosen;
+            const t=UI_THEMES.find(x=>x.id===chosen);
+            if(t){
+                root.style.setProperty('--theme-bg',t.colors[0]);
+                root.style.setProperty('--theme-panel',t.colors[1]);
+                root.style.setProperty('--theme-accent',t.colors[2]);
+                root.style.setProperty('--theme-soft',t.colors[1]+'cc');
+                body.dataset.themeStyle=t.style||'classic';
+            } else {
+                body.dataset.themeStyle='classic';
+            }
+        }
         async function openThemeShop(){if(!currentAccount||requirePermanentAccount('the theme shop'))return;openHubPage('theme-shop-modal');renderThemeShop();}
         function themeCard(t,owned,active,inventory=false){return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-${t.rarity}"><div class="theme-swatch theme-preview" style="--preview-bg:${t.colors[0]};--preview-panel:${t.colors[1]};--preview-accent:${t.colors[2]}"><div class="theme-preview-top"></div><div class="theme-preview-body"><span></span><i></i><b></b></div></div><div class="flex justify-between items-center gap-2"><b class="text-xs">${t.name}</b><span class="theme-rarity theme-rarity-${t.rarity}">${t.rarity}</span></div><p class="text-[10px] text-slate-400">${t.desc}</p>${inventory?`<button onclick="equipUITheme('${t.id}')" class="w-full py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':'EQUIP THEME'}</button>`:`<div class="flex items-center justify-between"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+t.cost+' MATERIAL'}</span><button onclick="${owned?`equipUITheme('${t.id}')`:`buyUITheme('${t.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div>`}</div>`;}
         function renderThemeShop(){const unlocked=new Set(currentAccount.unlockedThemes||['midnight','dark','light']);$('theme-shop-balance').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5};$('theme-shop-list').innerHTML=[...UI_THEMES].sort((a,b)=>rarityOrder[b.rarity]-rarityOrder[a.rarity]||a.cost-b.cost).map(t=>themeCard(t,unlocked.has(t.id),(currentAccount.activeTheme||'midnight')===t.id)).join('');}
