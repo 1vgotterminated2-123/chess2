@@ -3124,6 +3124,9 @@
 
             playSound('bridge');
             showFloatingText('WOOL PLACED', x, z, '#f59e0b');
+            // Persist building immediately, not only at end of turn, so a refresh
+            // cannot discard a wool tile placed during the current turn.
+            if (onlineMatchRef && !applyingOnlineState) publishOnlineBoard(piece.team).catch(err => console.warn('Wool save failed:', err));
             if (piece === G.selectedPiece) {
                 const mv = getPieceMoves(piece);
                 G.validMoves = mv.moves; G.attackTargets = mv.attacks;
@@ -3249,6 +3252,9 @@
                 piece.carriedEm -= PEARL_COST_EM; piece.pearls++;
             } else return false;
             playSound('buy');
+            // Save BedWars inventory and bed armor immediately. These changes
+            // must survive a page refresh even before the turn ends.
+            if (onlineMatchRef && !applyingOnlineState) publishOnlineBoard(piece.team).catch(err => console.warn('Shop save failed:', err));
             return true;
         }
 
@@ -5766,6 +5772,9 @@
                 });
 
                 G.pieces = nextPieces;
+                // Rebuild obsidian visuals from the persisted obsHp value. A newly
+                // loaded bed has no obsidian mesh until this is called.
+                G.pieces.filter(p => p.type === 'bed').forEach(bed => refreshObsidianMesh(bed));
                 if (state.resources) G.resources = state.resources;
                 if (Array.isArray(state.gens)) state.gens.forEach(saved => {
                     const gen = G.gens.find(g => g.x === saved.x && g.z === saved.z);
