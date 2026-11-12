@@ -466,6 +466,27 @@
         @keyframes omniStarfield{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(-2%,2%,0)}100%{transform:translate3d(0,0,0)}}
         @keyframes omniNebulaSpin{to{transform:rotate(360deg)}}
         @keyframes omniPanelEdge{0%{background-position:0 0,0% 50%}100%{background-position:0 0,100% 50%}}
+
+        /* OMNIVERSE ASCENDANT — premium polish pass */
+        body[data-theme-style="omniverse"] #canvas-container{background:radial-gradient(ellipse at 50% 42%,rgba(42,27,91,.26),transparent 55%),radial-gradient(ellipse at 12% 78%,rgba(8,145,178,.16),transparent 42%),radial-gradient(ellipse at 90% 14%,rgba(190,24,93,.14),transparent 38%)}
+        body[data-theme-style="omniverse"] #canvas-container:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background-image:radial-gradient(1px 1px at 8% 16%,rgba(255,255,255,.85) 50%,transparent 100%),radial-gradient(2px 2px at 76% 24%,rgba(165,243,252,.8) 50%,transparent 100%),radial-gradient(1px 1px at 44% 73%,rgba(216,180,254,.8) 50%,transparent 100%),radial-gradient(1px 1px at 91% 82%,rgba(253,230,138,.8) 50%,transparent 100%);background-size:240px 220px,310px 280px,190px 260px,350px 310px;opacity:.55;animation:omniBoardDust 28s linear infinite}
+        body[data-theme-style="omniverse"] #canvas-container canvas{filter:drop-shadow(0 0 10px rgba(103,232,249,.18)) drop-shadow(0 0 22px rgba(192,132,252,.10))}
+        body[data-theme-style="omniverse"] #hud-header,body[data-theme-style="omniverse"] #hud-sidebar,body[data-theme-style="omniverse"] #bottom-hud-bar{filter:drop-shadow(0 8px 18px rgba(0,0,0,.42))}
+        body[data-theme-style="omniverse"] #hud-team-cards-bar>*,body[data-theme-style="omniverse"] #hud-header .glass-panel,body[data-theme-style="omniverse"] #hud-sidebar button,body[data-theme-style="omniverse"] #bottom-hud-bar>*{border:1px solid rgba(165,243,252,.34)!important;background:linear-gradient(135deg,rgba(7,17,43,.94),rgba(35,18,62,.91),rgba(7,38,54,.94))!important;box-shadow:0 0 16px rgba(34,211,238,.12),inset 0 1px 0 rgba(255,255,255,.10)!important}
+        body[data-theme-style="omniverse"] .public-lobby-card,body[data-theme-style="omniverse"] .theme-card,body[data-theme-style="omniverse"] .profile-card{position:relative;overflow:hidden}
+        body[data-theme-style="omniverse"] .public-lobby-card:before,body[data-theme-style="omniverse"] .theme-card:before,body[data-theme-style="omniverse"] .profile-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 20%,rgba(255,255,255,.055) 48%,transparent 72%);background-size:220% 100%;animation:omniCardSheen 9s ease-in-out infinite}
+        body[data-theme-style="omniverse"] .text-cyan-300,body[data-theme-style="omniverse"] .text-purple-300,body[data-theme-style="omniverse"] .text-pink-300,body[data-theme-style="omniverse"] .text-amber-300{ text-shadow:0 0 10px currentColor; }
+        body[data-theme-style="omniverse"] .bg-slate-800,body[data-theme-style="omniverse"] .bg-slate-700,body[data-theme-style="omniverse"] .bg-slate-900{background-color:rgba(19,24,54,.84)!important}
+        body[data-theme-style="omniverse"] .shadow,body[data-theme-style="omniverse"] .shadow-lg,body[data-theme-style="omniverse"] .shadow-xl{box-shadow:0 12px 28px rgba(1,4,18,.36),0 0 18px rgba(103,232,249,.08)!important}
+        body[data-theme-style="omniverse"] .spectator-exit-button{color:#f8fafc;background:linear-gradient(100deg,#0e7490,#6d28d9,#be185d,#a16207);background-size:240% 100%;animation:omniverseFlow 6s linear infinite;border:1px solid rgba(255,255,255,.42);box-shadow:0 0 18px rgba(103,232,249,.24)}
+        #spectator-exit-banner{color:#eafaff;background:linear-gradient(115deg,rgba(4,16,37,.96),rgba(37,17,65,.96),rgba(6,37,52,.96));border:1px solid rgba(103,232,249,.52);box-shadow:0 10px 35px rgba(0,0,0,.5),0 0 24px rgba(34,211,238,.18);backdrop-filter:blur(18px)}
+        .spectator-live-dot{width:8px;height:8px;border-radius:50%;background:#fb7185;box-shadow:0 0 0 4px rgba(251,113,133,.15),0 0 14px #fb7185;animation:spectatorDotPulse 1.5s ease-in-out infinite}
+        body.is-match-spectator #online-team-banner{display:block!important}
+        @keyframes omniBoardDust{0%{background-position:0 0,0 0,0 0,0 0}100%{background-position:0 220px,0 -280px,0 260px,0 -310px}}
+        @keyframes omniCardSheen{0%,65%,100%{background-position:220% 0}82%{background-position:-220% 0}}
+        @keyframes spectatorDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.78)}}
+        @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"] #canvas-container:before,body[data-theme-style="omniverse"] .public-lobby-card:before,body[data-theme-style="omniverse"] .theme-card:before,body[data-theme-style="omniverse"] .profile-card:before,#spectator-exit-banner .spectator-live-dot{animation:none!important}}
+
         @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"],body[data-theme-style="omniverse"]:before,body[data-theme-style="omniverse"]:after,body[data-theme-style="omniverse"] .glass-panel,.theme-preview-omniverse,.theme-preview-omniverse *{animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -5812,22 +5833,47 @@
             }
             renderOnlineMapPreview();
         }
-        function renderPublicLobbyList(snapshot) {
+        let publicLobbyRenderVersion = 0;
+        async function renderPublicLobbyList(snapshot) {
             const list = $('public-lobby-list'); if (!list) return;
-            const rooms = [];
-            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && (d.status === 'waiting' || d.status === 'started')) rooms.push({ id: doc.id, ...d }); });
-            rooms.sort((a,b) => {
+            const renderVersion = ++publicLobbyRenderVersion;
+            const candidates = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if (d.visibility === 'public' && d.status === 'waiting') candidates.push({ id:doc.id, ...d });
+                else if (d.visibility === 'public' && d.status === 'started') candidates.push({ id:doc.id, ...d, _needsLiveCheck:true });
+            });
+            // A lobby can remain marked "started" after a resignation or a browser
+            // closing unexpectedly. Only show it as spectatable when its canonical
+            // match document still says status=active.
+            const rooms = await Promise.all(candidates.map(async room => {
+                if (!room._needsLiveCheck) return room;
+                try {
+                    const matchSnap = await firestoreDB.collection('matches').doc(room.id).get();
+                    if (!matchSnap.exists || matchSnap.data().status !== 'active') return null;
+                    return room;
+                } catch (err) {
+                    // Do not advertise a match we cannot verify as live. The rules
+                    // must allow signed-in users to read active public match docs.
+                    console.warn('Could not verify public match status for', room.id, err);
+                    return null;
+                }
+            }));
+            if (renderVersion !== publicLobbyRenderVersion || !list.isConnected) return;
+            const visibleRooms = rooms.filter(Boolean);
+            visibleRooms.sort((a,b) => {
                 if (a.status !== b.status) return a.status === 'started' ? -1 : 1;
                 const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
                 const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
                 return tb - ta;
             });
             list.innerHTML = '';
-            if (!rooms.length) {
-                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one to see it here, or check back for live matches to spectate.'; list.appendChild(empty); return;
+            if (!visibleRooms.length) {
+                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8';
+                empty.textContent = 'No waiting rooms or live public matches right now.'; list.appendChild(empty); return;
             }
-            rooms.forEach(room => {
-                const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
+            visibleRooms.forEach(room => {
+                const card = document.createElement('div'); card.className = 'public-lobby-card rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
                 const info = document.createElement('div'); info.className = 'min-w-0 flex items-center gap-2';
                 const hostAvatar = makePlayerAvatar({username: room.hostName}, 'w-9 h-9');
                 const textWrap = document.createElement('div'); textWrap.className = 'min-w-0';
@@ -5838,8 +5884,7 @@
                 textWrap.append(title, details); info.append(hostAvatar, textWrap);
                 if (room.hostUid) getPublicUserProfile(room.hostUid).then(profile => {
                     if (!card.isConnected) return;
-                    const fresh = makePlayerAvatar({...profile, username: profile.username || room.hostName}, 'w-9 h-9');
-                    hostAvatar.replaceWith(fresh);
+                    const fresh = makePlayerAvatar({...profile, username: profile.username || room.hostName}, 'w-9 h-9'); hostAvatar.replaceWith(fresh);
                 });
                 const join = document.createElement('button');
                 const alreadyJoined = activeLobbyCode === room.id;
@@ -5861,11 +5906,11 @@
                 $('public-lobby-list').textContent = 'Sign in to browse rooms.'; return;
             }
             stopPublicLobbyListener();
-            $('public-lobby-status').textContent = 'Listening for public rooms...';
-            // Query only the public visibility field. Private rooms are never returned in this list.
+            $('public-lobby-status').textContent = 'Checking waiting rooms and verifying live matches...';
+            $('public-lobby-list').textContent = 'Loading public rooms...';
             publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').limit(60).onSnapshot(snapshot => {
                 renderPublicLobbyList(snapshot);
-                $('public-lobby-status').textContent = 'Live rooms and waiting rooms • refreshed automatically';
+                $('public-lobby-status').textContent = 'Waiting rooms and verified live matches • refreshed automatically';
             }, err => {
                 console.error('Public room list failed:', err);
                 $('public-lobby-status').textContent = 'Could not load public rooms: ' + err.message;
@@ -6240,6 +6285,12 @@
             // Only the host needs to check whether the canonical match already exists.
             // Other clients attach their listener and receive the host's first snapshot.
             const existingMatchSnap = (user.uid === onlineHostUid || asSpectator) ? await onlineMatchRef.get() : null;
+            if (asSpectator && (!existingMatchSnap || !existingMatchSnap.exists)) {
+                throw new Error('The live match record is missing. The host may still be starting the board, or Firestore rules are blocking match reads.');
+            }
+            if (asSpectator && existingMatchSnap.exists && existingMatchSnap.data().status !== 'active') {
+                throw new Error('This match has already ended or been resigned. Only active matches can be spectated.');
+            }
             if (existingMatchSnap && existingMatchSnap.exists) {
                 const existingMatch = existingMatchSnap.data();
                 if (existingMatch.status === 'active' && existingMatch.state) {
@@ -6482,12 +6533,27 @@
                 $('online-clock-minutes')?.setAttribute('disabled','disabled');
                 if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = 'none';
                 document.body.classList.add('is-match-spectator');
+                $('persistent-controls-bar')?.classList.add('hidden');
+                $('hud-sidebar')?.classList.add('hidden');
+                $('bottom-hud-bar')?.classList.add('hidden');
+                let spectatorBar = $('spectator-exit-banner');
+                if (!spectatorBar) {
+                    spectatorBar = document.createElement('div'); spectatorBar.id = 'spectator-exit-banner';
+                    spectatorBar.className = 'fixed top-3 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-3 rounded-2xl px-4 py-2';
+                    spectatorBar.innerHTML = '<span class="spectator-live-dot"></span><span class="text-[10px] sm:text-xs font-black tracking-widest">LIVE SPECTATING</span><button type="button" onclick="leaveLobby()" class="spectator-exit-button rounded-lg px-3 py-2 text-[10px] font-black">STOP WATCHING ✕</button>';
+                    document.body.appendChild(spectatorBar);
+                }
+                spectatorBar.classList.remove('hidden');
                 await startOnlineBoardSync(true);
                 setLobbyStatus('Spectating ' + (room.hostName || 'a public match') + '. Live board updates are read-only.');
             } catch (err) {
                 lobbyLaunchHandled = false;
                 console.error('Could not load spectator match:', err);
-                setLobbyStatus('Could not load live match: ' + err.message, true);
+                const message = 'Could not load live match: ' + err.message;
+                resetLobbyUI();
+                setLobbyStatus(message, true);
+                const status = $('public-lobby-status'); if (status) status.textContent = message;
+                refreshPublicLobbyList();
             }
         }
 
@@ -6719,7 +6785,11 @@
             stopOnlineClockTicker();
             activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyIsSpectator = false; onlineSpectatorMode = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false; onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = null;
             document.body.classList.remove('is-match-spectator');
+            $('spectator-exit-banner')?.remove();
             if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = '';
+            $('persistent-controls-bar')?.classList.remove('hidden');
+            $('hud-sidebar')?.classList.remove('hidden');
+            $('bottom-hud-bar')?.classList.remove('hidden');
             $('online-clock-minutes')?.removeAttribute('disabled');
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
             const ready = $('lobby-ready-button'); if (ready) ready.classList.toggle('hidden', !!activeLobbyIsSpectator); if (ready) ready.textContent = "I'M READY";
