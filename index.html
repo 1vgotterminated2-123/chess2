@@ -3772,13 +3772,12 @@
             return target || null;
         }
 
-        function aiTarget(piece) {
+        function aiFinalTarget(piece) {
             const team = piece.team;
             const role = piece.role || evaluatePieceRole(piece);
             const homeBed = bedOf(team);
             const enemyObjective = nearestEnemyObjective(piece);
 
-            // Retreat only for a real carrying/health reason; don't let stale roles park units.
             if (role === 'RETREAT_BANK' && (piece.carriedEm >= 2 || piece.carriedDia >= 4 || piece.hp / piece.maxHp < 0.25)) {
                 return aiBaseCenter(team);
             }
@@ -3787,18 +3786,77 @@
                 if (threat) return aiBaseCenter(team);
             }
 
-            // Guardians are optional side objectives, not a reason for the whole army to stall.
             const boss = G.pieces.find(p => p.type === 'guardian');
             if (boss && cheb(piece, boss) <= 4 && (role === 'BOSS_HUNTER' || getAtk(piece) >= 7)) return boss;
 
-            // Collect a generator only when it is genuinely nearby and doesn't pull the unit away
-            // from an easier enemy objective. This stops the 1v1 army waiting for diamond guards.
+            // Wool carriers deliberately secure an intermediate resource island before rushing.
+            if (G.mode === 'bedwars' && piece.aiRouteKind && !piece.aiRouteDone) {
+                const wantedType = piece.aiRouteKind === 'mid' ? 'em' : 'dia';
+                const candidates = G.gens.filter(g => g.type === wantedType);
+                const home = aiBaseCenter(team);
+                const gen = candidates.slice().sort((a, b) => cheb(home, a) - cheb(home, b))[0];
+                if (gen && cheb(piece, gen) > 1) return gen;
+                if (gen) piece.aiRouteDone = true;
+            }
+
             if (role === 'GATHER' && enemyObjective) {
                 let bestGen = null, bestD = Infinity;
                 G.gens.forEach(g => { if (g.stock > 0) { const d = cheb(piece, g); if (d < bestD) { bestD = d; bestGen = g; } } });
                 if (bestGen && bestD <= 2 && bestD < cheb(piece, enemyObjective)) return bestGen;
             }
             return enemyObjective ? { x: enemyObjective.x, z: enemyObjective.z } : aiBaseCenter(otherTeam(team));
+        }
+
+        // Cardinal A* pathing over both islands and void cells. The route is reused
+        // as a movement waypoint, and its first void cell becomes the next wool tile.
+        function findAISquadPath(piece, target) {
+            if (!piece || !target) return [];
+            const start = { x: Math.round(piece.x), z: Math.round(piece.z) };
+            const goal = { x: Math.round(target.x), z: Math.round(target.z) };
+            const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
+            if (startKey === goalKey) return [start];
+            const queue = [start];
+            const cameFrom = new Map([[startKey, null]]);
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            let found = false;
+            for (let head = 0; head < queue.length && head < 5000; head++) {
+                const cur = queue[head];
+                const nexts = dirs.map(([dx,dz]) => ({x:cur.x+dx,z:cur.z+dz}));
+                nexts.sort((a,b) => (Math.abs(a.x-goal.x)+Math.abs(a.z-goal.z)) - (Math.abs(b.x-goal.x)+Math.abs(b.z-goal.z)));
+                for (const next of nexts) {
+                    const key = keyOf(next.x,next.z);
+                    if (cameFrom.has(key)) continue;
+                    const tile = G.boardGrid[key];
+                    if (!tile) continue;
+                    if (tile.piece && tile.piece.id !== piece.id && key !== goalKey) continue;
+                    cameFrom.set(key, keyOf(cur.x,cur.z));
+                    if (key === goalKey) { found = true; break; }
+                    queue.push(next);
+                }
+                if (found) break;
+            }
+            if (!found) return [];
+            const path = [];
+            let key = goalKey;
+            while (key) {
+                const parts = key.split(',').map(Number);
+                path.push({x:parts[0],z:parts[1]});
+                key = cameFrom.get(key);
+            }
+            path.reverse();
+            return path;
+        }
+
+        function aiTarget(piece) {
+            const finalTarget = aiFinalTarget(piece);
+            if (G.mode !== 'bedwars' || !piece.blocks) return finalTarget;
+            const path = findAISquadPath(piece, finalTarget);
+            if (path.length > 1) {
+                // Move to the edge first; once the next cell is void, aiTryBridge fills it.
+                const firstVoid = path.findIndex((step, i) => i > 0 && G.boardGrid[keyOf(step.x,step.z)]?.isVoid);
+                if (firstVoid > 1) return path[1];
+            }
+            return finalTarget;
         }
 
         function aiShop(team) {
@@ -3810,14 +3868,17 @@
 
             // Keep wool on a small group of bridge units instead of spending the
             // team's entire iron reserve filling every piece's inventory.
-            const woolCarrierCount = G.pieces.filter(p => p.team === team && p.type !== 'bed' && p.blocks > 0).length;
-            if (woolCarrierCount < 2 && res.iron >= WOOL_COST) {
-                const candidates = mine.filter(p => p.blocks < 4 && (p.type === 'p' || p.type === 'n'));
+            const routeCarriers = G.pieces.filter(p => p.team === team && p.aiRouteKind && p.blocks > 0);
+            if (routeCarriers.length < 2) {
+                const candidates = mine.filter(p => p.blocks < 4 && (p.type === 'q' || p.type === 'r'));
                 const lowWoolPiece = candidates.sort((a, b) => {
                     const ta = nearestEnemyObjective(a), tb = nearestEnemyObjective(b);
                     return (ta ? cheb(a, ta) : 999) - (tb ? cheb(b, tb) : 999);
                 })[0];
-                if (lowWoolPiece) buyItem(lowWoolPiece, 'wool');
+                if (lowWoolPiece && res.iron >= WOOL_COST && buyItem(lowWoolPiece, 'wool')) {
+                    lowWoolPiece.aiRouteKind = routeCarriers.length === 0 ? 'dia' : 'mid';
+                    lowWoolPiece.aiRouteDone = false;
+                }
             }
 
             // Spend remaining iron on combat upgrades, but do not loop-buy wool.
@@ -3840,34 +3901,18 @@
         // ENHANCED WOOL BRIDGING PATHFINDER FOR SQUAD AI
         function aiTryBridge(team) {
             if (G.mode !== 'bedwars') return;
-            const piecesWithBlocks = G.pieces.filter(p => p.team === team && p.blocks > 0 && p.type !== 'bed');
-            
-            for (const p of piecesWithBlocks) {
+            const carriers = G.pieces.filter(p => p.team === team && p.blocks > 0 && p.aiRouteKind && p.type !== 'bed');
+            for (const piece of carriers) {
                 if (G.bridgesThisTurn >= MAX_BRIDGES_PER_TURN) break;
-                const targetWp = aiTarget(p);
-                if (!targetWp) continue;
-                
-                const ghosts = calculateGhostBridgeTiles(p);
-                if (!ghosts.length) continue;
-
-                const currentDist = cheb(p, targetWp);
-                let bestGhost = null;
-                let bestDist = currentDist;
-
-                // Find ghost void tile closest to waypoint vector
-                ghosts.forEach(g => {
-                    const d = cheb(g, targetWp);
-                    // Only spend wool when the bridge tile makes measurable
-                    // progress toward the chosen enemy objective.
-                    if (d < bestDist) {
-                        bestDist = d;
-                        bestGhost = g;
-                    }
-                });
-
-                if (bestGhost) {
-                    placeBridgeTile(p, bestGhost.x, bestGhost.z);
-                }
+                const target = aiFinalTarget(piece);
+                if (!target) continue;
+                const path = findAISquadPath(piece, target);
+                if (path.length < 2) continue;
+                const next = path[1];
+                const nextTile = G.boardGrid[keyOf(next.x,next.z)];
+                // Place only the next missing segment. The unit advances onto it on a later turn,
+                // then extends the same route, preventing disconnected wool piles.
+                if (nextTile && nextTile.isVoid) placeBridgeTile(piece, next.x, next.z);
             }
         }
 
@@ -3942,32 +3987,38 @@
             return score;
         }
 
-        function calculateBestMoveForTeam(team) {
-            let best = null, bestScore = -Infinity;
+        function calculateBestMoveForTeam(team, aiLevel = 10) {
+            const candidates = [];
+            const level = Math.max(1, Math.min(25, Number(aiLevel) || 1));
             const teamPieces = G.pieces.filter(p => p.team === team && p.type !== 'bed');
-
             const recentIds = G.aiRecentPieceIdsByTeam[team] || [];
             teamPieces.forEach(piece => {
                 const { moves, attacks } = getPieceMoves(piece);
-                // Spread activity across the squad. Without this, a single high-scoring
-                // piece can monopolize every turn and repeat a small movement cycle.
                 const repeatPenalty = recentIds.includes(piece.id) ? (recentIds.indexOf(piece.id) === 0 ? 360 : 190) : 0;
-                const scoreCandidate = raw => raw - repeatPenalty;
-
                 attacks.forEach(a => {
-                    const s = scoreCandidate(evaluateMoveScore(piece, null, a.target, 25));
-                    if (s > bestScore) { bestScore = s; best = { piece, kind: 'attack', target: a.target, score: s }; }
+                    const score = evaluateMoveScore(piece, null, a.target, level) - repeatPenalty;
+                    candidates.push({ piece, kind:'attack', target:a.target, score });
                 });
-
                 moves.forEach(m => {
-                    let s = scoreCandidate(evaluateMoveScore(piece, m, null, 25));
-                    const recentPath = piece.moveHistory || [];
-                    if (recentPath.length >= 2 && m.x === recentPath[recentPath.length - 2].x && m.z === recentPath[recentPath.length - 2].z) s -= 1800;
-                    if (recentPath.length >= 1 && m.x === recentPath[recentPath.length - 1].x && m.z === recentPath[recentPath.length - 1].z) s -= 500;
-                    if (s > bestScore) { bestScore = s; best = { piece, kind: 'move', m, score: s }; }
+                    let score = evaluateMoveScore(piece, m, null, level) - repeatPenalty;
+                    const history = piece.moveHistory || [];
+                    if (history.length >= 2 && m.x === history[history.length-2].x && m.z === history[history.length-2].z) score -= 1800;
+                    if (history.length >= 1 && m.x === history[history.length-1].x && m.z === history[history.length-1].z) score -= 500;
+                    candidates.push({ piece, kind:'move', m, score });
                 });
             });
-            return best;
+            if (!candidates.length) return null;
+            candidates.sort((a,b) => b.score-a.score);
+            // Lower levels deliberately consider a wider set of plausible moves; level 25
+            // consistently chooses the strongest evaluated move.
+            const shortlist = Math.min(candidates.length, Math.max(1, Math.ceil(1 + (25-level) * 0.38)));
+            const pool = candidates.slice(0, shortlist);
+            if (level >= 25 || pool.length === 1) return pool[0];
+            const weights = pool.map((_,i) => Math.pow(shortlist-i, 1.6));
+            const total = weights.reduce((a,b)=>a+b,0);
+            let roll = Math.random()*total;
+            for (let i=0;i<pool.length;i++) { roll -= weights[i]; if (roll <= 0) return pool[i]; }
+            return pool[0];
         }
 
         function runAITurn() {
@@ -4005,7 +4056,7 @@
                 }
             }
 
-            const best = calculateBestMoveForTeam(team);
+            const best = calculateBestMoveForTeam(team, aiLevel);
             if (!best) { endTurn(); return; }
             if (best.kind === 'attack') initiateD20Combat(best.piece, best.target);
             else executeMove(best.piece, best.m.x, best.m.z, best.m);
@@ -4393,7 +4444,7 @@
                     ${ctrl.type === 'ai' ? `
                     <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
                         <span>AI SMARTNESS: <strong class="text-cyan-300">LVL ${ctrl.level}</strong></span>
-                        <input type="range" min="1" max="25" value="${ctrl.level}" oninput="setTeamAILevel('${team}', this.value)" class="w-24 accent-cyan-400 h-1 bg-slate-800 rounded cursor-pointer">
+                        <input type="range" min="1" max="25" value="${Math.min(25,ctrl.level)}" oninput="setTeamAILevel('${team}', this.value)" class="w-24 accent-cyan-400 h-1 bg-slate-800 rounded cursor-pointer">
                     </div>` : ''}`;
                 container.appendChild(box);
             });
@@ -5782,7 +5833,7 @@
                     } else {
                         const ai = aiPlayers[index - humans.length] || {};
                         G.teamControllers[team] = isHostBrowser
-                            ? { type:'ai', level:Math.max(1,Math.min(50,Number(ai.level || 10))), name:ai.name || 'AI Opponent' }
+                            ? { type:'ai', level:Math.max(1,Math.min(25,Number(ai.level || 10))), name:ai.name || 'AI Opponent' }
                             : { type:'remote', level:10, uid:null, name:ai.name || 'Host-controlled AI' };
                     }
                 });
@@ -5941,8 +5992,8 @@
             return Math.max(100, Number(currentAccount && currentAccount.ratings && currentAccount.ratings[key] || 300));
         }
         function aiLevelFromAverageElo(averageElo) {
-            // Approximate mapping: 300 Elo -> level 6; 1000 -> level 20; capped to the game's 1–50 AI scale.
-            return Math.max(1, Math.min(50, Math.round(averageElo / 50)));
+            // Approximate mapping: 300 Elo -> level 6; 1000 -> level 20; capped to the game's 1–25 AI scale.
+            return Math.max(1, Math.min(25, Math.round(averageElo / 50)));
         }
         async function startLobbyWithAIs() {
             if (!activeLobbyCode || !activeLobbyIsHost || activeLobbyStartBusy) return;
