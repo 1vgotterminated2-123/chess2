@@ -499,6 +499,37 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
 #piece-inspector-card button{min-width:0}
 @media(max-width:640px){#piece-inspector-card{top:96px;left:8px;width:min(270px,calc(100vw - 16px));max-height:34vh;padding:9px;gap:7px}#piece-inspector-card #inspector-carried-gems-box{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
+
+<style id="omniverse-inspector-position-override">
+/* The Omniverse theme gives every .glass-panel position:relative.
+   The piece inspector is a viewport overlay and must remain fixed. */
+body[data-theme-style="omniverse"] #piece-inspector-card {
+  position: fixed !important;
+  top: 108px !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: auto !important;
+  z-index: 75 !important;
+  width: min(300px, calc(100vw - 24px)) !important;
+  max-width: calc(100vw - 24px) !important;
+  max-height: min(42vh, 390px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  pointer-events: auto !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+}
+@media (max-width: 640px) {
+  body[data-theme-style="omniverse"] #piece-inspector-card {
+    top: 96px !important;
+    left: 8px !important;
+    width: min(270px, calc(100vw - 16px)) !important;
+    max-width: calc(100vw - 16px) !important;
+    max-height: 34vh !important;
+  }
+}
+</style>
+
 </head>
 <body class="w-full h-screen relative bg-slate-950">
 
