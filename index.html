@@ -28,6 +28,24 @@
             overflow: hidden;
         }
         .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        /* Competitive rank title effects intensify with each higher tier. */
+        #profile-rank-next { display:inline-block; transform-origin:center; transition:color .25s,text-shadow .25s,filter .25s; }
+        #profile-rank-next.rank-next-tier-0 { text-shadow:0 0 5px rgba(205,127,50,.55); }
+        #profile-rank-next.rank-next-tier-1 { text-shadow:0 0 7px rgba(203,213,225,.65); }
+        #profile-rank-next.rank-next-tier-2 { text-shadow:0 0 8px rgba(250,204,21,.75),0 0 16px rgba(250,204,21,.25); }
+        #profile-rank-next.rank-next-tier-3 { text-shadow:0 0 9px rgba(103,232,249,.8),0 0 18px rgba(103,232,249,.3); }
+        #profile-rank-next.rank-next-tier-4 { text-shadow:0 0 10px rgba(96,165,250,.9),0 0 20px rgba(96,165,250,.45); animation:rankDiamondPulse 2.4s ease-in-out infinite; }
+        #profile-rank-next.rank-next-tier-5 { text-shadow:0 0 10px rgba(52,211,153,.95),0 0 22px rgba(16,185,129,.55); animation:rankEmeraldPulse 2s ease-in-out infinite; }
+        #profile-rank-next.rank-next-tier-6 { background:linear-gradient(100deg,#67e8f9,#fff,#a5f3fc,#c084fc);background-size:220% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 14px rgba(165,243,252,.65);animation:rankPrismatic 2.8s linear infinite; }
+        #profile-rank-next.rank-next-tier-7 { background:linear-gradient(100deg,#c084fc,#f5d0fe,#818cf8,#e9d5ff);background-size:240% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 15px rgba(192,132,252,.8);animation:rankPrismatic 2s linear infinite; }
+        #profile-rank-next.rank-next-tier-8 { background:linear-gradient(100deg,#6366f1,#c4b5fd,#312e81,#a5b4fc);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 16px rgba(129,140,248,.95);animation:rankAbyss 2.2s ease-in-out infinite; }
+        #profile-rank-next.rank-next-tier-9 { background:linear-gradient(90deg,#fb7185,#fda4af,#fff,#f43f5e,#be123c);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 18px rgba(251,113,133,.95),0 0 30px rgba(244,63,94,.6);animation:rankNightmare 1.6s linear infinite; }
+        @keyframes rankDiamondPulse { 50% { filter:brightness(1.5);text-shadow:0 0 16px rgba(96,165,250,1),0 0 28px rgba(96,165,250,.7); } }
+        @keyframes rankEmeraldPulse { 50% { filter:brightness(1.55);text-shadow:0 0 18px rgba(52,211,153,1),0 0 32px rgba(16,185,129,.8); } }
+        @keyframes rankPrismatic { to { background-position:220% center;filter:brightness(1.3); } }
+        @keyframes rankAbyss { 50% { filter:brightness(1.65);text-shadow:0 0 22px rgba(129,140,248,1),0 0 38px rgba(49,46,129,.9); } }
+        @keyframes rankNightmare { to { background-position:260% center;filter:brightness(1.65) drop-shadow(0 0 8px rgba(244,63,94,.9)); } }
+        @media (prefers-reduced-motion: reduce) { #profile-rank-next { animation:none!important; } }
         
         .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.5), inset 0 0 15px rgba(6, 182, 212, 0.2); }
         .glow-crimson { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), inset 0 0 15px rgba(239, 68, 68, 0.2); }
@@ -6563,7 +6581,10 @@
             $('profile-rank-current').textContent=placed?current.name.toUpperCase():'UNPLACED';
             currentEl.style.color=placed?current.color:'#94a3b8';
             nextEl.textContent=placed?(next?next.name.toUpperCase():'MAX RANK'):'BRONZE';
-            nextEl.style.color=next?next.color:'#facc15';
+            const nextTierIndex=placed?(next?idx+1:idx):0;
+            for(let i=0;i<COMPETITIVE_RANKS.length;i++) nextEl.classList.remove('rank-next-tier-'+i);
+            nextEl.classList.add('rank-next-tier-'+nextTierIndex);
+            nextEl.style.color=next?next.color:(placed?current.color:COMPETITIVE_RANKS[0].color);
             if(!placed){const pct=Math.min(100,rankedMatches/3*100);bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=rankedMatches+' / 3 ranked matches';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Complete 3 ranked matches to receive your first rank. Overall Elo is the average of Classic, Draft, and Bedwars Elo.';}
             else if(next){const pct=Math.max(0,Math.min(100,(elo-current.min)/(next.min-current.min)*100));bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=Math.max(0,elo-current.min)+' / '+(next.min-current.min)+' Elo in '+current.name;$('profile-rank-elo-label').textContent=elo+' / '+next.min+' Overall Elo';$('profile-rank-caption').textContent=(next.min-elo)+' Overall Elo until '+next.name+'. Your rank uses the average of Classic, Draft, and Bedwars Elo.';}
             else{bar.style.width='100%';$('profile-rank-progress-label').textContent='Highest rank achieved';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Nightmare rank achieved. Keep climbing your average Elo across all game modes.';}
