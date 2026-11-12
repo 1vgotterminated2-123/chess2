@@ -143,17 +143,6 @@
         @media(max-width:640px){#modal-item-shop>div{max-height:94dvh}#modal-item-shop .text-left{font-size:11px}}
         #theme-shop-list>div,#inventory-theme-list>div{border-width:1px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
 
-
-        /* Reliable name-gradient rendering across profile, chat, leaderboard and shop previews. */
-        .player-name-cosmetic[class*="name-gradient-"]{display:inline-block!important;background-repeat:repeat!important;background-clip:text!important;-webkit-background-clip:text!important;-webkit-text-fill-color:transparent!important;color:transparent!important;}
-        .name-gradient-sunset{background-image:linear-gradient(100deg,#ff6b8a 0%,#ffb347 48%,#fff0a6 72%,#ff6b8a 100%)!important;background-size:240% 100%!important;animation:nameGradientFlow 4.8s linear infinite!important}
-        .name-gradient-ocean{background-image:linear-gradient(100deg,#22d3ee 0%,#3b82f6 45%,#a5b4fc 72%,#22d3ee 100%)!important;background-size:240% 100%!important;animation:nameGradientFlow 5.2s linear infinite!important}
-        .name-gradient-prism{background-image:linear-gradient(100deg,#ff4fd8 0%,#8b5cf6 18%,#22d3ee 38%,#a3e635 56%,#facc15 74%,#ff4fd8 100%)!important;background-size:300% 100%!important;animation:nameGradientFlow 3.2s linear infinite!important}
-        .name-gradient-celestial{background-image:linear-gradient(100deg,#7dd3fc 0%,#c4b5fd 22%,#f9a8d4 45%,#fde68a 68%,#fff 80%,#7dd3fc 100%)!important;background-size:300% 100%!important;animation:nameGradientFlow 4.2s linear infinite!important}
-        .name-gradient-emberice{background-image:linear-gradient(100deg,#fb923c 0%,#fef3c7 28%,#67e8f9 62%,#2563eb 82%,#fb923c 100%)!important;background-size:280% 100%!important;animation:nameGradientFlow 3.8s linear infinite!important}
-        .name-gradient-royal{background-image:linear-gradient(100deg,#fef08a 0%,#f59e0b 22%,#c4b5fd 48%,#f0abfc 72%,#fef08a 100%)!important;background-size:280% 100%!important;animation:nameGradientFlow 4s linear infinite!important}
-        .name-gradient-singularity{background-image:linear-gradient(100deg,#67e8f9 0%,#7c3aed 22%,#fff 43%,#f9a8d4 58%,#facc15 78%,#67e8f9 100%)!important;background-size:320% 100%!important;animation:nameGradientFlow 2.6s linear infinite!important;filter:drop-shadow(0 0 7px rgba(255,255,255,.8))}
-        @keyframes nameGradientFlow{from{background-position:0% 50%}to{background-position:300% 50%}}
         .name-font-runic{font-family:Georgia,serif;font-weight:900;letter-spacing:.12em;text-transform:uppercase}.name-gradient-celestial{background:linear-gradient(90deg,#7dd3fc,#c4b5fd,#f9a8d4,#fde68a,#7dd3fc);background-size:300% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 5s linear infinite}.name-effect-starlight{text-shadow:0 0 4px #fff,0 0 10px #93c5fd,0 0 20px #c4b5fd;animation:nameElectric 2.5s ease-in-out infinite}
         body[data-theme-style="starfall"]{background:radial-gradient(circle at 15% 18%,rgba(124,58,237,.32),transparent 28%),radial-gradient(circle at 80% 12%,rgba(245,208,120,.18),transparent 24%),linear-gradient(145deg,#050817,#10102d 48%,#080817)!important;background-attachment:fixed!important}body[data-theme-style="starfall"]:before{content:"✦     ·       ✧          ✦       ·       ✧";position:fixed;inset:0;pointer-events:none;z-index:0;color:#f7e7b0;letter-spacing:2.8em;line-height:5.5em;opacity:.24;animation:starDrift 18s linear infinite}
         body[data-theme-style="dragonfire"]{background:radial-gradient(ellipse at 50% 110%,rgba(249,82,34,.38),transparent 48%),radial-gradient(circle at 80% 10%,rgba(153,27,27,.3),transparent 30%),linear-gradient(145deg,#100506,#2a0908 52%,#080406)!important;background-attachment:fixed!important}body[data-theme-style="dragonfire"] .glass-panel{box-shadow:0 0 28px rgba(249,82,34,.22),inset 0 0 30px rgba(127,29,29,.13)!important;border-color:rgba(251,113,76,.48)!important}
@@ -291,9 +280,6 @@
         @keyframes voidPanelGlow{from{box-shadow:0 0 18px rgba(124,58,237,.18)}to{box-shadow:0 0 34px rgba(103,232,249,.28)}}
         @keyframes glitchPanel{0%,94%,100%{transform:translateX(0)}95%{transform:translateX(1px)}97%{transform:translateX(-1px)}}
         .player-name-cosmetic{display:inline-block}
-        .player-name-cosmetic{display:inline-block;vertical-align:middle;line-height:1.12;position:relative;isolation:isolate;max-width:100%;transform-origin:center center}
-        .player-name-cosmetic[class*="name-font-"]{min-height:1.12em;}
-        .name-font-scifi{font-family:Arial,sans-serif;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.name-font-roman{font-family:Georgia,'Times New Roman',serif;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.name-font-pixel{font-family:'Courier New',monospace;font-weight:900;letter-spacing:.035em;text-shadow:1px 1px 0 currentColor}.name-font-elegant{font-family:'Palatino Linotype',Palatino,serif;font-style:italic;font-weight:700;letter-spacing:.025em}.name-font-draconic{font-family:Georgia,serif;font-weight:900;font-variant:small-caps;letter-spacing:.09em;text-shadow:0 1px 0 rgba(0,0,0,.35)}.name-font-quantum{font-family:'Trebuchet MS',Arial,sans-serif;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
         .name-font-arcade{font-family:monospace;letter-spacing:.08em;text-transform:uppercase}.name-font-serif{font-family:Georgia,serif;font-style:italic}.name-font-orbitron{font-family:Orbitron,monospace;letter-spacing:.04em}.name-font-hand{font-family:cursive;font-style:italic}
         .name-color-crimson{color:#fb7185!important}.name-color-cyan{color:#67e8f9!important}.name-color-gold{color:#facc15!important}.name-color-violet{color:#c4b5fd!important}.name-gradient-sunset{background:linear-gradient(90deg,#fb7185,#fbbf24);background-clip:text;-webkit-background-clip:text;color:transparent!important}.name-gradient-ocean{background:linear-gradient(90deg,#22d3ee,#818cf8);background-clip:text;-webkit-background-clip:text;color:transparent!important}.name-gradient-prism{background:linear-gradient(90deg,#f0abfc,#67e8f9,#facc15,#f0abfc);background-size:250% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 4s linear infinite}.name-effect-flame{text-shadow:0 0 5px #fb923c,0 0 12px #ef4444;animation:nameFlame 1.2s ease-in-out infinite alternate}.name-effect-electric{text-shadow:0 0 5px #67e8f9,0 0 13px #2563eb;animation:nameElectric 1.8s ease-in-out infinite}.name-effect-shadow{text-shadow:2px 2px 0 #000,0 0 9px #a78bfa}
         @keyframes namePrism{to{background-position:250% center}}@keyframes nameFlame{to{filter:brightness(1.35)}}@keyframes nameElectric{50%{text-shadow:0 0 9px #fff,0 0 18px #22d3ee}}
@@ -315,41 +301,10 @@
         body[data-theme-style="deepsea"]:after{content:"◦     ·      ○       ·      ◦       ○";position:fixed;inset:0;z-index:-1;pointer-events:none;color:#a5f3fc;opacity:.2;font-size:18px;letter-spacing:2.5em;line-height:6em;animation:bubbleRise 13s linear infinite}
         body[data-theme-style="dreamweaver"]:before{content:"";position:fixed;inset:-20%;z-index:-1;pointer-events:none;background:conic-gradient(from 0deg at 50% 50%,transparent,rgba(217,70,239,.12),transparent,rgba(56,189,248,.13),transparent);filter:blur(35px);animation:dreamOrbit 24s linear infinite}
         @keyframes lavaPulse{to{opacity:.45;filter:brightness(1.5)}}@keyframes dreamOrbit{to{transform:rotate(360deg)}}
-        .name-font-mono{font-family:ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase}.name-font-blackletter{font-family:Georgia,serif;font-weight:900;font-variant:small-caps;letter-spacing:.08em}.name-font-celestial{font-family:Georgia,serif;font-style:italic;font-weight:900;letter-spacing:.08em}
+        .name-font-mono{font-family:ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase}.name-font-blackletter{font-family:Georgia,serif;font-weight:900;font-variant:small-caps;letter-spacing:.08em;text-shadow:0 2px 0 #000}.name-font-celestial{font-family:Georgia,serif;font-style:italic;font-weight:900;letter-spacing:.08em}
         .name-gradient-emberice{background:linear-gradient(90deg,#fb923c,#fef3c7,#67e8f9,#2563eb);background-size:250% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 3.8s linear infinite}.name-gradient-royal{background:linear-gradient(90deg,#fef08a,#c4b5fd,#f0abfc,#fef08a);background-size:250% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 4s linear infinite}.name-gradient-singularity{background:linear-gradient(90deg,#67e8f9,#a78bfa,#fff,#f9a8d4,#67e8f9);background-size:300% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 2.2s linear infinite;filter:drop-shadow(0 0 7px rgba(255,255,255,.8))}
-        .name-effect-frost{text-shadow:0 0 5px #fff,0 0 12px #67e8f9,0 0 22px #38bdf8;animation:frostPulse 2s ease-in-out infinite alternate}.name-effect-royal{text-shadow:0 0 4px #fef3c7,0 0 12px #f59e0b,0 0 22px #a78bfa;animation:nameElectric 3s ease-in-out infinite}.name-effect-apotheosis{position:relative;text-shadow:0 0 3px #fff,0 0 9px #f0abfc,0 0 18px #67e8f9,0 0 32px #facc15;animation:apotheosis 2.4s ease-in-out infinite alternate;filter:drop-shadow(0 0 7px rgba(216,180,254,.9))}.name-effect-apotheosis:after{content:"✦"!important;position:absolute!important;display:block!important;right:-.72em!important;top:-.48em!important;width:.9em!important;height:.9em!important;font-family:Arial,sans-serif!important;font-size:.72em!important;font-style:normal!important;font-weight:900!important;line-height:.9!important;letter-spacing:0!important;text-align:center!important;color:#fff7ad!important;-webkit-text-fill-color:#fff7ad!important;text-shadow:0 0 5px #fff,0 0 11px #e879f9,0 0 18px #facc15!important;transform-origin:50% 50%;animation:apotheosisStar 3s ease-in-out infinite!important;pointer-events:none!important;white-space:nowrap!important}.name-effect-horizon{position:relative;display:inline-block;isolation:isolate;text-shadow:0 0 5px #020617,0 0 12px #a78bfa,0 0 22px #22d3ee;animation:horizonPulse 3s ease-in-out infinite}.name-effect-horizon:after{content:"";position:absolute;inset:auto;width:1.65em;height:1.65em;left:50%;top:50%;margin:-.825em 0 0 -.825em;border:1px solid rgba(192,132,252,.65);border-radius:50%;box-shadow:0 0 12px #a78bfa;animation:orbitSpark 5s linear infinite;pointer-events:none;z-index:-1}
-        /* Name effects are deliberately animation-independent: gradient classes own background animation. */
-        .player-name-cosmetic[class*="name-effect-"]{animation:none!important}
-        .player-name-cosmetic[class*="name-gradient-"][class*="name-effect-"]{animation:nameGradientFlow 4s linear infinite!important}
-        .name-effect-flame{text-shadow:0 0 5px #fb923c,0 0 12px #ef4444,0 0 22px rgba(249,115,22,.75)!important}
-        .name-effect-electric{text-shadow:0 0 5px #67e8f9,0 0 13px #2563eb,0 0 22px rgba(34,211,238,.55)!important}
-        .name-effect-shadow{text-shadow:2px 2px 0 #000,0 0 9px #a78bfa,0 0 16px rgba(15,23,42,.9)!important}
-        .name-effect-starlight{text-shadow:0 0 4px #fff,0 0 10px #93c5fd,0 0 20px #c4b5fd!important}
-        .name-effect-frost{text-shadow:0 0 5px #fff,0 0 12px #67e8f9,0 0 22px #38bdf8!important}
-        .name-effect-royal{text-shadow:0 0 4px #fef3c7,0 0 12px #f59e0b,0 0 22px #a78bfa!important}
-        .name-effect-apotheosis{text-shadow:0 0 3px #fff,0 0 9px #f0abfc,0 0 18px #67e8f9,0 0 32px #facc15!important;filter:drop-shadow(0 0 7px rgba(216,180,254,.9))}
-        .name-effect-horizon{text-shadow:0 0 5px #020617,0 0 12px #a78bfa,0 0 22px #22d3ee!important}
-        .name-effect-ember{text-shadow:0 0 3px #fff7ed,0 0 9px #f97316,0 0 20px #dc2626,0 0 30px rgba(249,115,22,.65)!important}
-        .name-effect-toxic{text-shadow:0 0 4px #d9f99d,0 0 11px #84cc16,0 0 24px #22c55e!important}
-        .name-effect-arcane{text-shadow:0 0 4px #ede9fe,0 0 11px #8b5cf6,0 0 23px #c026d3!important}
-        .name-effect-glitch{text-shadow:2px 0 #fb7185,-2px 0 #22d3ee,0 0 10px rgba(255,255,255,.45)!important}
-        .name-effect-divine{text-shadow:0 0 4px #fff,0 0 12px #fde68a,0 0 24px #f59e0b,0 0 36px rgba(255,255,255,.55)!important}
-        .name-effect-bloodmoon{text-shadow:0 0 4px #fecaca,0 0 12px #dc2626,0 0 25px #7f1d1d!important}
-        .name-effect-aurora{text-shadow:0 0 4px #ccfbf1,0 0 12px #2dd4bf,0 0 22px #818cf8,0 0 30px #c084fc!important}
-        /* Transcendent effects: distinct animated ornaments that do not alter font metrics. */
-        .player-name-cosmetic.name-effect-divine,
-        .player-name-cosmetic.name-effect-aurora{position:relative!important;display:inline-block!important;isolation:isolate;overflow:visible!important;vertical-align:baseline}
-        .player-name-cosmetic.name-effect-divine{color:inherit;text-shadow:0 0 2px #fff,0 0 8px #fff7ad,0 0 17px #fbbf24,0 0 29px rgba(251,191,36,.9),0 0 44px rgba(255,255,255,.55)!important;filter:drop-shadow(0 0 5px rgba(253,230,138,.9))}
-        .player-name-cosmetic.name-effect-divine:before{content:"";position:absolute;z-index:-1;left:-.18em;right:-.18em;top:50%;height:1.08em;transform:translateY(-50%) rotate(-9deg) scaleY(.42);border:1px solid rgba(253,230,138,.9);border-left-color:rgba(255,255,255,.2);border-right-color:rgba(251,191,36,.35);border-radius:50%;box-shadow:0 0 7px #fff7ad,0 0 18px rgba(245,158,11,.9),inset 0 0 9px rgba(255,255,255,.35);animation:divineOrbit 4.8s ease-in-out infinite;pointer-events:none}
-        .player-name-cosmetic.name-effect-divine:after{content:"✦  ·  ✧";position:absolute;z-index:1;right:-.45em;top:-.75em;color:#fff7ad;font-size:.58em;letter-spacing:.35em;text-shadow:0 0 5px #fff,0 0 13px #f59e0b;white-space:nowrap;animation:divineSpark 2.6s ease-in-out infinite;pointer-events:none}
-        .player-name-cosmetic.name-effect-aurora{ text-shadow:0 0 3px #ecfeff,0 0 9px #5eead4,0 0 19px #818cf8,0 0 32px #c084fc!important;filter:drop-shadow(0 0 5px rgba(45,212,191,.8)) }
-        .player-name-cosmetic.name-effect-aurora:before{content:"";position:absolute;z-index:-1;inset:-.22em -.28em;border-radius:50%;border:1px solid rgba(94,234,212,.48);background:radial-gradient(ellipse at 20% 50%,rgba(45,212,191,.26),transparent 48%),radial-gradient(ellipse at 80% 50%,rgba(192,132,252,.24),transparent 48%);filter:blur(3px);opacity:.72;animation:auroraCorona 7s ease-in-out infinite;pointer-events:none}
-        .player-name-cosmetic.name-effect-aurora:after{content:"〰";position:absolute;z-index:1;left:50%;top:-.88em;transform:translateX(-50%);font-size:.8em;letter-spacing:.18em;color:#99f6e4;text-shadow:0 0 7px #2dd4bf,0 0 16px #818cf8,0 0 24px #c084fc;white-space:nowrap;animation:auroraWave 3.8s ease-in-out infinite;pointer-events:none}
-        @keyframes divineOrbit{0%,100%{transform:translateY(-50%) rotate(-9deg) scaleY(.42)}50%{transform:translateY(-50%) rotate(9deg) scaleY(.52)}}
-        @keyframes divineSpark{0%,100%{opacity:.55;transform:translateY(2px) scale(.85)}50%{opacity:1;transform:translateY(-3px) scale(1.15)}}
-        @keyframes auroraCorona{0%,100%{transform:scaleX(.96) scaleY(.82);opacity:.55}50%{transform:scaleX(1.04) scaleY(1);opacity:.9}}
-        @keyframes auroraWave{0%,100%{opacity:.55;transform:translate(-50%,3px) scaleX(.88)}50%{opacity:1;transform:translate(-50%,-3px) scaleX(1.12)}}
-        @keyframes apotheosis{to{filter:brightness(1.6) drop-shadow(0 0 13px rgba(255,255,255,.95));letter-spacing:.08em}}@keyframes apotheosisStar{0%,100%{opacity:.72;transform:rotate(-12deg) scale(.88)}50%{opacity:1;transform:rotate(12deg) scale(1.18)}}@keyframes orbitSpark{to{transform:rotate(360deg)}}@keyframes horizonPulse{50%{text-shadow:0 0 8px #020617,0 0 20px #a78bfa,0 0 32px #22d3ee}}@keyframes frostPulse{to{filter:brightness(1.5)}}
+        .name-effect-frost{text-shadow:0 0 5px #fff,0 0 12px #67e8f9,0 0 22px #38bdf8;animation:frostPulse 2s ease-in-out infinite alternate}.name-effect-royal{text-shadow:0 0 4px #fef3c7,0 0 12px #f59e0b,0 0 22px #a78bfa;animation:nameElectric 3s ease-in-out infinite}.name-effect-apotheosis{position:relative;text-shadow:0 0 3px #fff,0 0 9px #f0abfc,0 0 18px #67e8f9,0 0 32px #facc15;animation:apotheosis 2.4s ease-in-out infinite alternate;filter:drop-shadow(0 0 7px rgba(216,180,254,.9))}.name-effect-apotheosis:after{content:"✦";position:absolute;right:-.8em;top:-.65em;font-size:.65em;color:#fff7ad;text-shadow:0 0 8px #fff,0 0 18px #e879f9;animation:orbitSpark 2s linear infinite}.name-effect-horizon{text-shadow:0 0 5px #020617,0 0 12px #a78bfa,0 0 22px #22d3ee;animation:horizonPulse 3s ease-in-out infinite}.name-effect-horizon:after{content:"";position:absolute;inset:-.35em -.5em;border:1px solid rgba(192,132,252,.65);border-radius:50%;box-shadow:0 0 12px #a78bfa;animation:orbitSpark 5s linear infinite;pointer-events:none}
+        @keyframes apotheosis{to{filter:brightness(1.6) drop-shadow(0 0 13px rgba(255,255,255,.95));letter-spacing:.08em}}@keyframes orbitSpark{to{transform:rotate(360deg)}}@keyframes horizonPulse{50%{text-shadow:0 0 8px #020617,0 0 20px #a78bfa,0 0 32px #22d3ee}}@keyframes frostPulse{to{filter:brightness(1.5)}}
 
         /* Reliable custom profile-badge tooltip (instead of browser-native title popups). */
         #profile-badge-tooltip{position:fixed;z-index:99999;display:none;max-width:min(300px,calc(100vw - 24px));padding:10px 12px;border:1px solid rgba(56,189,248,.55);border-radius:10px;background:rgba(2,6,23,.98);color:#e2e8f0;box-shadow:0 12px 32px rgba(0,0,0,.55);font:12px/1.45 Inter,sans-serif;white-space:normal;pointer-events:none}
@@ -1472,6 +1427,7 @@
             spellMode: null,
             bestMoveHint: null,
             gameOver: false,
+            eliminatedTeams: {},
             matchId: 0,
             aiTimer: null,
             autoPlayActive: false,
@@ -3195,21 +3151,61 @@
             checkWin();
         }
 
+        function eliminateSquadTeam(team) {
+            if (!team || (G.eliminatedTeams && G.eliminatedTeams[team])) return;
+            if (!G.eliminatedTeams) G.eliminatedTeams = {};
+            G.eliminatedTeams[team] = true;
+            // Once both the bed and King are gone, the entire squad is out:
+            // remove every remaining unit, queued respawn, and attached visual.
+            G.pieces.filter(p => p.team === team).slice().forEach(piece => {
+                if (piece.mesh) scene.remove(piece.mesh);
+                if (piece.tpMarker) scene.remove(piece.tpMarker);
+                if (piece.obsMesh) scene.remove(piece.obsMesh);
+                cancelTeleportChannel(piece);
+                const tile = G.boardGrid[keyOf(piece.x, piece.z)];
+                if (tile && tile.piece === piece) tile.piece = null;
+                if (G.selectedPiece === piece) G.selectedPiece = null;
+            });
+            G.pieces = G.pieces.filter(p => p.team !== team);
+            if (G.resources[team]) {
+                G.resources[team].respawnQueue = [];
+                G.resources[team].bedAlive = false;
+            }
+            if (G.bridgeModeActive) { G.bridgeModeActive = false; G.ghostBridgeTiles = []; syncBridgeButton(); }
+            showFloatingText(`${team.toUpperCase()} SQUAD ELIMINATED`, null, null, '#ef4444');
+            updateBedBadges();
+            updateHUDCounters();
+        }
+
         function checkWin() {
             if (G.gameOver) return;
             const isBedwars = (G.mode === 'bedwars');
 
+            // In Squads, a team is eliminated only after its bed is destroyed AND
+            // its King is dead (not merely waiting to respawn). Then wipe all units.
+            if (isBedwars && G.teamFormat === '4-team') {
+                G.teams.forEach(t => {
+                    const res = G.resources[t];
+                    const hasKing = G.pieces.some(p => p.team === t && p.type === 'k');
+                    const queuedKing = !!(res && Array.isArray(res.respawnQueue) && res.respawnQueue.some(q => q.type === 'k'));
+                    if (res && !res.bedAlive && !hasKing && !queuedKing) eliminateSquadTeam(t);
+                });
+            }
+
             const activeTeams = G.teams.filter(t => {
+                if (G.eliminatedTeams && G.eliminatedTeams[t]) return false;
                 const hasKing = G.pieces.some(p => p.team === t && p.type === 'k');
                 const queued = G.resources[t] && G.resources[t].respawnQueue.some(q => q.type === 'k');
                 const bedStanding = isBedwars && G.resources[t] && G.resources[t].bedAlive;
-
                 return isBedwars ? (hasKing || queued || bedStanding) : hasKing;
             });
 
             if (activeTeams.length <= 1) {
                 const winner = activeTeams[0] || G.turn;
                 triggerGameOver(winner, isBedwars ? 'All enemy Kings and Beds have been completely eliminated!' : 'The enemy King has been slain in Battle!');
+            } else if (G.eliminatedTeams && G.eliminatedTeams[G.turn]) {
+                G.turn = activeTeams[0];
+                G.turnIndex = G.teams.indexOf(G.turn);
             }
         }
 
@@ -3709,6 +3705,7 @@
         }
 
         function isTeamActive(team) {
+            if (G.eliminatedTeams && G.eliminatedTeams[team]) return false;
             const hasPiece = G.pieces.some(p => p.team === team);
             const queued = G.resources[team] && G.resources[team].respawnQueue.length > 0;
             const bed = G.mode === 'bedwars' && G.resources[team] && G.resources[team].bedAlive;
@@ -4120,12 +4117,24 @@
             const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
             if (startKey === goalKey) return [start];
             const queue = [start], cameFrom = new Map([[startKey, null]]);
-            const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+            // Bridge routes are deliberately orthogonal: when a destination is diagonal,
+            // build/run vertically first (Z axis), then turn sideways (X axis).
+            // This prevents AI wool from creating diagonal corner-to-corner shortcuts.
+            const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
             let found = false;
             for (let head = 0; head < queue.length; head++) {
                 const cur = queue[head];
                 const nexts = dirs.map(([dx,dz]) => ({x:cur.x+dx,z:cur.z+dz}));
-                nexts.sort((a,b) => (Math.abs(a.x-goal.x)+Math.abs(a.z-goal.z)) - (Math.abs(b.x-goal.x)+Math.abs(b.z-goal.z)));
+                nexts.sort((a,b) => {
+                    const da = Math.abs(a.x-goal.x)+Math.abs(a.z-goal.z);
+                    const db = Math.abs(b.x-goal.x)+Math.abs(b.z-goal.z);
+                    if (da !== db) return da-db;
+                    // Prefer already-built wool, then vertical movement, to reuse
+                    // shared bridges and make diagonal routes visibly dog-leg.
+                    const ta=G.boardGrid[keyOf(a.x,a.z)], tb=G.boardGrid[keyOf(b.x,b.z)];
+                    if (!!ta?.wool !== !!tb?.wool) return ta?.wool ? -1 : 1;
+                    return (a.x === cur.x ? -1 : 0) - (b.x === cur.x ? -1 : 0);
+                });
                 for (const next of nexts) {
                     if (!inBounds(next.x,next.z)) continue;
                     const key = keyOf(next.x,next.z), tile = G.boardGrid[key];
@@ -4243,6 +4252,9 @@
                     const tile = G.boardGrid[keyOf(step.x, step.z)];
                     if (!tile) break;
                     if (tile.piece && tile.piece.id !== piece.id) break;
+                    // Existing wool is a free, reusable route segment. Walk across it
+                    // rather than spending another block or laying a parallel bridge.
+                    if (tile.wool) continue;
                     if (!tile.isVoid) continue;
                     if (piece.blocks < 1 && teamRes && teamRes.iron >= WOOL_COST) {
                         teamRes.iron -= WOOL_COST; piece.blocks += WOOL_QTY;
@@ -4732,9 +4744,11 @@
                 const res = G.resources[team] || newTeamRes(G.mode === 'bedwars');
                 const ctrl = G.teamControllers[team] || { type: 'human', level: 10 };
                 const isTurn = (G.turn === team);
+                const eliminated = !!(G.eliminatedTeams && G.eliminatedTeams[team]);
 
                 const card = document.createElement('div');
-                card.className = `glass-panel rounded-xl p-2.5 border ${isTurn ? 'border-cyan-400 ring-2 ring-cyan-400/40' : cfg.borderClass} pointer-events-auto flex-1 min-w-[200px] max-w-[260px] transition-all`;
+                card.className = `glass-panel rounded-xl p-2.5 border ${eliminated ? 'border-red-900 opacity-55 grayscale' : (isTurn ? 'border-cyan-400 ring-2 ring-cyan-400/40' : cfg.borderClass)} pointer-events-auto flex-1 min-w-[200px] max-w-[260px] transition-all`;
+                if (eliminated) card.style.background = 'linear-gradient(135deg,rgba(69,10,10,.48),rgba(15,23,42,.88))';
                 card.innerHTML = `
                     <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
                         <div class="flex items-center gap-1.5">
@@ -4742,7 +4756,7 @@
                             <span class="font-orbitron font-bold text-xs" style="color: ${cfg.color}">${cfg.name.toUpperCase()}</span>
                         </div>
                         <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-300">
-                            ${ctrl.type === 'human' ? '👤 HUMAN' : `🤖 AI L${ctrl.level}`}
+                            ${eliminated ? '☠ ELIMINATED' : (ctrl.type === 'human' ? '👤 HUMAN' : `🤖 AI L${ctrl.level}`)}
                         </span>
                     </div>
                     <div class="flex items-center justify-between text-[10px] font-mono text-slate-300">
@@ -4871,6 +4885,11 @@
                 if (!badge) return;
                 const res = G.resources[team], bed = bedOf(team);
                 const q = res && Array.isArray(res.respawnQueue) ? res.respawnQueue.length : 0;
+                if (G.eliminatedTeams && G.eliminatedTeams[team]) {
+                    badge.innerText = '☠️ TEAM ELIMINATED';
+                    badge.className = 'text-[9px] text-red-500 font-black tracking-wider';
+                    return;
+                }
                 const qTxt = q ? ` • ☠${q} RESPAWNING` : '';
                 if (G.mode === 'bedwars' && res && res.bedAlive && bed) {
                     badge.innerText = `🛏️ ALIVE ${Math.max(0,bed.hp)}/${bed.maxHp} HP • BREAKS IN ${remaining} TURNS${qTxt}`;
@@ -4996,7 +5015,7 @@
             G.gameOver = false; G.matchRewarded = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
             G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
             G.reviewSnapshots = []; G.reviewPieceRegistry = {};
-            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.aiTrainingTrace = []; G.aiTrainingRecorded = false; G.aiSquadFormation = {}; G.isReviewing = false;
+            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.aiTrainingTrace = []; G.aiTrainingRecorded = false; G.aiSquadFormation = {}; G.eliminatedTeams = {}; G.isReviewing = false;
             initResources();
             closeModals();
             syncBridgeButton();
@@ -5356,10 +5375,6 @@
                 unlockedThemes: [...new Set(['midnight','dark','light',...(Array.isArray(profile.unlockedThemes)?profile.unlockedThemes:[])])], activeTheme: profile.activeTheme || 'midnight',
                 stats: profile.stats || { gamesPlayed: 0, wins: 0, losses: 0, winStreak: 0, bestWinStreak: 0 },
                 unlockedAchievements: profile.unlockedAchievements || [], showcaseAchievement: profile.showcaseAchievement || null,
-                unlockedNameCosmetics: Array.isArray(profile.unlockedNameCosmetics) ? profile.unlockedNameCosmetics : [],
-                activeNameFont: profile.activeNameFont || 'font-orbitron',
-                activeNameColor: profile.activeNameColor || null,
-                activeNameEffect: profile.activeNameEffect || null,
                 activeLobbyCode: profile.activeLobbyCode || null,
                 provider: user.providerData?.[0]?.providerId || 'password',
                 isAnonymous: !!user.isAnonymous
@@ -5779,7 +5794,7 @@
                 // Wool bridges are board tiles, not pieces, so replicate them separately.
                 woolTiles: Object.values(G.boardGrid || {}).filter(t => t && t.wool).map(t => ({x:t.x,z:t.z,team:t.woolTeam || 'white'})),
                 turn:G.turn, turnIndex:G.turnIndex, turnCount:G.turnCount,
-                gameOver:!!G.gameOver, winnerTeam:G.winnerTeam || null, bridgesThisTurn:G.bridgesThisTurn || 0,
+                gameOver:!!G.gameOver, winnerTeam:G.winnerTeam || null, eliminatedTeams:JSON.parse(JSON.stringify(G.eliminatedTeams || {})), bridgesThisTurn:G.bridgesThisTurn || 0,
                 collapseDone:!!G.collapseDone,
                 // Keep a rolling replay window small enough for Firestore's 1 MiB document limit.
                 reviewSnapshots:(G.reviewSnapshots || []).slice(-30),
@@ -5924,6 +5939,7 @@
                 G.turnCount = state.turnCount || G.turnCount;
                 G.gameOver = !!state.gameOver;
                 G.winnerTeam = state.winnerTeam || G.winnerTeam || null;
+                G.eliminatedTeams = state.eliminatedTeams && typeof state.eliminatedTeams === 'object' ? state.eliminatedTeams : {};
                 G.bridgesThisTurn = state.bridgesThisTurn || 0;
                 G.collapseDone = !!state.collapseDone;
                 if (Array.isArray(state.reviewSnapshots)) {
@@ -6827,7 +6843,7 @@
                     const def=defs[category];metric=def.metric;valueLabel=def.display;rows=users.filter(u=>Number(u.stats?.gamesPlayed||0)>0).sort((a,b)=>metric(b)-metric(a)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);$('leaderboard-subtitle').textContent=def.label+' · top 100 players';
                 }else{rows=users.filter(u=>Number(u.stats?.rankedMatches||0)>=3).sort((a,b)=>leaderboardElo(b,category)-leaderboardElo(a,category)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);$('leaderboard-subtitle').textContent='Ranked players · top 100 by '+(category==='overall'?'Overall Elo':category[0].toUpperCase()+category.slice(1)+' Elo');}
                 if(!rows.length){host.innerHTML='<div class="text-sm text-slate-400 p-4">No eligible players yet. Complete ranked matches to appear here.</div>';return;}
-                host.innerHTML=rows.map((u,i)=>{const st=u.stats||{},games=Number(st.gamesPlayed||0),wins=Number(st.wins||0),winRate=games?Math.round(wins/games*100):0;const value=metric?valueLabel(u):`${leaderboardElo(u,category)} Elo`;return `<div class="leaderboard-row"><div class="text-center font-black ${i===0?'text-amber-300':i===1?'text-slate-200':i===2?'text-orange-300':'text-slate-500'}">#${i+1}</div><button onclick="closeHubPage('leaderboard-page');openPlayerProfile('${u.id}')" class="min-w-0 text-left"><div class="font-bold text-white truncate ${nameCosmeticClasses(u)}">${escapeHubText(u.username||'Player')}</div><div class="text-[9px] text-slate-500">${games} games · ${wins} wins · ${winRate}% win rate</div></button><div class="text-right text-xs font-black text-cyan-200">${value}</div></div>`;}).join('');
+                host.innerHTML=rows.map((u,i)=>{const st=u.stats||{},games=Number(st.gamesPlayed||0),wins=Number(st.wins||0),winRate=games?Math.round(wins/games*100):0;const value=metric?valueLabel(u):`${leaderboardElo(u,category)} Elo`;return `<div class="leaderboard-row"><div class="text-center font-black ${i===0?'text-amber-300':i===1?'text-slate-200':i===2?'text-orange-300':'text-slate-500'}">#${i+1}</div><button onclick="closeHubPage('leaderboard-page');openPlayerProfile('${u.id}')" class="min-w-0 text-left"><div class="font-bold text-white truncate">${escapeHubText(u.username||'Player')}</div><div class="text-[9px] text-slate-500">${games} games · ${wins} wins · ${winRate}% win rate</div></button><div class="text-right text-xs font-black text-cyan-200">${value}</div></div>`;}).join('');
             }catch(e){host.textContent='Could not load leaderboard: '+e.message;}
         }
 
@@ -6837,7 +6853,7 @@
                 const snap=await firestoreDB.doc('users/'+uid).get();
                 if(!snap.exists) throw new Error('Player not found.');
                 const p=snap.data(), own=uid===currentAccount.id, st=p.stats||{}, games=Number(st.gamesPlayed||0), wins=Number(st.wins||0);
-                if(own){currentAccount.stats=p.stats||currentAccount.stats||{};currentAccount.ratings=p.ratings||currentAccount.ratings||{};currentAccount.material=Number(p.material??currentAccount.material??0);currentAccount.unlockedThemes=p.unlockedThemes||currentAccount.unlockedThemes||['midnight','dark','light'];currentAccount.unlockedAchievements=p.unlockedAchievements||currentAccount.unlockedAchievements||[];currentAccount.unlockedNameCosmetics=Array.isArray(p.unlockedNameCosmetics)?p.unlockedNameCosmetics:currentAccount.unlockedNameCosmetics||[];['activeNameFont','activeNameColor','activeNameEffect'].forEach(k=>{currentAccount[k]=p[k]||currentAccount[k]||null;});}
+                if(own){currentAccount.stats=p.stats||currentAccount.stats||{};currentAccount.ratings=p.ratings||currentAccount.ratings||{};currentAccount.material=Number(p.material??currentAccount.material??0);currentAccount.unlockedThemes=p.unlockedThemes||currentAccount.unlockedThemes||['midnight','dark','light'];currentAccount.unlockedAchievements=p.unlockedAchievements||currentAccount.unlockedAchievements||[];}
                 let grantedBadges=[], badgeAwardedAt={}, badgeFallbackDate=p.createdAt||null;
                 try {
                     const bs=await firestoreDB.doc('profileBadges/'+uid).get();
@@ -6858,7 +6874,7 @@
                 if(accountNumber) badgeAwardedAt.account_number=p.createdAt||badgeFallbackDate;
 
                 $('profile-page-title').textContent=own?'MY PROFILE':'PLAYER PROFILE';
-                $('profile-page-username').textContent=p.username||'Player';$('profile-page-username').className='text-2xl font-black break-words '+nameCosmeticClasses(p);
+                $('profile-page-username').textContent=p.username||'Player';
                 const leaderboardBadges=await getPlayerLeaderboardBadges(uid);
                 renderProfileBadges([...grantedBadges,...leaderboardBadges],badgeAwardedAt,badgeFallbackDate,accountNumber);
                 const badgeAdmin=$('profile-badge-admin');
@@ -7102,12 +7118,6 @@
           {id:'font-mono',name:'Tactical Mono',type:'font',className:'name-font-mono',cost:180,rarity:'rare',desc:'Clean tactical monospace lettering.'},
           {id:'font-blackletter',name:'Blackletter',type:'font',className:'name-font-blackletter',cost:980,rarity:'mythic',desc:'A dramatic gothic display face.'},
           {id:'font-celestial',name:'Astral Script',type:'font',className:'name-font-celestial',cost:1800,rarity:'transcendent',desc:'A luminous, elegant cosmic display style.'},
-          {id:'font-sci-fi',name:'Stellar Tech',type:'font',className:'name-font-scifi',cost:420,rarity:'epic',desc:'A sleek futuristic technical display face.'},
-          {id:'font-roman',name:'Imperial Roman',type:'font',className:'name-font-roman',cost:520,rarity:'epic',desc:'Bold classical capitals with monumental proportions.'},
-          {id:'font-pixel',name:'Pixel Vanguard',type:'font',className:'name-font-pixel',cost:760,rarity:'legendary',desc:'Crisp retro pixel lettering.'},
-          {id:'font-elegant',name:'Velvet Script',type:'font',className:'name-font-elegant',cost:850,rarity:'legendary',desc:'A refined flowing editorial style.'},
-          {id:'font-draconic',name:'Draconic',type:'font',className:'name-font-draconic',cost:1450,rarity:'mythic',desc:'Sharp fantasy lettering with a fierce silhouette.'},
-          {id:'font-quantum',name:'Quantum',type:'font',className:'name-font-quantum',cost:2300,rarity:'transcendent',desc:'A clean high-tech cosmic display face.'},
           {id:'color-crimson',name:'Crimson',type:'color',className:'name-color-crimson',cost:60,rarity:'uncommon',desc:'Vivid crimson lettering.'},
           {id:'color-cyan',name:'Glacier Cyan',type:'color',className:'name-color-cyan',cost:60,rarity:'uncommon',desc:'Bright icy cyan lettering.'},
           {id:'color-gold',name:'Royal Gold',type:'color',className:'name-color-gold',cost:110,rarity:'rare',desc:'Metallic gold lettering.'},
@@ -7126,37 +7136,25 @@
           {id:'effect-frost',name:'Frostbite',type:'effect',className:'name-effect-frost',cost:360,rarity:'epic',desc:'A crisp icy glow with a frozen shimmer.'},
           {id:'effect-royal',name:'Sovereign Aura',type:'effect',className:'name-effect-royal',cost:1550,rarity:'mythic',desc:'A regal gold-violet aura that slowly pulses.'},
           {id:'effect-apotheosis',name:'APOTHEOSIS',type:'effect',className:'name-effect-apotheosis',cost:5000,rarity:'transcendent',desc:'An ultra-rare cosmic ascension effect: animated prismatic fire, radiant halo, and a shifting supernova glow.'},
-          {id:'effect-event-horizon',name:'Event Horizon',type:'effect',className:'name-effect-horizon',cost:3600,rarity:'transcendent',desc:'A dark gravitational aura wrapped in a rotating chromatic corona.'},
-          {id:'effect-emberstorm',name:'Emberstorm',type:'effect',className:'name-effect-ember',cost:900,rarity:'mythic',desc:'A furnace-bright flame glow with a deep crimson edge.'},
-          {id:'effect-toxic',name:'Toxic Radiance',type:'effect',className:'name-effect-toxic',cost:1050,rarity:'mythic',desc:'A vivid radioactive-lime aura.'},
-          {id:'effect-arcane',name:'Arcane Pulse',type:'effect',className:'name-effect-arcane',cost:1350,rarity:'mythic',desc:'A layered violet and magenta spell glow.'},
-          {id:'effect-glitch',name:'Glitchcore',type:'effect',className:'name-effect-glitch',cost:1750,rarity:'mythic',desc:'Offset cyan and crimson chromatic lettering.'},
-          {id:'effect-divine',name:'Celestial Crown',type:'effect',className:'name-effect-divine',cost:4200,rarity:'transcendent',desc:'A rotating golden orbital crown, floating star sigils, and a brilliant solar aura.'},
-          {id:'effect-bloodmoon',name:'Blood Moon',type:'effect',className:'name-effect-bloodmoon',cost:2100,rarity:'legendary',desc:'A deep scarlet lunar aura.'},
-          {id:'effect-aurora',name:'Prismatic Singularity',type:'effect',className:'name-effect-aurora',cost:4600,rarity:'transcendent',desc:'A living chromatic corona rotates behind your name while spectral aurora ribbons ripple overhead.'}
+          {id:'effect-event-horizon',name:'Event Horizon',type:'effect',className:'name-effect-horizon',cost:3600,rarity:'transcendent',desc:'A dark gravitational aura wrapped in a rotating chromatic corona.'}
         ];
         let nameShopType='font', inventoryTab='themes';
         const NAME_RARITY_ORDER={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5,transcendent:6};
-        function activeNameForData(data,type){const fields={font:'activeNameFont',color:'activeNameColor',gradient:'activeNameColor',effect:'activeNameEffect'},field=fields[type];if(!data||!field)return null;if(Object.prototype.hasOwnProperty.call(data,field))return data[field]||(type==='font'?'font-orbitron':null);if(type==='font')return 'font-orbitron';return data.activeNameCosmetic||null;}
-        function activeNameForType(type){return activeNameForData(currentAccount,type);}
-        function updateShopMaterialCounter(){const el=$('theme-shop-balance');if(el&&currentAccount)el.textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';}
+        function activeNameForType(type){const fields={font:'activeNameFont',color:'activeNameColor',gradient:'activeNameColor',effect:'activeNameEffect'};return currentAccount?.[fields[type]]||((type==='font'||type==='color'||type==='effect')?currentAccount?.activeNameCosmetic:null)||null;}
         function setShopTab(tab){const names=tab==='names';$('theme-shop-list')?.classList.toggle('hidden',names);$('name-shop-list')?.classList.toggle('hidden',!names);$('shop-tab-themes')?.classList.toggle('bg-purple-700',!names);$('shop-tab-themes')?.classList.toggle('bg-slate-800',names);$('shop-tab-names')?.classList.toggle('bg-purple-700',names);$('shop-tab-names')?.classList.toggle('bg-slate-800',!names);if(names)renderNameShop();}
         function setNameShopType(type){nameShopType=type;['font','color','effect'].forEach(k=>{const b=$('name-subtab-'+k);if(b){b.classList.toggle('bg-purple-700',k===type);b.classList.toggle('bg-slate-800',k!==type);}});renderNameShop();}
-        function nameCosmeticCard(c,owned,active){return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-${c.rarity}"><div class="h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden"><span class="text-xl font-black player-name-cosmetic name-shop-preview ${c.className}">${escapeHubText(currentAccount.username||'Player')}</span></div><div class="flex justify-between gap-2"><b class="text-xs">${c.name}</b><span class="theme-rarity theme-rarity-${c.rarity}">${c.rarity}</span></div><p class="text-[10px] text-slate-400">${c.desc}</p><div class="flex justify-between items-center"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+c.cost+' MATERIAL'}</span><button onclick="${owned?`equipNameCosmetic('${c.id}')`:`buyNameCosmetic('${c.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div></div>`;}
-        function renderNameShop(){if(!currentAccount)return;updateShopMaterialCounter();const list=$('name-shop-list');if(!list)return;const owned=new Set(['font-orbitron',...(currentAccount.unlockedNameCosmetics||[])]);const filtered=NAME_COSMETICS.filter(c=>nameShopType==='color'?(c.type==='color'||c.type==='gradient'):c.type===nameShopType).sort((a,b)=>NAME_RARITY_ORDER[b.rarity]-NAME_RARITY_ORDER[a.rarity]||a.cost-b.cost);list.innerHTML='<div class="col-span-full flex flex-wrap gap-2 mb-1"><button id="name-subtab-font" onclick="setNameShopType(\'font\')" class="px-3 py-2 rounded-lg text-xs font-bold">FONTS</button><button id="name-subtab-color" onclick="setNameShopType(\'color\')" class="px-3 py-2 rounded-lg text-xs font-bold">COLORS</button><button id="name-subtab-effect" onclick="setNameShopType(\'effect\')" class="px-3 py-2 rounded-lg text-xs font-bold">EFFECTS</button></div>'+['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const items=filtered.filter(c=>c.rarity===r);return items.length?`<section class="col-span-full space-y-2"><h3 class="text-xs uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.map(c=>nameCosmeticCard(c,owned.has(c.id),activeNameForType(c.type)===c.id)).join('')}</div></section>`:''}).join('');setTimeout(()=>['font','color','effect'].forEach(k=>{const b=$('name-subtab-'+k);if(b){b.classList.toggle('bg-purple-700',k===nameShopType);b.classList.toggle('bg-slate-800',k!==nameShopType);}}),0);}
-        function nameCosmeticClasses(data=currentAccount){if(!data)return 'player-name-cosmetic name-font-orbitron';const ids=[activeNameForData(data,'font'),activeNameForData(data,'color'),activeNameForData(data,'effect')].filter(Boolean);return ['player-name-cosmetic',...ids.map(id=>NAME_COSMETICS.find(x=>x.id===id)?.className).filter(Boolean)].join(' ');}
-        function applyNameCosmetic(){document.querySelectorAll('.player-name-cosmetic:not(.name-shop-preview)').forEach(n=>{n.className=(n.className+'').split(/\s+/).filter(c=>!/^name-(font|color|gradient|effect)-/.test(c)).join(' ');nameCosmeticClasses().split(' ').forEach(c=>n.classList.add(c));});}
-        async function buyNameCosmetic(id){const c=NAME_COSMETICS.find(x=>x.id===id);if(!c||!currentAccount||!firestoreDB)return;const owned=new Set(currentAccount.unlockedNameCosmetics||[]);if(owned.has(id))return equipNameCosmetic(id);if(c.cost<=0)return alert('This cosmetic is free and should already be available.');try{const ref=firestoreDB.doc('users/'+currentAccount.id);const result=await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(ref);if(!snap.exists)throw new Error('Player account was not found.');const data=snap.data()||{},list=Array.isArray(data.unlockedNameCosmetics)?data.unlockedNameCosmetics:[],balance=Number(data.material||0);if(list.includes(id))return {alreadyOwned:true,material:balance,owned:list};if(balance<c.cost)throw new Error('Not enough Material.');const next=balance-c.cost;tx.update(ref,{material:next,unlockedNameCosmetics:firebase.firestore.FieldValue.arrayUnion(id)});return {alreadyOwned:false,material:next,owned:[...list,id]};});currentAccount.material=result.material;currentAccount.unlockedNameCosmetics=result.owned;updateShopMaterialCounter();if(result.alreadyOwned)await equipNameCosmetic(id);else{renderOwnProfileStats();renderNameShop();renderInventoryNames();applyNameCosmetic();alert('Purchased '+c.name+'!');}}catch(e){console.error('Name cosmetic purchase failed:',e);alert('Could not purchase name cosmetic: '+(e.message||'Check your Firestore rules.'));}}
-        async function equipNameCosmetic(id){const c=NAME_COSMETICS.find(x=>x.id===id);if(!c||(!(currentAccount.unlockedNameCosmetics||[]).includes(id)&&id!=='font-orbitron'))return;const field=c.type==='font'?'activeNameFont':(c.type==='effect'?'activeNameEffect':'activeNameColor');try{await firestoreDB.doc('users/'+currentAccount.id).update({[field]:id});currentAccount[field]=id;applyNameCosmetic();renderNameShop();renderInventoryNames();}catch(e){alert('Could not equip name cosmetic: '+e.message);}}
-        async function setNameCosmeticNone(type){if(!currentAccount||!firestoreDB||!['font','color','effect'].includes(type))return;const field=type==='font'?'activeNameFont':type==='color'?'activeNameColor':'activeNameEffect';try{await firestoreDB.doc('users/'+currentAccount.id).update({[field]:null});currentAccount[field]=null;applyNameCosmetic();renderNameShop();renderInventoryNames();}catch(e){alert('Could not reset name '+type+': '+e.message);}}
-        function nameCosmeticNoneCard(type){const active=type==='font'?activeNameForType('font')==='font-orbitron':!activeNameForType(type),desc=type==='font'?'Use the default Commander font.':type==='color'?'Use the normal text color without a color or gradient.':'Remove the special name effect.';return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-common"><div class="h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden"><span class="text-xl font-black player-name-cosmetic name-font-orbitron">${escapeHubText(currentAccount.username||'Player')}</span></div><div class="flex justify-between gap-2"><b class="text-xs">None</b><span class="theme-rarity theme-rarity-common">DEFAULT</span></div><p class="text-[10px] text-slate-400">${desc}</p><button onclick="setNameCosmeticNone('${type}')" class="w-full px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'ACTIVE':'USE NONE'}</button></div>`;}
+        function nameCosmeticCard(c,owned,active){return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-${c.rarity}"><div class="h-16 rounded-lg bg-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden"><span class="text-xl font-black player-name-cosmetic ${c.className}">${escapeHubText(currentAccount.username||'Player')}</span></div><div class="flex justify-between gap-2"><b class="text-xs">${c.name}</b><span class="theme-rarity theme-rarity-${c.rarity}">${c.rarity}</span></div><p class="text-[10px] text-slate-400">${c.desc}</p><div class="flex justify-between items-center"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+c.cost+' MATERIAL'}</span><button onclick="${owned?`equipNameCosmetic('${c.id}')`:`buyNameCosmetic('${c.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div></div>`;}
+        function renderNameShop(){if(!currentAccount)return;const list=$('name-shop-list');if(!list)return;const owned=new Set(currentAccount.unlockedNameCosmetics||[]);const filtered=NAME_COSMETICS.filter(c=>nameShopType==='color'?(c.type==='color'||c.type==='gradient'):c.type===nameShopType).sort((a,b)=>NAME_RARITY_ORDER[b.rarity]-NAME_RARITY_ORDER[a.rarity]||a.cost-b.cost);list.innerHTML='<div class="col-span-full flex flex-wrap gap-2 mb-1"><button id="name-subtab-font" onclick="setNameShopType(\'font\')" class="px-3 py-2 rounded-lg text-xs font-bold">FONTS</button><button id="name-subtab-color" onclick="setNameShopType(\'color\')" class="px-3 py-2 rounded-lg text-xs font-bold">COLORS</button><button id="name-subtab-effect" onclick="setNameShopType(\'effect\')" class="px-3 py-2 rounded-lg text-xs font-bold">EFFECTS</button></div>'+['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const items=filtered.filter(c=>c.rarity===r);return items.length?`<section class="col-span-full space-y-2"><h3 class="text-xs uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.map(c=>nameCosmeticCard(c,owned.has(c.id),activeNameForType(c.type)===c.id)).join('')}</div></section>`:''}).join('');setTimeout(()=>['font','color','effect'].forEach(k=>{const b=$('name-subtab-'+k);if(b){b.classList.toggle('bg-purple-700',k===nameShopType);b.classList.toggle('bg-slate-800',k!==nameShopType);}}),0);}
+        function applyNameCosmetic(){const allClasses=NAME_COSMETICS.map(x=>x.className);document.querySelectorAll('.player-name-cosmetic').forEach(n=>{n.classList.add('player-name-cosmetic');allClasses.forEach(c=>n.classList.remove(c));const ids=[currentAccount?.activeNameFont||'font-orbitron',currentAccount?.activeNameColor,currentAccount?.activeNameEffect,currentAccount?.activeNameCosmetic].filter(Boolean);ids.forEach(id=>{const c=NAME_COSMETICS.find(x=>x.id===id);if(c)n.classList.add(c.className);});});}
+        async function buyNameCosmetic(id){const c=NAME_COSMETICS.find(x=>x.id===id);if(!c||!currentAccount)return;const owned=new Set(currentAccount.unlockedNameCosmetics||[]);if(owned.has(id))return equipNameCosmetic(id);if(Number(currentAccount.material||0)<c.cost)return alert('Not enough Material yet.');try{await firestoreDB.doc('users/'+currentAccount.id).update({material:firebase.firestore.FieldValue.increment(-c.cost),unlockedNameCosmetics:firebase.firestore.FieldValue.arrayUnion(id)});currentAccount.material-=c.cost;currentAccount.unlockedNameCosmetics=[...owned,id];renderOwnProfileStats();renderNameShop();}catch(e){alert('Could not purchase name cosmetic: '+e.message);}}
+        async function equipNameCosmetic(id){const c=NAME_COSMETICS.find(x=>x.id===id);if(!c||!(currentAccount.unlockedNameCosmetics||[]).includes(id))return;const field=c.type==='font'?'activeNameFont':(c.type==='effect'?'activeNameEffect':'activeNameColor');try{await firestoreDB.doc('users/'+currentAccount.id).update({[field]:id,activeNameCosmetic:firebase.firestore.FieldValue.delete()});currentAccount[field]=id;currentAccount.activeNameCosmetic=null;applyNameCosmetic();renderNameShop();}catch(e){alert('Could not equip name cosmetic: '+e.message);}}
         function setInventoryTab(tab){inventoryTab=tab;const names=tab==='names';$('inventory-theme-list')?.classList.toggle('hidden',names);$('inventory-name-list')?.classList.toggle('hidden',!names);$('inventory-description').textContent=names?'Name cosmetics you own. Equip one font, one color or gradient, and one effect.':'Themes you own. Equip one to change the game\'s interface.';['themes','names'].forEach(k=>{const b=$('inventory-tab-'+k);if(b){b.classList.toggle('bg-amber-900/60',k===tab);b.classList.toggle('border',k===tab);b.classList.toggle('border-amber-400/50',k===tab);b.classList.toggle('text-amber-200',k===tab);b.classList.toggle('bg-slate-800',k!==tab);b.classList.toggle('text-slate-300',k!==tab);}});if(names)renderInventoryNames();}
-        function renderInventoryNames(){if(!currentAccount)return;const owned=new Set(['font-orbitron',...(currentAccount.unlockedNameCosmetics||[])]);const list=$('inventory-name-list');if(!list)return;const types=[['font','Fonts'],['color','Colors & Gradients'],['effect','Effects']];list.innerHTML=types.map(([type,label])=>{const items=NAME_COSMETICS.filter(c=>owned.has(c.id)&&(type==='color'?(c.type==='color'||c.type==='gradient'):c.type===type)).sort((a,b)=>(NAME_RARITY_ORDER[b.rarity]??0)-(NAME_RARITY_ORDER[a.rarity]??0)||a.cost-b.cost);const groups=['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const group=items.filter(c=>c.rarity===r);return group.length?`<section class="col-span-full space-y-2"><h4 class="text-[10px] uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h4><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${group.map(c=>nameCosmeticCard(c,true,activeNameForType(c.type)===c.id)).join('')}</div></section>`:''}).join('');return `<section class="space-y-2"><h3 class="text-xs font-black uppercase tracking-widest text-amber-300">${label}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${nameCosmeticNoneCard(type)}</div>${groups||'<p class="text-xs text-slate-500">No '+label.toLowerCase()+' owned yet.</p>'}</section>`;}).join('');}
+        function renderInventoryNames(){if(!currentAccount)return;const owned=new Set(currentAccount.unlockedNameCosmetics||[]);const list=$('inventory-name-list');if(!list)return;list.innerHTML=['font','color','effect'].map(type=>{const items=NAME_COSMETICS.filter(c=>owned.has(c.id)&&(type==='color'?(c.type==='color'||c.type==='gradient'):c.type===type));return `<section class="space-y-2"><h3 class="text-xs font-black uppercase tracking-widest text-amber-300">${type==='color'?'Colors & Gradients':type+'s'}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.length?items.map(c=>nameCosmeticCard(c,true,activeNameForType(c.type)===c.id)).join(''):'<p class="text-xs text-slate-500">No '+type+' cosmetics owned yet.</p>'}</div></section>`;}).join('');}
         function themeCard(t,owned,active,inventory=false){return `<div class="rounded-xl bg-slate-950/80 border border-slate-700 p-3 space-y-2 rarity-${t.rarity}"><div class="theme-swatch theme-preview" style="--preview-bg:${t.colors[0]};--preview-panel:${t.colors[1]};--preview-accent:${t.colors[2]}"><div class="theme-preview-top"></div><div class="theme-preview-body"><span></span><i></i><b></b></div></div><div class="flex justify-between items-center gap-2"><b class="text-xs">${t.name}</b><span class="theme-rarity theme-rarity-${t.rarity}">${t.rarity}</span></div><p class="text-[10px] text-slate-400">${t.desc}</p>${inventory?`<button onclick="equipUITheme('${t.id}')" class="w-full py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':'EQUIP THEME'}</button>`:`<div class="flex items-center justify-between"><span class="text-[10px] text-amber-300">${owned?'OWNED':'◆ '+t.cost+' MATERIAL'}</span><button onclick="${owned?`equipUITheme('${t.id}')`:`buyUITheme('${t.id}')`}" class="px-3 py-2 rounded-lg ${active?'bg-emerald-900 text-emerald-200':'bg-slate-700 hover:bg-slate-600 text-white'} text-[10px] font-bold">${active?'EQUIPPED':owned?'EQUIP':'BUY'}</button></div>`}</div>`;}
-        function renderThemeShop(){if(!currentAccount)return;updateShopMaterialCounter();const unlocked=new Set(currentAccount.unlockedThemes||['midnight','dark','light']);const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5,transcendent:6};$('theme-shop-list').innerHTML=['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const items=UI_THEMES.filter(t=>t.rarity===r).sort((a,b)=>a.cost-b.cost);return items.length?`<section class="col-span-full space-y-2"><h3 class="text-xs uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.map(t=>themeCard(t,unlocked.has(t.id),(currentAccount.activeTheme||'midnight')===t.id)).join('')}</div></section>`:''}).join('');updateShopMaterialCounter();}
+        function renderThemeShop(){const unlocked=new Set(currentAccount.unlockedThemes||['midnight','dark','light']);$('theme-shop-balance').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5,transcendent:6};$('theme-shop-list').innerHTML=['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const items=UI_THEMES.filter(t=>t.rarity===r).sort((a,b)=>a.cost-b.cost);return items.length?`<section class="col-span-full space-y-2"><h3 class="text-xs uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.map(t=>themeCard(t,unlocked.has(t.id),(currentAccount.activeTheme||'midnight')===t.id)).join('')}</div></section>`:''}).join('');$('theme-shop-balance').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';}
         function openInventoryPage(){if(!currentAccount)return;openHubPage('inventory-page');renderInventory();}
         function renderInventory(){if(!currentAccount)return;const unlocked=new Set(['midnight','dark','light',...(currentAccount.unlockedThemes||[])]);const rarityOrder={common:0,uncommon:1,rare:2,epic:3,legendary:4,mythic:5,transcendent:6};$('inventory-theme-list').innerHTML=['transcendent','mythic','legendary','epic','rare','uncommon','common'].map(r=>{const items=UI_THEMES.filter(t=>unlocked.has(t.id)&&t.rarity===r).sort((a,b)=>a.cost-b.cost);return items.length?`<section class="col-span-full space-y-2"><h3 class="text-xs uppercase tracking-widest font-black theme-rarity theme-rarity-${r}">${r==='transcendent'?'✦ '+r.toUpperCase()+' ✦':r}</h3><div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">${items.map(t=>themeCard(t,true,(currentAccount.activeTheme||'midnight')===t.id,true)).join('')}</div></section>`:''}).join('')||'<p class="text-sm text-slate-400">No themes owned yet.</p>';setInventoryTab(inventoryTab||'themes');}
-        async function buyUITheme(id){const t=UI_THEMES.find(x=>x.id===id);if(!t||!currentAccount)return;const unlocked=new Set(currentAccount.unlockedThemes||['midnight']);if(unlocked.has(id))return equipUITheme(id);if(Number(currentAccount.material||0)<t.cost)return alert('Not enough Material yet.');try{await firestoreDB.doc('users/'+currentAccount.id).update({material:firebase.firestore.FieldValue.increment(-t.cost),unlockedThemes:firebase.firestore.FieldValue.arrayUnion(id)});currentAccount.material-=t.cost;currentAccount.unlockedThemes=[...unlocked,id];updateShopMaterialCounter();await grantEligibleAchievements(currentAccount.stats||{},true);renderOwnProfileStats();renderThemeShop();if(!$('inventory-page').classList.contains('hidden'))renderInventory();}catch(e){alert('Could not purchase theme: '+e.message);}}
+        async function buyUITheme(id){const t=UI_THEMES.find(x=>x.id===id);if(!t||!currentAccount)return;const unlocked=new Set(currentAccount.unlockedThemes||['midnight']);if(unlocked.has(id))return equipUITheme(id);if(Number(currentAccount.material||0)<t.cost)return alert('Not enough Material yet.');try{await firestoreDB.doc('users/'+currentAccount.id).update({material:firebase.firestore.FieldValue.increment(-t.cost),unlockedThemes:firebase.firestore.FieldValue.arrayUnion(id)});currentAccount.material-=t.cost;currentAccount.unlockedThemes=[...unlocked,id];await grantEligibleAchievements(currentAccount.stats||{},true);renderOwnProfileStats();renderThemeShop();if(!$('inventory-page').classList.contains('hidden'))renderInventory();}catch(e){alert('Could not purchase theme: '+e.message);}}
         async function equipUITheme(id){if(!(currentAccount.unlockedThemes||['midnight']).includes(id))return;try{await firestoreDB.doc('users/'+currentAccount.id).update({activeTheme:id});currentAccount.activeTheme=id;applyUITheme(id);renderThemeShop();if(!$('inventory-page').classList.contains('hidden'))renderInventory();}catch(e){alert('Could not equip theme: '+e.message);}}
 
         function toggleOnlineMatchChat(force) {
@@ -7217,13 +7215,12 @@
                         const profile = profiles[m.fromUid] || {};
                         const avatar = profile.profilePicture || '';
                         const name = escapeHubText(m.fromName || profile.username || 'Player');
-                        const nameStyle = nameCosmeticClasses(profile);
                         const team = escapeHubText(String(m.team || '').toUpperCase());
                         const body = escapeHubText(m.text || '');
                         const avatarHtml = avatar
                             ? `<img src="${escapeHubText(avatar)}" alt="" class="w-7 h-7 rounded-full object-cover border border-slate-600 shrink-0">`
                             : `<div class="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center text-[9px] text-cyan-200 shrink-0">${name.slice(0,1).toUpperCase()}</div>`;
-                        return `<div class="flex ${own?'justify-end':'justify-start'} gap-2 items-end">${own?'':avatarHtml}<div class="max-w-[82%] min-w-0"><div class="text-[9px] text-slate-500 mb-1 ${own?'text-right':''} ${nameStyle}">${name}${team?' • '+team:''}</div><div class="rounded-xl px-3 py-2 break-words ${own?'bg-cyan-900/80 border border-cyan-700/60 text-cyan-50':'bg-slate-800 border border-slate-700 text-slate-100'}">${body}</div></div>${own?avatarHtml:''}</div>`;
+                        return `<div class="flex ${own?'justify-end':'justify-start'} gap-2 items-end">${own?'':avatarHtml}<div class="max-w-[82%] min-w-0"><div class="text-[9px] text-slate-500 mb-1 ${own?'text-right':''}">${name}${team?' • '+team:''}</div><div class="rounded-xl px-3 py-2 break-words ${own?'bg-cyan-900/80 border border-cyan-700/60 text-cyan-50':'bg-slate-800 border border-slate-700 text-slate-100'}">${body}</div></div>${own?avatarHtml:''}</div>`;
                     }).join('');
                     if (wasAtBottom || onlineMatchChatOpen) box.scrollTop = box.scrollHeight;
                 }, err => {
@@ -7327,8 +7324,8 @@
                         const profile = profileByUid[m.fromUid] || {username:m.fromName || 'FRIEND'};
                         const line = document.createElement('div'); line.className = 'flex items-end gap-2 ' + (mine ? 'justify-end' : 'justify-start');
                         if (!mine) line.appendChild(makePlayerAvatar(profile, 'w-8 h-8'));
-                        const bubble = document.createElement('div'); bubble.className = 'max-w-[82%] rounded-xl px-3 py-2 border shadow-md ' + (mine ? 'bg-cyan-900 border-cyan-500/30' : 'bg-slate-800 border-slate-500/50'); bubble.style.background = mine ? 'linear-gradient(135deg,rgba(8,80,105,.98),rgba(8,47,73,.98))' : 'linear-gradient(135deg,rgba(51,65,85,.98),rgba(30,41,59,.98))';
-                        const sender = document.createElement('div'); sender.className = 'text-[9px] text-slate-400 mb-1 ' + nameCosmeticClasses(profile); sender.textContent = mine ? 'YOU' : (profile.username || m.fromName || 'FRIEND');
+                        const bubble = document.createElement('div'); bubble.className = 'max-w-[82%] rounded-xl px-3 py-2 ' + (mine ? 'bg-cyan-900' : 'bg-slate-800');
+                        const sender = document.createElement('div'); sender.className = 'text-[9px] text-slate-400 mb-1'; sender.textContent = mine ? 'YOU' : (profile.username || m.fromName || 'FRIEND');
                         const body = document.createElement('div'); body.className = 'text-sm break-words whitespace-pre-wrap'; body.textContent = m.text || '';
                         const stamp = document.createElement('div'); stamp.className = 'text-[9px] mt-1 opacity-70 ' + (mine?'text-cyan-100 text-right':'text-slate-400');
                         stamp.textContent = formatDirectMessageDateTime(m.createdAt);
