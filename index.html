@@ -5450,12 +5450,19 @@
             }
             rooms.forEach(room => {
                 const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
-                const info = document.createElement('div'); info.className = 'min-w-0';
+                const info = document.createElement('div'); info.className = 'min-w-0 flex items-center gap-2';
+                const hostAvatar = makePlayerAvatar({username: room.hostName}, 'w-9 h-9');
+                const textWrap = document.createElement('div'); textWrap.className = 'min-w-0';
                 const title = document.createElement('div'); title.className = 'text-xs font-bold text-white truncate'; title.textContent = room.hostName || 'Player';
                 const details = document.createElement('div'); details.className = 'text-[10px] text-slate-400 mt-1';
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard', commander: 'Commander Draft' };
                 details.textContent = (room.ranked ? '🏆 RANKED • ' : 'UNRANKED • ') + (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • Max ' + (room.maxPlayers || 8) + ' players';
-                info.append(title, details);
+                textWrap.append(title, details); info.append(hostAvatar, textWrap);
+                if (room.hostUid) getPublicUserProfile(room.hostUid).then(profile => {
+                    if (!card.isConnected) return;
+                    const fresh = makePlayerAvatar({...profile, username: profile.username || room.hostName}, 'w-9 h-9');
+                    hostAvatar.replaceWith(fresh);
+                });
                 const join = document.createElement('button');
                 const alreadyJoined = activeLobbyCode === room.id;
                 join.className = 'shrink-0 px-3 py-2 rounded-lg text-white text-[10px] font-bold transition ' + (alreadyJoined ? 'bg-slate-900 border border-slate-600 text-slate-300 cursor-default' : 'bg-purple-800 hover:bg-purple-700 active:bg-purple-950');
@@ -5486,30 +5493,43 @@
                 $('public-lobby-list').textContent = 'Room list unavailable. Check that the updated Firestore rules are published.';
             });
         }
-        function renderLobbyPlayers(snapshot) {
+        let lobbyRosterRenderVersion = 0;
+        async function renderLobbyPlayers(snapshot) {
             const list = $('lobby-player-list'); if (!list) return;
+            const renderVersion = ++lobbyRosterRenderVersion;
             list.innerHTML = '';
             activeLobbyPlayers = [];
+            const roster = [];
             snapshot.forEach(doc => {
-                const player = doc.data(); activeLobbyPlayers.push({ uid: doc.id, ...player });
+                const player = doc.data();
+                const entry = { uid: doc.id, ...player };
+                activeLobbyPlayers.push(entry); roster.push(entry);
                 if (firebaseAuth && firebaseAuth.currentUser && doc.id === firebaseAuth.currentUser.uid) {
                     activeLobbyReady = player.ready === true;
                     const readyButton = $('lobby-ready-button');
                     if (readyButton) readyButton.textContent = activeLobbyReady ? 'NOT READY' : "I'M READY";
                 }
-                const row = document.createElement('div'); row.className = 'flex items-center justify-between rounded-lg bg-slate-900 px-3 py-2 text-xs';
-                const name = document.createElement('span'); name.className = 'text-slate-200 font-bold'; name.textContent = (player.username || 'Player') + (doc.id === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
-                const state = document.createElement('span'); state.className = player.ready ? 'text-emerald-300' : 'text-amber-300'; state.textContent = player.ready ? 'READY' : 'NOT READY';
-                row.append(name, state); list.appendChild(row);
             });
             const aiPlayers = (activeLobbyRoomData && activeLobbyRoomData.aiPlayers) || [];
+            const profiles = await Promise.all(roster.map(p => getPublicUserProfile(p.uid)));
+            if (renderVersion !== lobbyRosterRenderVersion || !$('lobby-player-list')) return;
+            roster.forEach((player, index) => {
+                const profile = profiles[index] || {};
+                const row = document.createElement('div'); row.className = 'flex items-center justify-between gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs';
+                const identity = document.createElement('div'); identity.className = 'flex items-center gap-2 min-w-0';
+                identity.appendChild(makePlayerAvatar({...profile, username: profile.username || player.username}, 'w-8 h-8'));
+                const name = document.createElement('span'); name.className = 'text-slate-200 font-bold truncate'; name.textContent = (player.username || profile.username || 'Player') + (player.uid === (firebaseAuth.currentUser && firebaseAuth.currentUser.uid) ? ' (YOU)' : '');
+                identity.appendChild(name);
+                const state = document.createElement('span'); state.className = (player.ready ? 'text-emerald-300' : 'text-amber-300') + ' shrink-0'; state.textContent = player.ready ? 'READY' : 'NOT READY';
+                row.append(identity, state); list.appendChild(row);
+            });
             aiPlayers.forEach(ai => {
                 const row = document.createElement('div'); row.className = 'flex items-center justify-between rounded-lg bg-purple-950/50 border border-purple-500/20 px-3 py-2 text-xs';
                 const name = document.createElement('span'); name.className = 'text-purple-200 font-bold'; name.textContent = ai.name || 'AI Opponent';
                 const level = document.createElement('span'); level.className = 'text-purple-300'; level.textContent = 'AI LEVEL ' + ai.level;
                 row.append(name, level); list.appendChild(row);
             });
-            if (!snapshot.size && !aiPlayers.length) list.textContent = 'No players found.';
+            if (!roster.length && !aiPlayers.length) list.textContent = 'No players found.';
             const allReady = activeLobbyPlayers.length > 0 && activeLobbyPlayers.every(p => p.ready === true);
             const startBtn = $('lobby-start-button');
             if (startBtn) {
@@ -6532,8 +6552,86 @@
         async function buyUITheme(id){const t=UI_THEMES.find(x=>x.id===id);if(!t||!currentAccount)return;const unlocked=new Set(currentAccount.unlockedThemes||['midnight']);if(unlocked.has(id))return equipUITheme(id);if(Number(currentAccount.material||0)<t.cost)return alert('Not enough Material yet.');try{await firestoreDB.doc('users/'+currentAccount.id).update({material:firebase.firestore.FieldValue.increment(-t.cost),unlockedThemes:firebase.firestore.FieldValue.arrayUnion(id)});currentAccount.material-=t.cost;currentAccount.unlockedThemes=[...unlocked,id];renderOwnProfileStats();renderThemeShop();if(!$('inventory-page').classList.contains('hidden'))renderInventory();}catch(e){alert('Could not purchase theme: '+e.message);}}
         async function equipUITheme(id){if(!(currentAccount.unlockedThemes||['midnight']).includes(id))return;try{await firestoreDB.doc('users/'+currentAccount.id).update({activeTheme:id});currentAccount.activeTheme=id;applyUITheme(id);renderThemeShop();if(!$('inventory-page').classList.contains('hidden'))renderInventory();}catch(e){alert('Could not equip theme: '+e.message);}}
         let activeChatFriend=null,activeChatUnsub=null;
+        const publicUserProfileCache = new Map();
+        async function getPublicUserProfile(uid, force=false) {
+            if (!uid || !firestoreDB) return {};
+            if (!force && publicUserProfileCache.has(uid)) return publicUserProfileCache.get(uid);
+            try {
+                const snap = await firestoreDB.doc('users/' + uid).get();
+                const profile = snap.exists ? snap.data() : {};
+                publicUserProfileCache.set(uid, profile);
+                return profile;
+            } catch (err) {
+                console.warn('Could not load public player profile:', uid, err);
+                return publicUserProfileCache.get(uid) || {};
+            }
+        }
+        function safeProfilePicture(value) {
+            // Profile uploads are compressed JPEG data URLs. Do not render arbitrary HTML or script URLs.
+            return typeof value === 'string' && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value) ? value : '';
+        }
+        function makePlayerAvatar(profile, sizeClass='w-9 h-9') {
+            const wrap = document.createElement('div');
+            wrap.className = sizeClass + ' shrink-0 rounded-full overflow-hidden bg-slate-700 border border-slate-600 flex items-center justify-center text-[10px] font-black text-white';
+            const src = safeProfilePicture(profile && profile.profilePicture);
+            if (src) {
+                const img = document.createElement('img'); img.src = src; img.alt = ''; img.className = 'w-full h-full object-cover';
+                img.onerror = () => { img.remove(); wrap.textContent = String((profile && profile.username) || 'P').slice(0,1).toUpperCase(); };
+                wrap.appendChild(img);
+            } else wrap.textContent = String((profile && profile.username) || 'P').slice(0,1).toUpperCase();
+            return wrap;
+        }
         function chatThreadId(a,b){return [a,b].sort().join('_');}
-        async function openChatWith(friendUid){if(!currentAccount||requirePermanentAccount('direct messages'))return;if(!friendUid||friendUid===currentAccount.id)return;const friend=await firestoreDB.doc(`users/${currentAccount.id}/friends/${friendUid}`).get();if(!friend.exists)return alert('You can message players after they accept your friend request.');activeChatFriend=friendUid;const profile=await firestoreDB.doc('users/'+friendUid).get();$('chat-title').textContent='CHAT • '+(profile.exists?profile.data().username:'FRIEND');openHubPage('chat-modal');const chatId=chatThreadId(currentAccount.id,friendUid),chatRef=firestoreDB.doc('chats/'+chatId);try{await chatRef.set({participants:[currentAccount.id,friendUid],updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});if(activeChatUnsub)activeChatUnsub();activeChatUnsub=chatRef.collection('messages').orderBy('createdAt','asc').limit(100).onSnapshot(snap=>{const box=$('chat-messages');box.innerHTML=snap.empty?'<div class="text-xs text-slate-500">Say hello! This is the start of your chat.</div>':snap.docs.map(d=>{const m=d.data(),mine=m.fromUid===currentAccount.id;return `<div class="flex ${mine?'justify-end':'justify-start'}"><div class="max-w-[85%] rounded-xl px-3 py-2 ${mine?'bg-cyan-900':'bg-slate-800'}"><div class="text-[9px] text-slate-400">${mine?'YOU':escapeHubText(m.fromName||'FRIEND')}</div><div class="text-sm break-words">${escapeHubText(m.text||'')}</div></div></div>`;}).join('');box.scrollTop=box.scrollHeight;});}catch(e){$('chat-messages').textContent='Chat unavailable: '+e.message;}}
+        async function openChatWith(friendUid) {
+            if (!currentAccount || requirePermanentAccount('direct messages')) return;
+            if (!friendUid || friendUid === currentAccount.id) return;
+            const friend = await firestoreDB.doc(`users/${currentAccount.id}/friends/${friendUid}`).get();
+            if (!friend.exists) return alert('You can message players after they accept your friend request.');
+            activeChatFriend = friendUid;
+            openHubPage('chat-modal');
+            const box = $('chat-messages'); box.textContent = 'Loading messages...';
+            const [friendProfile, myProfile] = await Promise.all([getPublicUserProfile(friendUid), getPublicUserProfile(currentAccount.id)]);
+            $('chat-title').textContent = 'CHAT • ' + (friendProfile.username || 'FRIEND');
+            const chatId = chatThreadId(currentAccount.id, friendUid), chatRef = firestoreDB.doc('chats/' + chatId);
+            try {
+                // Create the thread if new; on existing legacy threads this also repairs the participant list.
+                await chatRef.set({participants:[currentAccount.id, friendUid], updatedAt:firebase.firestore.FieldValue.serverTimestamp()}, {merge:true});
+                if (activeChatUnsub) activeChatUnsub();
+                activeChatUnsub = chatRef.collection('messages').orderBy('createdAt','asc').limit(100).onSnapshot(async snap => {
+                    if (activeChatFriend !== friendUid) return;
+                    if (snap.empty) { box.innerHTML = '<div class="text-xs text-slate-500">Say hello! This is the start of your chat.</div>'; return; }
+                    const messages = snap.docs.map(d => ({id:d.id, ...d.data()}));
+                    const senderIds = [...new Set(messages.map(m => m.fromUid).filter(Boolean))];
+                    const senderProfiles = await Promise.all(senderIds.map(uid => uid === currentAccount.id ? Promise.resolve(myProfile) : getPublicUserProfile(uid)));
+                    const profileByUid = Object.fromEntries(senderIds.map((uid, i) => [uid, senderProfiles[i] || {}]));
+                    if (activeChatFriend !== friendUid) return;
+                    box.innerHTML = '';
+                    messages.forEach(m => {
+                        const mine = m.fromUid === currentAccount.id;
+                        const profile = profileByUid[m.fromUid] || {username:m.fromName || 'FRIEND'};
+                        const line = document.createElement('div'); line.className = 'flex items-end gap-2 ' + (mine ? 'justify-end' : 'justify-start');
+                        if (!mine) line.appendChild(makePlayerAvatar(profile, 'w-8 h-8'));
+                        const bubble = document.createElement('div'); bubble.className = 'max-w-[82%] rounded-xl px-3 py-2 ' + (mine ? 'bg-cyan-900' : 'bg-slate-800');
+                        const sender = document.createElement('div'); sender.className = 'text-[9px] text-slate-400 mb-1'; sender.textContent = mine ? 'YOU' : (profile.username || m.fromName || 'FRIEND');
+                        const body = document.createElement('div'); body.className = 'text-sm break-words whitespace-pre-wrap'; body.textContent = m.text || '';
+                        bubble.append(sender, body); line.appendChild(bubble);
+                        if (mine) line.appendChild(makePlayerAvatar(myProfile, 'w-8 h-8'));
+                        box.appendChild(line);
+                    });
+                    box.scrollTop = box.scrollHeight;
+                }, err => {
+                    console.error('Chat messages listener failed:', err);
+                    box.textContent = err.code === 'permission-denied'
+                        ? 'You do not have permission to read this chat yet. Ask both players to update Firestore Rules, then close and reopen this chat.'
+                        : 'Unable to load messages: ' + (err.message || err.code || 'Unknown error');
+                });
+            } catch (e) {
+                console.error('Chat setup failed:', e);
+                box.textContent = e.code === 'permission-denied'
+                    ? 'Chat access was denied by Firestore Rules. Publish the updated rules included with this game update.'
+                    : 'Chat unavailable: ' + (e.message || e.code || 'Unknown error');
+            }
+        }
         function closeChat(){if(activeChatUnsub)activeChatUnsub();activeChatUnsub=null;activeChatFriend=null;closeHubPage('chat-modal');}
         async function sendChatMessage(ev){ev.preventDefault();const text=$('chat-input').value.trim();if(!text||!activeChatFriend)return;const friendUid=activeChatFriend,chatId=chatThreadId(currentAccount.id,friendUid),chatRef=firestoreDB.doc('chats/'+chatId);try{const msg=chatRef.collection('messages').doc();const batch=firestoreDB.batch();batch.set(msg,{fromUid:currentAccount.id,fromName:currentAccount.username,text,createdAt:firebase.firestore.FieldValue.serverTimestamp()});batch.update(chatRef,{updatedAt:firebase.firestore.FieldValue.serverTimestamp(),lastMessage:text.slice(0,100)});const n=firestoreDB.collection(`users/${friendUid}/notifications`).doc();batch.set(n,{type:'message',chatId,fromUid:currentAccount.id,fromName:currentAccount.username,message:text.slice(0,100),read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});await batch.commit();$('chat-input').value='';}catch(e){alert('Message could not be sent: '+e.message);}}
         async function inviteFriendToLobby(friendUid){if(!currentAccount||requirePermanentAccount('lobby invites'))return;if(!activeLobbyCode)return alert('Create or join a lobby first, then invite a friend.');const f=await firestoreDB.doc(`users/${currentAccount.id}/friends/${friendUid}`).get();if(!f.exists)return alert('Lobby invites are available for friends only.');try{const n=firestoreDB.collection(`users/${friendUid}/notifications`).doc();await n.set({type:'lobby_invite',fromUid:currentAccount.id,fromName:currentAccount.username,roomCode:activeLobbyCode,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()});alert('Lobby invite sent!');}catch(e){alert('Could not send invite: '+e.message);}}
