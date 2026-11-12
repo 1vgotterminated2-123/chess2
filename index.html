@@ -667,6 +667,7 @@
           </div>
         </section>
         <div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">CLASSIC ELO</div><div id="profile-page-classic" class="text-xl font-black text-cyan-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">DRAFT ELO</div><div id="profile-page-draft" class="text-xl font-black text-purple-300">300</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">BEDWARS ELO</div><div id="profile-page-bedwars" class="text-xl font-black text-amber-300">300</div></div></div>
+        <section id="profile-rank-panel" class="rounded-2xl border border-amber-400/30 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/60 p-4 space-y-3"><div class="flex items-center justify-between gap-2"><h3 class="font-orbitron text-xs font-bold tracking-wider text-amber-300">COMPETITIVE RANK</h3><span id="profile-rank-placement" class="text-[9px] text-slate-400">PLACEMENT</span></div><div class="flex items-end justify-between gap-3"><div class="min-w-0"><div class="text-[9px] text-slate-500 mb-1">CURRENT RANK</div><div id="profile-rank-current" class="text-xl sm:text-2xl font-black text-amber-200">UNPLACED</div></div><div class="text-right min-w-0"><div class="text-[9px] text-slate-500 mb-1">NEXT RANK</div><div id="profile-rank-next" class="text-sm sm:text-base font-bold text-cyan-200">BRONZE</div></div></div><div class="h-3 rounded-full bg-slate-800 border border-slate-700 overflow-hidden"><div id="profile-rank-progress" class="h-full rounded-full bg-gradient-to-r from-amber-500 via-cyan-400 to-violet-400 transition-all duration-500" style="width:0%"></div></div><div class="flex justify-between gap-2 text-[10px]"><span id="profile-rank-progress-label" class="text-slate-400">0 / 3 ranked matches</span><span id="profile-rank-elo-label" class="text-slate-300">300 / 400 Elo</span></div><p id="profile-rank-caption" class="text-[9px] text-slate-500">Complete 3 ranked matches to receive your first rank. Classic Elo determines rank placement.</p></section>
         <section class="rounded-2xl border border-cyan-500/30 bg-slate-950/80 p-4"><div class="flex items-center justify-between mb-2"><h3 class="font-orbitron text-xs text-cyan-300 font-bold">ELO HISTORY</h3><span class="text-[9px] text-slate-500">CLASSIC · DRAFT · BEDWARS</span></div><div class="profile-chart-wrap"><canvas id="profile-elo-graph" width="900" height="300" class="w-full rounded-xl" style="height:auto;aspect-ratio:3/1;display:block"></canvas></div><p id="profile-elo-caption" class="text-[10px] text-slate-500 mt-2">Your rating history will appear here as it is recorded.</p></section><div class="grid grid-cols-3 gap-2 text-center"><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">GAMES</div><div id="profile-page-games" class="text-lg font-black text-white">0</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">WINS</div><div id="profile-page-wins" class="text-lg font-black text-emerald-300">0</div></div><div class="rounded-xl bg-slate-900 p-3"><div class="text-[9px] text-slate-500">WIN RATE</div><div id="profile-page-winrate" class="text-lg font-black text-cyan-300">0%</div></div></div>
         <div class="rounded-2xl border border-amber-500/30 bg-slate-950/70 p-4"><div class="flex justify-between items-center mb-3"><h3 class="font-orbitron text-xs text-amber-300 font-bold">DISPLAYED ACHIEVEMENT</h3><button id="profile-showcase-edit" onclick="openAchievementsPage(true)" class="text-[10px] text-cyan-300">CHANGE</button></div><div id="profile-showcase" class="text-sm text-slate-400">No achievement displayed yet.</div></div>
         <div id="profile-social-actions" class="hidden flex flex-wrap gap-2"><button id="profile-friend-button" onclick="sendFriendRequestFromProfile()" class="flex-1 py-3 rounded-xl bg-purple-700 text-white text-xs font-bold">ADD FRIEND</button><button id="profile-message-button" onclick="openChatWith(viewingPlayerUid)" class="hidden flex-1 py-3 rounded-xl bg-cyan-700 text-white text-xs font-bold">MESSAGE</button><button id="profile-invite-button" onclick="inviteFriendToLobby(viewingPlayerUid)" class="hidden flex-1 py-3 rounded-xl bg-emerald-700 text-white text-xs font-bold">INVITE TO LOBBY</button></div>
@@ -5903,6 +5904,7 @@
                     const oldStats = profile.stats || {};
                     const stats = {
                         gamesPlayed:Number(oldStats.gamesPlayed || 0) + 1,
+                        rankedMatches:Number(oldStats.rankedMatches || 0) + 1,
                         wins:Number(oldStats.wins || 0) + (didWin ? 1 : 0),
                         losses:Number(oldStats.losses || 0) + (didWin ? 0 : 1),
                         winStreak:didWin ? Number(oldStats.winStreak || 0) + 1 : 0,
@@ -5928,6 +5930,7 @@
                         if (top) top.textContent = currentAccount.ratings[k];
                         if (page) page.textContent = currentAccount.ratings[k];
                     });
+                    if (viewingPlayerUid === user.uid) renderProfileRank(currentAccount);
                 }
             } catch (err) {
                 console.warn('Could not update online Elo:', err);
@@ -6529,6 +6532,40 @@
         function togglePrivateEmail(){const el=$('settings-account-email'),btn=$('settings-email-reveal');if(!el||!currentAccount)return;const reveal=el.dataset.revealed!=='true';el.dataset.revealed=String(reveal);el.textContent=reveal?(currentAccount.email||'Guest account'):maskPrivateEmail(currentAccount.email);if(btn)btn.textContent=reveal?'HIDE':'REVEAL';}
         function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');const emailEl=$('settings-account-email');emailEl.dataset.revealed='false';emailEl.textContent=maskPrivateEmail(currentAccount.email);$('settings-email-reveal').textContent='REVEAL';$('hub-sound').checked=!!G.soundEnabled;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
         function formatProfileDate(value){if(!value)return 'Unknown';const d=value.toDate?value.toDate():(value.seconds?new Date(value.seconds*1000):new Date(value));if(!Number.isFinite(d.getTime()))return 'Unknown';return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
+        const COMPETITIVE_RANKS = [
+            {name:'Bronze',min:0,color:'#cd7f32'}, {name:'Silver',min:500,color:'#cbd5e1'},
+            {name:'Gold',min:700,color:'#facc15'}, {name:'Platinum',min:900,color:'#67e8f9'},
+            {name:'Diamond',min:1100,color:'#60a5fa'}, {name:'Emerald',min:1300,color:'#34d399'},
+            {name:'Opal',min:1500,color:'#a5f3fc'}, {name:'Grandmaster',min:1800,color:'#c084fc'},
+            {name:'Abyssal',min:2100,color:'#818cf8'}, {name:'Nightmare',min:2400,color:'#fb7185'}
+        ];
+        function getOverallElo(ratings){
+            const r=ratings||{};
+            const values=['classic','draft','bedwars'].map(key=>{
+                const value=Number(r[key] ?? 300);
+                return Number.isFinite(value) ? Math.max(0,value) : 300;
+            });
+            return Math.round(values.reduce((sum,value)=>sum+value,0)/values.length);
+        }
+        function renderProfileRank(profile){
+            // Competitive rank is based on the average of all three mode ratings,
+            // not on Classic Elo alone.
+            const elo=getOverallElo(profile?.ratings);
+            const rankedMatches=Math.max(0,Number(profile?.stats?.rankedMatches||0));
+            const placed=rankedMatches>=3;
+            const idx=COMPETITIVE_RANKS.reduce((n,r,i)=>elo>=r.min?i:n,0);
+            const current=COMPETITIVE_RANKS[idx], next=COMPETITIVE_RANKS[idx+1]||null;
+            const currentEl=$('profile-rank-current'),nextEl=$('profile-rank-next'),bar=$('profile-rank-progress');
+            $('profile-rank-placement').textContent=placed?'RANKED':'PLACEMENT';
+            $('profile-rank-current').textContent=placed?current.name.toUpperCase():'UNPLACED';
+            currentEl.style.color=placed?current.color:'#94a3b8';
+            nextEl.textContent=placed?(next?next.name.toUpperCase():'MAX RANK'):'BRONZE';
+            nextEl.style.color=next?next.color:'#facc15';
+            if(!placed){const pct=Math.min(100,rankedMatches/3*100);bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=rankedMatches+' / 3 ranked matches';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Complete 3 ranked matches to receive your first rank. Overall Elo is the average of Classic, Draft, and Bedwars Elo.';}
+            else if(next){const pct=Math.max(0,Math.min(100,(elo-current.min)/(next.min-current.min)*100));bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=Math.max(0,elo-current.min)+' / '+(next.min-current.min)+' Elo in '+current.name;$('profile-rank-elo-label').textContent=elo+' / '+next.min+' Overall Elo';$('profile-rank-caption').textContent=(next.min-elo)+' Overall Elo until '+next.name+'. Your rank uses the average of Classic, Draft, and Bedwars Elo.';}
+            else{bar.style.width='100%';$('profile-rank-progress-label').textContent='Highest rank achieved';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Nightmare rank achieved. Keep climbing your average Elo across all game modes.';}
+        }
+
         function drawProfileEloGraph(profile){
             const c=$('profile-elo-graph');if(!c)return;const ctx=c.getContext('2d'),w=c.width,h=c.height;
             ctx.clearRect(0,0,w,h);ctx.fillStyle='#0b1220';ctx.fillRect(0,0,w,h);
@@ -6693,6 +6730,7 @@
                 $('profile-page-classic').textContent=p.ratings?.classic??300;
                 $('profile-page-draft').textContent=p.ratings?.draft??300;
                 $('profile-page-bedwars').textContent=p.ratings?.bedwars??300;
+                renderProfileRank(p);
                 $('profile-page-games').textContent=games;
                 $('profile-page-wins').textContent=wins;
                 $('profile-page-winrate').textContent=(games?Math.round(wins/games*100):0)+'%';
