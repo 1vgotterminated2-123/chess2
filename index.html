@@ -146,8 +146,10 @@
         @keyframes secretParticles{0%{transform:translateY(5px);opacity:.25}50%{transform:translateY(-3px);opacity:.9}100%{transform:translateY(5px);opacity:.25}}
 
         /* Compact, full-width match toolbar. Horizontal scrolling keeps it from covering the board. */
+        /* The match toolbar must never override the Tailwind hidden state. */
+        #persistent-controls-bar.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
         #persistent-controls-bar:not(.hidden){
-          display:flex!important;
+          display:flex!important;visibility:visible!important;
           position:fixed!important;top:0!important;left:0!important;right:0!important;bottom:auto!important;
           transform:none!important;width:100vw!important;max-width:none!important;min-width:0!important;
           min-height:0!important;height:auto!important;max-height:54px!important;box-sizing:border-box!important;
@@ -505,11 +507,13 @@
                             <select id="online-map" onchange="renderOnlineMapPreview()" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs"></select>
                         </label>
                         <label class="col-span-2 flex items-center justify-between rounded-xl bg-slate-950 border border-purple-500/30 p-3 text-xs text-purple-200"><span>🐲 CHAOS PIECES</span><input id="online-chaos-pieces" type="checkbox" checked class="accent-purple-500 w-4 h-4"></label>
-                        <label class="col-span-2 space-y-1 text-[10px] text-slate-400">RANKED MATCH
-                            <select id="online-ranked" class="w-full rounded-xl bg-slate-950 border border-amber-500/40 text-amber-200 px-3 py-2.5 text-xs">
-                                <option value="false" selected>Unranked — no ELO changes</option><option value="true">Ranked — ELO changes</option>
-                            </select>
-                            <span class="block text-[9px] text-slate-500">Ranked AI rooms are available to players below 500 ELO.</span>
+                        <label for="online-ranked" class="col-span-2 flex items-center justify-between gap-3 rounded-xl border border-amber-400/50 bg-amber-950/30 p-3 cursor-pointer hover:bg-amber-950/50 transition">
+                            <span class="min-w-0">
+                                <span class="block text-xs font-orbitron font-black tracking-wide text-amber-200">🏆 RANKED LOBBY</span>
+                                <span class="block text-[10px] text-slate-400 mt-1">Enable ELO rating changes for this match</span>
+                                <span class="block text-[9px] text-slate-500 mt-1">Ranked AI rooms are available below 500 ELO. Uncheck for a casual match.</span>
+                            </span>
+                            <input id="online-ranked" type="checkbox" class="w-5 h-5 shrink-0 accent-amber-400" aria-label="Make this lobby ranked">
                         </label>
                         <label class="col-span-2 space-y-1 text-[10px] text-slate-400">MATCH TIMER (PER PLAYER)
                             <select id="online-lobby-clock-minutes" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
@@ -4590,6 +4594,7 @@
             if(!activeLobbyCode) { $('online-clock-controls')?.classList.add('hidden'); stopOnlineClockTicker(); }
             $('hud-header').classList.remove('hidden');
             $('persistent-controls-bar').classList.remove('hidden');
+            $('persistent-controls-bar').style.display = '';
             $('hud-sidebar').classList.remove('hidden');
             $('bottom-hud-bar').classList.remove('hidden');
 
@@ -4626,6 +4631,7 @@
             $('btn-review-floating').classList.add('hidden');
             $('hud-header').classList.add('hidden');
             $('persistent-controls-bar').classList.add('hidden');
+            $('persistent-controls-bar').style.display = 'none';
             $('hud-sidebar').classList.add('hidden');
             $('bottom-hud-bar').classList.add('hidden');
             $('piece-inspector-card').classList.add('hidden');
@@ -4661,6 +4667,7 @@
 
         function triggerGameOver(winnerTeam, reason) {
             G.gameOver = true;
+            $('persistent-controls-bar')?.classList.add('hidden');
             clearTimeout(G.aiTimer);
             const localHumanTeam = (G.teams || []).find(t => G.teamControllers && G.teamControllers[t] && G.teamControllers[t].type === 'human') || (G.teams || [])[0];
             const localWon = String(winnerTeam).toLowerCase() === String(localHumanTeam || '').toLowerCase();
@@ -4761,7 +4768,7 @@
             try {
                 await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return;const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});});
                 G.gameOver=true; stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
-                if(returnHome){const btn=$('main-menu'); if(btn){clearTimeout(G.aiTimer);G.matchId++;if(onlineMatchUnsubscribe)onlineMatchUnsubscribe();onlineMatchUnsubscribe=null;onlineMatchRef=null;onlineMatchVersion=-1;activeLobbyCode=null;onlineLocalTeam=null;stopOnlineClockTicker();$('online-clock-controls')?.classList.add('hidden');['hud-header','persistent-controls-bar','hud-sidebar','bottom-hud-bar'].forEach(id=>$(id)?.classList.add('hidden'));$('main-menu').classList.remove('hidden');}}
+                if(returnHome){const btn=$('main-menu'); if(btn){clearTimeout(G.aiTimer);G.matchId++;if(onlineMatchUnsubscribe)onlineMatchUnsubscribe();onlineMatchUnsubscribe=null;onlineMatchRef=null;onlineMatchVersion=-1;activeLobbyCode=null;onlineLocalTeam=null;stopOnlineClockTicker();$('online-clock-controls')?.classList.add('hidden');['hud-header','persistent-controls-bar','hud-sidebar','bottom-hud-bar'].forEach(id=>$(id)?.classList.add('hidden'));$('persistent-controls-bar').style.display='none';$('main-menu').classList.remove('hidden');}}
             } catch(e){alert('Could not resign: '+e.message);}
         }
         async function finishOnlineOnTime(loserTeam) {
@@ -5195,7 +5202,7 @@
                 const title = document.createElement('div'); title.className = 'text-xs font-bold text-white truncate'; title.textContent = room.hostName || 'Player';
                 const details = document.createElement('div'); details.className = 'text-[10px] text-slate-400 mt-1';
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard', commander: 'Commander Draft' };
-                details.textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • Max ' + (room.maxPlayers || 8) + ' players';
+                details.textContent = (room.ranked ? '🏆 RANKED • ' : 'UNRANKED • ') + (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • Max ' + (room.maxPlayers || 8) + ' players';
                 info.append(title, details);
                 const join = document.createElement('button'); join.className = 'shrink-0 px-3 py-2 rounded-lg bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-bold'; join.textContent = 'JOIN'; join.onclick = () => joinLobbyCode(room.id);
                 card.append(info, join); list.appendChild(card);
@@ -5562,6 +5569,7 @@
                 if (data.status === 'finished') {
                     recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true; stopOnlineClockTicker();
+                    $('persistent-controls-bar')?.classList.add('hidden');
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
                     if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
@@ -5731,7 +5739,7 @@
                 const map = mapById(mapId);
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
-                const ranked = $('online-ranked')?.value === 'true';
+                const ranked = !!$('online-ranked')?.checked;
                 const clockMinutes = Math.max(1, Math.min(30, Number($('online-lobby-clock-minutes')?.value || 10)));
                 const maxPlayers = teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
