@@ -164,6 +164,10 @@
         #persistent-controls-bar #turn-text{font-size:10px!important;white-space:nowrap}
         #persistent-controls-bar button{flex:0 0 auto!important;font-size:9px!important;line-height:1!important;padding:5px 7px!important;border-radius:7px!important;white-space:nowrap}
         #persistent-controls-bar #online-clock-controls:not(.hidden){display:flex!important;align-items:center!important;gap:4px!important;flex-wrap:nowrap!important;font-size:10px!important}
+        #persistent-controls-bar #online-clock-controls.squad-clock-layout{flex-wrap:wrap!important;max-width:min(100vw - 24px,520px)!important}
+        #online-clock-controls.squad-clock-layout #online-clock-team-displays{flex:1 1 100%;width:100%}
+        #online-clock-controls.squad-clock-layout #online-clock-team-displays>div{min-width:0!important;padding:2px 3px!important}
+        #online-clock-controls.squad-clock-layout #online-clock-team-displays b{font-size:11px!important}
         #persistent-controls-bar #online-clock-controls>div{padding:1px 5px!important;min-width:48px}
         #persistent-controls-bar #online-clock-controls b{font-size:12px!important}
         #persistent-controls-bar #online-clock-minutes{padding:3px 4px!important;font-size:9px!important}
@@ -298,13 +302,9 @@
 
         <!-- Online chess-style clock and resignation controls -->
         <div id="online-clock-controls" class="hidden items-center gap-2 font-mono text-xs">
-            <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-cyan-700">
-                <span id="online-clock-team-a" class="text-[9px] text-slate-400">WHITE</span>
-                <b id="online-clock-a" class="text-lg text-cyan-300 tabular-nums">10:00</b>
-            </div>
-            <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-slate-700">
-                <span id="online-clock-team-b" class="text-[9px] text-slate-400">BLACK</span>
-                <b id="online-clock-b" class="text-lg text-slate-300 tabular-nums">10:00</b>
+            <div id="online-clock-team-displays" class="flex flex-wrap items-center gap-1.5">
+                <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-cyan-700"><span class="text-[9px] text-slate-400">WHITE</span><b class="text-lg text-cyan-300 tabular-nums">10:00</b></div>
+                <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-slate-700"><span class="text-[9px] text-slate-400">BLACK</span><b class="text-lg text-slate-300 tabular-nums">10:00</b></div>
             </div>
             <select id="online-clock-minutes" title="Starting time for both teams" class="bg-slate-950 border border-slate-600 rounded-lg px-1 py-2 text-cyan-200">
                 <option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option><option value="8">8 min</option><option value="9">9 min</option><option value="10" selected>10 min</option><option value="11">11 min</option><option value="12">12 min</option><option value="13">13 min</option><option value="14">14 min</option><option value="15">15 min</option><option value="16">16 min</option><option value="17">17 min</option><option value="18">18 min</option><option value="19">19 min</option><option value="20">20 min</option><option value="21">21 min</option><option value="22">22 min</option><option value="23">23 min</option><option value="24">24 min</option><option value="25">25 min</option><option value="26">26 min</option><option value="27">27 min</option><option value="28">28 min</option><option value="29">29 min</option><option value="30">30 min</option>
@@ -3805,21 +3805,33 @@
             if (G.mode !== 'bedwars') return;
             const mine = G.pieces.filter(p => p.team === team && inBase(p));
             if (!mine.length) return;
-            for (let round = 0; round < 12; round++) {
+            const res = G.resources[team];
+            if (!res) return;
+
+            // Keep wool on a small group of bridge units instead of spending the
+            // team's entire iron reserve filling every piece's inventory.
+            const woolCarrierCount = G.pieces.filter(p => p.team === team && p.type !== 'bed' && p.blocks > 0).length;
+            if (woolCarrierCount < 2 && res.iron >= WOOL_COST) {
+                const candidates = mine.filter(p => p.blocks < 4 && (p.type === 'p' || p.type === 'n'));
+                const lowWoolPiece = candidates.sort((a, b) => {
+                    const ta = nearestEnemyObjective(a), tb = nearestEnemyObjective(b);
+                    return (ta ? cheb(a, ta) : 999) - (tb ? cheb(b, tb) : 999);
+                })[0];
+                if (lowWoolPiece) buyItem(lowWoolPiece, 'wool');
+            }
+
+            // Spend remaining iron on combat upgrades, but do not loop-buy wool.
+            for (let round = 0; round < 8; round++) {
                 let bought = false;
-                const res = G.resources[team];
-                if (!res) break;
-
-                const lowWoolPiece = G.pieces.find(p => p.team === team && p.blocks < 4);
-                if (lowWoolPiece && inBase(lowWoolPiece) && res.iron >= WOOL_COST) {
-                    bought = buyItem(lowWoolPiece, 'wool');
-                }
-
                 const bed = bedOf(team);
-                if (!bought && bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) bought = buyItem(mine[0], 'obsidian');
+                if (bed && !obsidianBlocked(bed) && obsLayers(bed) < 4 && res.em >= 1) {
+                    bought = buyItem(mine[0], 'obsidian');
+                }
                 if (!bought) {
                     const order = mine.slice().sort((a, b) => getAtk(b) - getAtk(a));
-                    for (const p of order) { if (buyItem(p, 'sword') || buyItem(p, 'armor')) { bought = true; break; } }
+                    for (const piece of order) {
+                        if (buyItem(piece, 'sword') || buyItem(piece, 'armor')) { bought = true; break; }
+                    }
                 }
                 if (!bought) break;
             }
@@ -3845,7 +3857,9 @@
                 // Find ghost void tile closest to waypoint vector
                 ghosts.forEach(g => {
                     const d = cheb(g, targetWp);
-                    if (d <= bestDist) {
+                    // Only spend wool when the bridge tile makes measurable
+                    // progress toward the chosen enemy objective.
+                    if (d < bestDist) {
                         bestDist = d;
                         bestGhost = g;
                     }
@@ -3887,16 +3901,23 @@
                     }
                 }
 
-                // Base-evacuation incentive (+90 score for stepping out of base towards field/waypoints)
+                // BedWars squads must actually leave their island. Give a strong
+                // one-time priority to legal exits, then keep units moving toward
+                // the selected enemy bed instead of orbiting around their base.
                 const wasInBase = isPosInBase(piece.x, piece.z, piece.team);
                 const willBeInBase = isPosInBase(move.x, move.z, piece.team);
-                if (wasInBase && !willBeInBase && role !== 'GUARD' && role !== 'CLUTCH_DEFEND') {
-                    score += 260;
-                }
-
-                // Non-guard unit in-base idle movement penalty (-50 pts)
-                if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && inBase(piece) && willBeInBase) {
-                    score -= 220;
+                const defensiveRole = role === 'CLUTCH_DEFEND' || role === 'RETREAT_BANK';
+                if (G.mode === 'bedwars' && !defensiveRole) {
+                    const targetProgress = target ? cheb(piece, target) - cheb(move, target) : 0;
+                    if (wasInBase && !willBeInBase) score += 1800 + targetProgress * 90;
+                    else if (wasInBase && willBeInBase) score += targetProgress * 55 - 420;
+                    else {
+                        score += targetProgress * 85;
+                        if (willBeInBase) score -= 1200;
+                    }
+                } else {
+                    if (wasInBase && !willBeInBase && role !== 'GUARD' && role !== 'CLUTCH_DEFEND') score += 260;
+                    if (role !== 'GUARD' && role !== 'CLUTCH_DEFEND' && wasInBase && willBeInBase) score -= 220;
                 }
 
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
@@ -4693,6 +4714,7 @@
 
         function triggerGameOver(winnerTeam, reason) {
             G.gameOver = true;
+            G.winnerTeam = winnerTeam;
             $('persistent-controls-bar')?.classList.add('hidden');
             clearTimeout(G.aiTimer);
             const localHumanTeam = (G.teams || []).find(t => G.teamControllers && G.teamControllers[t] && G.teamControllers[t].type === 'human') || (G.teams || [])[0];
@@ -4751,22 +4773,30 @@
         let onlineClockFinishing = false;
         function onlineClockKey(team) { return team + 'Ms'; }
         function onlineClockRemaining(team, clock=onlineClock, now=Date.now()) {
-            const base = Number(clock[onlineClockKey(team)] || 0);
+            const base = Number(clock[onlineClockKey(team)] ?? (Number(clock.minutes || 10) * 60000));
             return Math.max(0, base - (clock.activeTeam === team ? Math.max(0, now - Number(clock.activeSinceMs || now)) : 0));
         }
         function formatOnlineClock(ms) { const sec=Math.ceil(Math.max(0,ms)/1000); return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); }
         function renderOnlineClock() {
             if (!activeLobbyCode || !onlineClock) return;
             const teams=G.teams||['white','black'];
-            const a=teams[0], b=teams[1]||teams[0];
-            const now=Date.now(), ams=onlineClockRemaining(a,onlineClock,now), bms=onlineClockRemaining(b,onlineClock,now);
-            const ea=$('online-clock-a'), eb=$('online-clock-b');
-            if(ea) { ea.textContent=formatOnlineClock(ams); ea.classList.toggle('text-red-400',ams<=10000); ea.classList.toggle('text-cyan-300',ams>10000); }
-            if(eb) { eb.textContent=formatOnlineClock(bms); eb.classList.toggle('text-red-400',bms<=10000); eb.classList.toggle('text-slate-300',bms>10000); }
-            const la=$('online-clock-team-a'), lb=$('online-clock-team-b');
-            if(la) la.textContent=a.toUpperCase()+(onlineClock.activeTeam===a?' • RUNNING':'');
-            if(lb) lb.textContent=b.toUpperCase()+(onlineClock.activeTeam===b?' • RUNNING':'');
-            if(!G.gameOver && onlineClock.activeTeam && (ams<=0 || bms<=0)) finishOnlineOnTime(ams<=0?a:b);
+            const now=Date.now();
+            const host=$('online-clock-team-displays');
+            if(host && host.dataset.teamCount!==String(teams.length)) {
+                host.dataset.teamCount=String(teams.length);
+                host.className=teams.length===4?'grid grid-cols-4 gap-1':'flex flex-wrap items-center gap-1.5';
+                $('online-clock-controls')?.classList.toggle('squad-clock-layout',teams.length===4);
+                host.innerHTML=teams.map((team,index)=>`<div class="flex min-w-0 flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border ${index===0?'border-cyan-700':'border-slate-700'}"><span id="online-clock-label-${team}" class="text-[9px] text-slate-400">${team.toUpperCase()}</span><b id="online-clock-value-${team}" class="text-lg tabular-nums ${index===0?'text-cyan-300':'text-slate-300'}">10:00</b></div>`).join('');
+            }
+            let expiredTeam=null;
+            teams.forEach((team,index)=>{
+                const remaining=onlineClockRemaining(team,onlineClock,now);
+                const value=$('online-clock-value-'+team), label=$('online-clock-label-'+team);
+                if(value){value.textContent=formatOnlineClock(remaining);value.classList.toggle('text-red-400',remaining<=10000);value.classList.toggle('text-cyan-300',remaining>10000&&index===0);}
+                if(label)label.textContent=team.toUpperCase()+(onlineClock.activeTeam===team?' • RUNNING':'');
+                if(remaining<=0&&onlineClock.activeTeam===team)expiredTeam=team;
+            });
+            if(!G.gameOver && expiredTeam) finishOnlineOnTime(expiredTeam);
         }
         function startOnlineClockTicker() {
             if(onlineClockInterval) clearInterval(onlineClockInterval);
@@ -5318,7 +5348,7 @@
                 resources: JSON.parse(JSON.stringify(G.resources || {})),
                 gens: (G.gens || []).map(g => ({x:g.x,z:g.z,stock:g.stock,timer:g.timer})),
                 turn:G.turn, turnIndex:G.turnIndex, turnCount:G.turnCount,
-                gameOver:!!G.gameOver, bridgesThisTurn:G.bridgesThisTurn || 0,
+                gameOver:!!G.gameOver, winnerTeam:G.winnerTeam || null, bridgesThisTurn:G.bridgesThisTurn || 0,
                 collapseDone:!!G.collapseDone,
                 // Keep a rolling replay window small enough for Firestore's 1 MiB document limit.
                 reviewSnapshots:(G.reviewSnapshots || []).slice(-30),
@@ -5427,6 +5457,7 @@
                 G.turnIndex = Number.isInteger(state.turnIndex) ? state.turnIndex : G.teams.indexOf(G.turn);
                 G.turnCount = state.turnCount || G.turnCount;
                 G.gameOver = !!state.gameOver;
+                G.winnerTeam = state.winnerTeam || G.winnerTeam || null;
                 G.bridgesThisTurn = state.bridgesThisTurn || 0;
                 G.collapseDone = !!state.collapseDone;
                 if (Array.isArray(state.reviewSnapshots)) {
@@ -5562,7 +5593,7 @@
             const user = firebaseAuth.currentUser;
             const lobbyMinutes = Math.max(1, Math.min(30, Number(activeLobbyRoomData?.clockMinutes || 10)));
             const lobbyClockMs = lobbyMinutes * 60000;
-            onlineClock = { whiteMs:lobbyClockMs, blackMs:lobbyClockMs, activeTeam:G.turn, activeSinceMs:Date.now(), minutes:lobbyMinutes };
+            onlineClock = Object.assign({ activeTeam:G.turn, activeSinceMs:Date.now(), minutes:lobbyMinutes }, Object.fromEntries((G.teams||['white','black']).map(team=>[onlineClockKey(team),lobbyClockMs])));
             if ($('online-clock-minutes')) $('online-clock-minutes').value = String(lobbyMinutes);
             onlineMatchVersion = -1;
             const initial = makeOnlineSnapshot();
@@ -5679,6 +5710,7 @@
                     if (data.seats && data.seats[actingTeam] && data.seats[actingTeam] !== user.uid) throw new Error('This browser does not own that team.');
                     tx.update(onlineMatchRef, {
                         state, turn:G.turn, status:G.gameOver ? 'finished' : 'active',
+                        ...(G.gameOver ? { winner:G.winnerTeam || state.winnerTeam || null } : {}),
                         clock:onlineClockForNextTurn(G.turn),
                         version:(data.version || 0) + 1,
                         lastAction:{by:user.uid, team:actingTeam, type:'turn-complete'},
