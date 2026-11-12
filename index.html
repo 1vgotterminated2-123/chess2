@@ -375,6 +375,91 @@
         body[data-theme-style="omniverse"] .hub-nav-btn{border-color:rgba(147,197,253,.24)}
         body[data-theme-style="omniverse"] .bg-purple-700,body[data-theme-style="omniverse"] .bg-cyan-600,body[data-theme-style="omniverse"] .bg-blue-600{background-image:linear-gradient(100deg,#0e7490,#6d28d9,#be185d,#a16207)!important;background-size:240% 100%!important;animation:omniverseFlow 8s ease infinite}
         body[data-theme-style="omniverse"] .border-slate-700,body[data-theme-style="omniverse"] .border-slate-600{border-color:rgba(129,220,255,.22)!important}
+
+        /* OMNIVERSE ASCENDANT — full-interface treatment */
+        body[data-theme-style="omniverse"] #main-menu,
+        body[data-theme-style="omniverse"] #online-multiplayer-page,
+        body[data-theme-style="omniverse"] .hub-page,
+        body[data-theme-style="omniverse"] .modal-content,
+        body[data-theme-style="omniverse"] [class*="bg-slate-950"],
+        body[data-theme-style="omniverse"] [class*="bg-slate-900"] {
+            background-image:radial-gradient(ellipse at 0% 0%,rgba(34,211,238,.13),transparent 48%),radial-gradient(ellipse at 100% 100%,rgba(192,132,252,.13),transparent 48%),linear-gradient(145deg,rgba(7,11,31,.97),rgba(26,14,48,.96),rgba(7,28,43,.97))!important;
+            border-color:rgba(125,211,252,.28)!important;
+        }
+        body[data-theme-style="omniverse"] .glass-panel,
+        body[data-theme-style="omniverse"] .theme-card,
+        body[data-theme-style="omniverse"] .profile-card,
+        body[data-theme-style="omniverse"] #public-lobby-list>div,
+        body[data-theme-style="omniverse"] #lobby-room-panel,
+        body[data-theme-style="omniverse"] .rounded-xl.border,
+        body[data-theme-style="omniverse"] .rounded-2xl.border {
+            border:1px solid transparent!important;
+            background:linear-gradient(135deg,rgba(10,17,43,.93),rgba(34,18,61,.92),rgba(8,35,51,.94)) padding-box,linear-gradient(115deg,rgba(103,232,249,.82),rgba(167,139,250,.8),rgba(244,114,182,.72),rgba(250,204,21,.68),rgba(103,232,249,.82)) border-box!important;
+            background-size:auto,320% 320%!important;
+            animation:omniPanelEdge 13s linear infinite;
+            box-shadow:0 9px 28px rgba(2,6,23,.28),0 0 18px rgba(34,211,238,.10),inset 0 0 24px rgba(192,132,252,.045)!important;
+        }
+        body[data-theme-style="omniverse"] nav,
+        body[data-theme-style="omniverse"] .hub-nav,
+        body[data-theme-style="omniverse"] .hub-sidebar,
+        body[data-theme-style="omniverse"] #main-menu header {
+            background:linear-gradient(100deg,rgba(7,17,39,.97),rgba(36,18,64,.95),rgba(7,33,49,.97))!important;
+            border-color:rgba(103,232,249,.32)!important;
+            box-shadow:0 5px 24px rgba(34,211,238,.12),0 1px 0 rgba(255,255,255,.08) inset!important;
+        }
+        body[data-theme-style="omniverse"] button,
+        body[data-theme-style="omniverse"] .hub-nav-btn,
+        body[data-theme-style="omniverse"] [role="tab"] {
+            border-color:rgba(125,211,252,.27)!important;
+            text-shadow:0 1px 8px rgba(103,232,249,.16);
+        }
+        body[data-theme-style="omniverse"] button:not(:disabled):not(.plain-button),
+        body[data-theme-style="omniverse"] .hub-nav-btn.active,
+        body[data-theme-style="omniverse"] [role="tab"].active {
+            background-image:linear-gradient(105deg,rgba(8,145,178,.88),rgba(109,40,217,.88),rgba(190,24,93,.84),rgba(161,98,7,.82))!important;
+            background-size:260% 100%!important;
+            animation:omniverseFlow 11s ease infinite;
+            box-shadow:0 0 12px rgba(103,232,249,.13),inset 0 1px 0 rgba(255,255,255,.18)!important;
+        }
+        body[data-theme-style="omniverse"] input,
+        body[data-theme-style="omniverse"] select,
+        body[data-theme-style="omniverse"] textarea {
+            color:#f0f9ff!important;background:linear-gradient(135deg,rgba(8,17,39,.96),rgba(32,18,55,.96))!important;
+            border:1px solid rgba(103,232,249,.35)!important;box-shadow:inset 0 0 14px rgba(34,211,238,.06)!important;
+        }
+        body[data-theme-style="omniverse"] input:focus,
+        body[data-theme-style="omniverse"] select:focus,
+        body[data-theme-style="omniverse"] textarea:focus {
+            outline:2px solid rgba(192,132,252,.55)!important;box-shadow:0 0 0 4px rgba(34,211,238,.10),0 0 18px rgba(192,132,252,.22)!important;
+        }
+        body[data-theme-style="omniverse"] h1,
+        body[data-theme-style="omniverse"] h2,
+        body[data-theme-style="omniverse"] h3,
+        body[data-theme-style="omniverse"] .section-title {
+            background:linear-gradient(90deg,#a5f3fc,#c4b5fd,#f9a8d4,#fde68a,#a5f3fc);
+            background-size:220% auto;-webkit-background-clip:text;background-clip:text;color:transparent!important;
+            animation:omniverseFlow 12s linear infinite;text-shadow:0 0 18px rgba(103,232,249,.10);
+        }
+        body[data-theme-style="omniverse"] .text-slate-400,
+        body[data-theme-style="omniverse"] .text-slate-500 {color:#b8c8e6!important}
+        body[data-theme-style="omniverse"] .border-slate-700,
+        body[data-theme-style="omniverse"] .border-slate-600 {border-color:rgba(125,211,252,.25)!important}
+        body[data-theme-style="omniverse"] .bg-purple-800,
+        body[data-theme-style="omniverse"] .bg-purple-700,
+        body[data-theme-style="omniverse"] .bg-cyan-600,
+        body[data-theme-style="omniverse"] .bg-blue-600,
+        body[data-theme-style="omniverse"] .bg-emerald-700 {background-image:linear-gradient(100deg,#0e7490,#6d28d9,#be185d,#a16207)!important;background-size:260% 100%!important;animation:omniverseFlow 9s ease infinite}
+        body[data-theme-style="omniverse"] .theme-swatch,
+        body[data-theme-style="omniverse"] .theme-preview {box-shadow:0 0 18px rgba(103,232,249,.18),inset 0 0 22px rgba(192,132,252,.12)!important}
+        body[data-theme-style="omniverse"] .rarity-transcendent,
+        body[data-theme-style="omniverse"] .theme-rarity-transcendent {text-shadow:0 0 8px #67e8f9,0 0 16px #c084fc,0 0 24px #f9a8d4!important}
+        body[data-theme-style="omniverse"] #online-team-banner,
+        body[data-theme-style="omniverse"] #lobby-status-badge {border-image:linear-gradient(90deg,#67e8f9,#c084fc,#f9a8d4,#facc15) 1!important}
+        body[data-theme-style="omniverse"] #game-container,
+        body[data-theme-style="omniverse"] #game-canvas-container {filter:drop-shadow(0 0 16px rgba(103,232,249,.12))}
+        body[data-theme-style="omniverse"] .is-match-spectator #online-team-banner {background:linear-gradient(90deg,rgba(8,145,178,.25),rgba(109,40,217,.25),rgba(190,24,93,.22))!important}
+        @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"] *,body[data-theme-style="omniverse"] *:before,body[data-theme-style="omniverse"] *:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+
         @keyframes omniverseFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
         @keyframes omniverseBackground{0%,100%{background-position:0% 45%}50%{background-position:100% 55%}}
         @keyframes omniStars{0%,100%{opacity:.45;transform:translateY(0)}50%{opacity:1;transform:translateY(3px)}}
@@ -5228,6 +5313,8 @@
         let lobbyLaunchHandled = false;
         let activeLobbyCode = null;
         let activeLobbyIsHost = false;
+        let activeLobbyIsSpectator = false;
+        let onlineSpectatorMode = false;
         let activeLobbyReady = false;
         let activeLobbyPlayers = [];
         let activeLobbyStartBusy = false;
@@ -5287,6 +5374,7 @@
             return out;
         }
         async function setOnlineClockTime() {
+            if(onlineSpectatorMode) return;
             if(!onlineMatchRef||!firebaseAuth?.currentUser) return;
             const minutes=Math.max(1,Math.min(30,Number($('online-clock-minutes')?.value||10)));
             const ms=minutes*60000, now=Date.now();
@@ -5294,6 +5382,7 @@
             catch(e){alert('Could not set the match clock: '+e.message);}
         }
         async function resignOnlineMatch(returnHome=false, alreadyConfirmed=false) {
+            if(onlineSpectatorMode) return;
             if(!onlineMatchRef||!firebaseAuth?.currentUser)return;
             if(!alreadyConfirmed && !confirm('Resign this online match? The other team will immediately win.')) return;
             const user=firebaseAuth.currentUser;
@@ -5726,15 +5815,16 @@
         function renderPublicLobbyList(snapshot) {
             const list = $('public-lobby-list'); if (!list) return;
             const rooms = [];
-            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && d.status === 'waiting') rooms.push({ id: doc.id, ...d }); });
+            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && (d.status === 'waiting' || d.status === 'started')) rooms.push({ id: doc.id, ...d }); });
             rooms.sort((a,b) => {
+                if (a.status !== b.status) return a.status === 'started' ? -1 : 1;
                 const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
                 const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
                 return tb - ta;
             });
             list.innerHTML = '';
             if (!rooms.length) {
-                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one and it will appear here.'; list.appendChild(empty); return;
+                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one to see it here, or check back for live matches to spectate.'; list.appendChild(empty); return;
             }
             rooms.forEach(room => {
                 const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
@@ -5744,7 +5834,7 @@
                 const title = document.createElement('div'); title.className = 'text-xs font-bold text-white truncate'; title.textContent = room.hostName || 'Player';
                 const details = document.createElement('div'); details.className = 'text-[10px] text-slate-400 mt-1';
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard', commander: 'Commander Draft' };
-                details.textContent = (room.ranked ? '🏆 RANKED • ' : 'UNRANKED • ') + (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • Max ' + (room.maxPlayers || 8) + ' players';
+                details.textContent = (room.status === 'started' ? '🔴 LIVE • ' : '🟢 WAITING • ') + (room.ranked ? '🏆 RANKED • ' : 'UNRANKED • ') + (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.teamFormat === '4-team' ? '4 teams' : '2 teams') + ' • ' + (room.status === 'started' ? 'Spectators welcome' : 'Max ' + (room.maxPlayers || 8) + ' players');
                 textWrap.append(title, details); info.append(hostAvatar, textWrap);
                 if (room.hostUid) getPublicUserProfile(room.hostUid).then(profile => {
                     if (!card.isConnected) return;
@@ -5753,11 +5843,12 @@
                 });
                 const join = document.createElement('button');
                 const alreadyJoined = activeLobbyCode === room.id;
-                join.className = 'shrink-0 px-3 py-2 rounded-lg text-white text-[10px] font-bold transition ' + (alreadyJoined ? 'bg-slate-900 border border-slate-600 text-slate-300 cursor-default' : 'bg-purple-800 hover:bg-purple-700 active:bg-purple-950');
-                join.textContent = alreadyJoined ? 'JOINED' : 'JOIN';
+                const isStarted = room.status === 'started';
+                join.className = 'shrink-0 px-3 py-2 rounded-lg text-white text-[10px] font-bold transition ' + (alreadyJoined ? 'bg-slate-900 border border-slate-600 text-slate-300 cursor-default' : (isStarted ? 'bg-cyan-700 hover:bg-cyan-600 active:bg-cyan-900' : 'bg-purple-800 hover:bg-purple-700 active:bg-purple-950'));
+                join.textContent = alreadyJoined ? (activeLobbyIsSpectator ? 'SPECTATING' : 'JOINED') : (isStarted ? 'SPECTATE' : 'JOIN');
                 join.disabled = alreadyJoined;
-                join.setAttribute('aria-label', alreadyJoined ? 'Already joined this lobby' : 'Join public lobby');
-                join.onclick = () => joinPublicLobby(room.id, join);
+                join.setAttribute('aria-label', alreadyJoined ? 'Already in this lobby' : (isStarted ? 'Spectate public match' : 'Join public lobby'));
+                join.onclick = () => isStarted ? spectatePublicLobby(room.id, join) : joinPublicLobby(room.id, join);
                 card.append(info, join); list.appendChild(card);
             });
         }
@@ -5772,9 +5863,9 @@
             stopPublicLobbyListener();
             $('public-lobby-status').textContent = 'Listening for public rooms...';
             // Query only the public visibility field. Private rooms are never returned in this list.
-            publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').where('status', '==', 'waiting').limit(40).onSnapshot(snapshot => {
+            publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').limit(60).onSnapshot(snapshot => {
                 renderPublicLobbyList(snapshot);
-                $('public-lobby-status').textContent = 'Live room list • refreshed automatically';
+                $('public-lobby-status').textContent = 'Live rooms and waiting rooms • refreshed automatically';
             }, err => {
                 console.error('Public room list failed:', err);
                 $('public-lobby-status').textContent = 'Could not load public rooms: ' + err.message;
@@ -6134,9 +6225,10 @@
             }
         }
 
-        async function startOnlineBoardSync() {
+        async function startOnlineBoardSync(asSpectator = false) {
             if (!activeLobbyCode || !firestoreDB || !firebaseAuth || !firebaseAuth.currentUser) return;
             const code = activeLobbyCode;
+            onlineSpectatorMode = !!asSpectator;
             onlineMatchRef = firestoreDB.collection('matches').doc(code);
             const user = firebaseAuth.currentUser;
             const lobbyMinutes = Math.max(1, Math.min(30, Number(activeLobbyRoomData?.clockMinutes || 10)));
@@ -6147,7 +6239,7 @@
             const initial = makeOnlineSnapshot();
             // Only the host needs to check whether the canonical match already exists.
             // Other clients attach their listener and receive the host's first snapshot.
-            const existingMatchSnap = user.uid === onlineHostUid ? await onlineMatchRef.get() : null;
+            const existingMatchSnap = (user.uid === onlineHostUid || asSpectator) ? await onlineMatchRef.get() : null;
             if (existingMatchSnap && existingMatchSnap.exists) {
                 const existingMatch = existingMatchSnap.data();
                 if (existingMatch.status === 'active' && existingMatch.state) {
@@ -6156,8 +6248,9 @@
                     onlineMatchVersion = Number(existingMatch.version ?? -1);
                 } else if (existingMatch.status === 'finished') {
                     if (existingMatch.clock) onlineClock = Object.assign({}, existingMatch.clock);
+                    if (existingMatch.state) applyOnlineSnapshot(existingMatch.state);
                     onlineMatchVersion = Number(existingMatch.version ?? -1);
-                    recordOnlineMatchElo(existingMatch, code).finally(() => releaseLobbyAfterMatch());
+                    if (!asSpectator) recordOnlineMatchElo(existingMatch, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true;
                     stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
@@ -6213,10 +6306,10 @@
                 });
             }
             const matchChatToggle = $('online-match-chat-toggle');
-            if (matchChatToggle) matchChatToggle.classList.remove('hidden');
+            if (matchChatToggle) matchChatToggle.classList.toggle('hidden', !!asSpectator);
             const matchChatRoom = $('online-match-chat-room');
             if (matchChatRoom) matchChatRoom.textContent = '• ' + code;
-            startOnlineMatchChat();
+            if (!asSpectator) startOnlineMatchChat();
 
             if (onlineMatchUnsubscribe) onlineMatchUnsubscribe();
             onlineMatchUnsubscribe = onlineMatchRef.onSnapshot(snap => {
@@ -6230,27 +6323,27 @@
                     // Previously this branch returned early, so the opponent could
                     // review the position from one move before the actual finish.
                     if (data.state) applyOnlineSnapshot(data.state);
-                    recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
+                    if (!asSpectator) recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true; stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
                     if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
-                    $('modal-game-over')?.classList.remove('hidden'); return;
+                    $('modal-game-over')?.classList.remove('hidden'); if (asSpectator) setLobbyStatus('This match has ended. You are viewing the final board.'); return;
                 }
-                if (data.lastAction && data.lastAction.by === user.uid) return;
+                if (!asSpectator && data.lastAction && data.lastAction.by === user.uid) return;
                 if (data.state) applyOnlineSnapshot(data.state);
             }, err => { console.error('Online match sync failed:', err); setLobbyStatus('Live sync error: ' + err.message, true); });
 
             // The host is responsible for AI seats. Do not wait for a remote
             // snapshot to trigger the first AI move.
-            if (user.uid === onlineHostUid && !G.gameOver && !G.paused && isCurrentAI()) {
+            if (!asSpectator && user.uid === onlineHostUid && !G.gameOver && !G.paused && isCurrentAI()) {
                 triggerAITurnDelay();
             }
         }
 
         async function publishOnlineBoard(actingTeam) {
-            if (!onlineMatchRef || applyingOnlineState || onlinePublishBusy || !firebaseAuth || !firebaseAuth.currentUser) return;
+            if (onlineSpectatorMode || !onlineMatchRef || applyingOnlineState || onlinePublishBusy || !firebaseAuth || !firebaseAuth.currentUser) return;
             onlinePublishBusy = true;
             const user = firebaseAuth.currentUser;
             const state = makeOnlineSnapshot();
@@ -6361,10 +6454,47 @@
                 setLobbyStatus('Room started, but the match could not load: ' + err.message, true);
             }
         }
+        async function launchSpectatorLobby(room) {
+            if (!room || room.status !== 'started' || lobbyLaunchHandled || !activeLobbyIsSpectator) return;
+            lobbyLaunchHandled = true;
+            try {
+                const mode = ['bedwars','standard','commander'].includes(room.mode) ? room.mode : 'bedwars';
+                const fmt = room.teamFormat === '4-team' ? '4-team' : '2-team';
+                const teams = TEAM_FORMATS[fmt] || ['white','black'];
+                const map = MAP_CATALOG.find(m => m.id === room.mapId && isMapAllowed(m.id, mode, fmt));
+                if (!map) throw new Error('The match map is no longer available.');
+                G.mode = mode; G.teamFormat = fmt; G.teams = [...teams]; G.selectedMapId = map.id;
+                G.chaosPieces = !!room.chaosPieces; G.enableAIStrategy = false; G.enablePieceRoles = true;
+                onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = room.hostUid || null;
+                G.teamControllers = Object.assign({}, G.teamControllers);
+                teams.forEach(team => { G.teamControllers[team] = { type:'remote', level:10, uid:null, name:'Live player' }; });
+                launchGameMatch();
+                if (!window.__chess2SpectatorKeyGuard) {
+                    window.__chess2SpectatorKeyGuard = true;
+                    window.addEventListener('keydown', function(ev) {
+                        if (!onlineSpectatorMode) return;
+                        if (!['Escape','Tab'].includes(ev.key)) { ev.preventDefault(); ev.stopImmediatePropagation(); }
+                    }, true);
+                }
+                const banner = $('online-team-banner');
+                if (banner) { banner.textContent = '◉ SPECTATING LIVE MATCH'; banner.style.color = '#67e8f9'; banner.style.borderColor = '#67e8f9'; banner.classList.remove('hidden'); }
+                $('online-clock-controls')?.classList.remove('hidden');
+                $('online-clock-minutes')?.setAttribute('disabled','disabled');
+                if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = 'none';
+                document.body.classList.add('is-match-spectator');
+                await startOnlineBoardSync(true);
+                setLobbyStatus('Spectating ' + (room.hostName || 'a public match') + '. Live board updates are read-only.');
+            } catch (err) {
+                lobbyLaunchHandled = false;
+                console.error('Could not load spectator match:', err);
+                setLobbyStatus('Could not load live match: ' + err.message, true);
+            }
+        }
+
         function watchLobby(code) {
             stopLobbyListeners(); activeLobbyCode = code;
             if (finishedLobbyCleanupCode !== code) finishedLobbyCleanupCode = null;
-            if (currentAccount) currentAccount.activeLobbyCode = code;
+            if (currentAccount && !activeLobbyIsSpectator) currentAccount.activeLobbyCode = code;
             const createButton = $('create-lobby-button'); if (createButton) { createButton.disabled = true; createButton.classList.add('opacity-40'); createButton.textContent = 'ALREADY IN A ROOM'; }
             $('lobby-room-panel').classList.remove('hidden');
             $('lobby-room-code').textContent = code;
@@ -6373,19 +6503,24 @@
             lobbyUnsubscribe = roomRef.onSnapshot(doc => {
                 if (!doc.exists) {
                     setLobbyStatus('This room was closed by its host.', true);
-                    if (currentAccount) currentAccount.activeLobbyCode = null;
-                    if (firebaseAuth && firebaseAuth.currentUser) firestoreDB.doc('users/' + firebaseAuth.currentUser.uid).update({ activeLobbyCode: null }).catch(() => {});
+                    if (currentAccount && !activeLobbyIsSpectator) currentAccount.activeLobbyCode = null;
+                    if (!activeLobbyIsSpectator && firebaseAuth && firebaseAuth.currentUser) firestoreDB.doc('users/' + firebaseAuth.currentUser.uid).update({ activeLobbyCode: null }).catch(() => {});
                     resetLobbyUI(); return;
                 }
                 activeLobbyRoomData = doc.data();
                 const room = activeLobbyRoomData;
                 $('lobby-status-badge').textContent = room.status === 'waiting' ? 'WAITING' : String(room.status || 'WAITING').toUpperCase();
-                if (room.status === 'started') { setLobbyStatus('Match is starting…'); launchStartedLobby(room); }
+                if (room.status === 'started') { setLobbyStatus(activeLobbyIsSpectator ? 'Connecting to live match as spectator…' : 'Match is starting…'); activeLobbyIsSpectator ? launchSpectatorLobby(room) : launchStartedLobby(room); }
                 const modeNames = { bedwars: 'Bedwars', standard: 'Standard Chess 2', commander: 'Commander Draft' };
                 $('lobby-room-meta').textContent = (modeNames[room.mode] || 'Chess 2') + ' • ' + (room.mapName || room.mapId || 'Map not set') + ' • ' + (room.visibility === 'private' ? 'PRIVATE' : 'PUBLIC') + ' • ' + (room.ranked ? 'RANKED' : 'UNRANKED') + ' • Host: ' + (room.hostName || 'Player');
-                setLobbyStatus('Room is open. Share the code with friends or get ready.');
+                if (room.status === 'waiting') setLobbyStatus('Room is open. Share the code with friends or get ready.');
             }, err => setLobbyStatus('Lobby update failed: ' + err.message, true));
-            lobbyPlayersUnsubscribe = roomRef.collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
+            if (activeLobbyIsSpectator) {
+                const rosterList = $('lobby-player-list');
+                if (rosterList) rosterList.textContent = 'Spectating — no player seat occupied';
+            } else {
+                lobbyPlayersUnsubscribe = roomRef.collection('players').onSnapshot(renderLobbyPlayers, err => setLobbyStatus('Could not load players: ' + err.message, true));
+            }
         }
         function currentLobbyElo(mode) {
             const key = mode === 'bedwars' ? 'bedwars' : (mode === 'commander' ? 'draft' : 'classic');
@@ -6430,6 +6565,37 @@
                 setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
         }
+        async function spectatePublicLobby(code, button) {
+            if (currentAccount && requirePermanentAccount('spectating online matches')) return;
+            if (!currentAccount || !firebaseAuth || !firebaseAuth.currentUser) return setLobbyStatus('Sign in before spectating.', true);
+            if (!firestoreDB) return setLobbyStatus('Firebase is not connected.', true);
+            if (activeLobbyCode) return setLobbyStatus('Leave your current room or match before spectating.', true);
+            try {
+                const roomRef = firestoreDB.collection('lobbies').doc(String(code).toUpperCase());
+                const snap = await roomRef.get();
+                if (!snap.exists) throw new Error('This room no longer exists.');
+                const room = snap.data();
+                if (room.visibility !== 'public' || room.status !== 'started') throw new Error('This public match is no longer live.');
+                activeLobbyIsSpectator = true;
+                activeLobbyCode = snap.id;
+                activeLobbyIsHost = false;
+                activeLobbyReady = false;
+                activeLobbyRoomData = room;
+                onlineSpectatorMode = true;
+                lobbyLaunchHandled = false;
+                if (button) { button.disabled = true; button.textContent = 'CONNECTING…'; }
+                watchLobby(snap.id);
+                $('lobby-room-panel').classList.remove('hidden');
+                $('lobby-ready-button')?.classList.add('hidden');
+                $('lobby-start-button')?.classList.add('hidden');
+                setLobbyStatus('Joining live match as spectator. You will not occupy a player seat.');
+            } catch (err) {
+                activeLobbyIsSpectator = false; onlineSpectatorMode = false;
+                setLobbyStatus('Could not spectate: ' + err.message, true);
+                if (button) { button.disabled = false; button.textContent = 'SPECTATE'; }
+            }
+        }
+
         async function joinLobbyByCode() {
             const codeInput = $('lobby-join-code');
             const code = (codeInput.value || '').trim().toUpperCase();
@@ -6478,7 +6644,7 @@
                     else tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(room.mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
-                activeLobbyIsHost = room.hostUid === user.uid; activeLobbyReady = false; activeLobbyRoomData = room;
+                activeLobbyIsHost = room.hostUid === user.uid; activeLobbyIsSpectator = false; activeLobbyReady = false; activeLobbyRoomData = room;
                 watchLobby(code);
                 setLobbyStatus('Joined ' + (room.visibility === 'private' ? 'private' : 'public') + ' room successfully.');
             } catch (err) {
@@ -6548,9 +6714,15 @@
             if (activeLobbyCode && navigator.clipboard) navigator.clipboard.writeText(activeLobbyCode).then(() => setLobbyStatus('Room code copied!')).catch(() => setLobbyStatus('Copy failed. Select the code manually.', true));
         }
         function resetLobbyUI() {
-            stopLobbyListeners(); activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false; onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = null;
+            stopLobbyListeners();
+            if (onlineMatchUnsubscribe) { onlineMatchUnsubscribe(); onlineMatchUnsubscribe = null; }
+            stopOnlineClockTicker();
+            activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyIsSpectator = false; onlineSpectatorMode = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false; onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = null;
+            document.body.classList.remove('is-match-spectator');
+            if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = '';
+            $('online-clock-minutes')?.removeAttribute('disabled');
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
-            const ready = $('lobby-ready-button'); if (ready) ready.textContent = "I'M READY";
+            const ready = $('lobby-ready-button'); if (ready) ready.classList.toggle('hidden', !!activeLobbyIsSpectator); if (ready) ready.textContent = "I'M READY";
             activeLobbyPlayers = [];
             const start = $('lobby-start-button'); if (start) start.classList.add('hidden');
             const createButton = $('create-lobby-button'); if (createButton) { createButton.disabled = false; createButton.classList.remove('opacity-40'); createButton.innerHTML = '<i class="fa-solid fa-plus mr-2"></i>CREATE ROOM'; }
@@ -6561,6 +6733,12 @@
             const roomRef = firestoreDB.collection('lobbies').doc(code);
             const userRef = firestoreDB.doc('users/' + user.uid);
             try {
+                if (activeLobbyIsSpectator) {
+                    resetLobbyUI();
+                    setLobbyStatus('You stopped spectating.');
+                    refreshPublicLobbyList();
+                    return;
+                }
                 const batch = firestoreDB.batch();
                 if (activeLobbyIsHost) {
                     const players = await roomRef.collection('players').get();
