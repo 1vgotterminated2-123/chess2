@@ -468,6 +468,30 @@
         @keyframes omniPanelEdge{0%{background-position:0 0,0% 50%}100%{background-position:0 0,100% 50%}}
         @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"],body[data-theme-style="omniverse"]:before,body[data-theme-style="omniverse"]:after,body[data-theme-style="omniverse"] .glass-panel,.theme-preview-omniverse,.theme-preview-omniverse *{animation:none!important;scroll-behavior:auto!important}}
 </style>
+
+<style id="spectator-clean-view-css">
+body.is-match-spectator #lobby-room-panel,
+body.is-match-spectator #persistent-controls-bar,
+body.is-match-spectator #bottom-hud,
+body.is-match-spectator #bottom-hud-bar,
+body.is-match-spectator #sidebar,
+body.is-match-spectator #left-sidebar,
+body.is-match-spectator #piece-inspector-card,
+body.is-match-spectator #modal-item-shop,
+body.is-match-spectator #modal-game-over,
+body.is-match-spectator #main-menu,
+body.is-match-spectator #online-multiplayer-page,
+body.is-match-spectator #prompt-panel,
+body.is-match-spectator #prompt-text,
+body.is-match-spectator #online-match-chat-toggle,
+body.is-match-spectator #online-match-chat-panel {
+  display: none !important;
+}
+body.is-match-spectator #canvas-container { z-index: 40 !important; }
+body.is-match-spectator #chess2-2d-board { z-index: 45 !important; }
+body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
+</style>
+
 </head>
 <body class="w-full h-screen relative bg-slate-950">
 
@@ -1009,7 +1033,7 @@
     </div>
 
     <!-- DETAILED PIECE INSPECTOR CARD -->
-    <div id="piece-inspector-card" class="absolute bottom-16 left-3 z-30 pointer-events-auto w-84 glass-panel rounded-2xl p-3.5 border-cyan-500/40 shadow-2xl flex flex-col gap-2.5 hidden">
+    <div id="piece-inspector-card" class="fixed bottom-16 left-3 z-[75] pointer-events-auto w-84 glass-panel rounded-2xl p-3.5 border-cyan-500/40 shadow-2xl flex flex-col gap-2.5 hidden">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
             <div class="flex items-center gap-2">
                 <span id="inspector-icon-box" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-400 flex items-center justify-center text-cyan-400 text-xl">
@@ -2051,21 +2075,28 @@
             board2DCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none;touch-action:none;cursor:grab;background:#111827';
             host.appendChild(board2DCanvas);
             board2DCtx = board2DCanvas.getContext('2d');
+            board2DCanvas.addEventListener('contextmenu', e => e.preventDefault());
             board2DCanvas.addEventListener('pointerdown', e => {
-                if (e.button !== 0) return;
+                // Left click selects and moves pieces. Pan only with right/middle
+                // mouse, or Shift+left-drag, to avoid turning piece clicks into pans.
+                const wantsPan = e.button === 1 || e.button === 2 || (e.button === 0 && e.shiftKey);
+                if (!wantsPan) return;
                 board2DDrag = {x:e.clientX,y:e.clientY,panX:board2DPan.x,panY:board2DPan.y,moved:false};
                 board2DCanvas.setPointerCapture(e.pointerId);
             });
             board2DCanvas.addEventListener('pointermove', e => {
                 if (!board2DDrag) return;
                 const dx=e.clientX-board2DDrag.x, dy=e.clientY-board2DDrag.y;
-                if (Math.hypot(dx,dy)>4) board2DDrag.moved=true;
+                if (Math.hypot(dx,dy)>3) board2DDrag.moved=true;
                 if (board2DDrag.moved) { board2DPan.x=board2DDrag.panX+dx; board2DPan.y=board2DDrag.panY+dy; board2DCanvas.style.cursor='grabbing'; draw2DBoard(); }
             });
             const finishDrag = e => {
-                if (!board2DDrag) return;
-                const drag=board2DDrag; board2DDrag=null; board2DCanvas.style.cursor='grab';
-                if (drag.moved) return;
+                // Non-pan left clicks are handled below as board interactions.
+                if (board2DDrag) {
+                    board2DDrag=null; board2DCanvas.style.cursor='grab';
+                    return;
+                }
+                if (e.button !== 0) return;
                 const rect=board2DCanvas.getBoundingClientRect();
                 const px=e.clientX-rect.left, py=e.clientY-rect.top;
                 const dims=G.mapData && G.mapData.dims; if(!dims) return;
@@ -2136,7 +2167,7 @@
             let bar=$('spectator-camera-controls');if(bar)bar.remove();
             bar=document.createElement('div');bar.id='spectator-camera-controls';
             bar.style.cssText='position:fixed;z-index:120;top:64px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:7px 9px;border:1px solid rgba(103,232,249,.45);border-radius:14px;background:rgba(2,6,23,.88);backdrop-filter:blur(12px);box-shadow:0 8px 30px #0008';
-            const actions=[...(G.use2DView?[]:[['ORBIT',()=>setCameraPreset('orbit')],['TOP',()=>setCameraPreset('top')],['ISO',()=>setCameraPreset('iso')]]),['−',()=>zoomSpectatorBoard(.85)],['＋',()=>zoomSpectatorBoard(1.18)],['RESET',()=>{board2DZoom=1;board2DPan={x:0,y:0};if(!G.use2DView)resetCamera();draw2DBoard();}]];
+            const actions=[...(G.use2DView?[]:[['ORBIT',()=>setCameraPreset('orbit')],['TOP',()=>setCameraPreset('top')],['ISO',()=>setCameraPreset('iso')]]),['−',()=>zoomSpectatorBoard(.85)],['＋',()=>zoomSpectatorBoard(1.18)],['RESET',()=>{board2DZoom=1;board2DPan={x:0,y:0};if(!G.use2DView)resetCamera();draw2DBoard();}],['STOP WATCHING',()=>leaveLobby()]];
             actions.forEach(([label,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:6px 10px;border-radius:8px;background:#0f2a40;color:#cffafe;border:1px solid #155e75;font:700 10px system-ui;letter-spacing:.04em';b.addEventListener('click',fn);bar.appendChild(b);});
             document.body.appendChild(bar);
         }
@@ -5920,21 +5951,46 @@
             }
             renderOnlineMapPreview();
         }
-        function renderPublicLobbyList(snapshot) {
+        let publicLobbyRenderVersion = 0;
+        async function renderPublicLobbyList(snapshot) {
             const list = $('public-lobby-list'); if (!list) return;
-            const rooms = [];
-            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && (d.status === 'waiting' || d.status === 'started')) rooms.push({ id: doc.id, ...d }); });
-            rooms.sort((a,b) => {
+            const renderVersion = ++publicLobbyRenderVersion;
+            const candidates = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                if (d.visibility === 'public' && (d.status === 'waiting' || d.status === 'started')) {
+                    candidates.push({ id: doc.id, ...d });
+                }
+            });
+            const rooms = await Promise.all(candidates.map(async room => {
+                if (room.status !== 'started') return room;
+                try {
+                    const matchSnap = await firestoreDB.collection('matches').doc(room.id).get();
+                    if (!matchSnap.exists) return null;
+                    const match = matchSnap.data() || {};
+                    return match.status === 'active' ? room : null;
+                } catch (err) {
+                    // If match read permission is unavailable, never advertise a
+                    // potentially ended match as spectatable.
+                    console.warn('Could not verify public match status:', room.id, err);
+                    return null;
+                }
+            }));
+            if (renderVersion !== publicLobbyRenderVersion || !$('public-lobby-list')) return;
+            const visibleRooms = rooms.filter(Boolean);
+            visibleRooms.sort((a,b) => {
                 if (a.status !== b.status) return a.status === 'started' ? -1 : 1;
                 const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
                 const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
                 return tb - ta;
             });
             list.innerHTML = '';
-            if (!rooms.length) {
-                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one to see it here, or check back for live matches to spectate.'; list.appendChild(empty); return;
+            if (!visibleRooms.length) {
+                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8';
+                empty.textContent = 'No public waiting rooms or active matches right now. Finished matches are hidden.';
+                list.appendChild(empty); return;
             }
-            rooms.forEach(room => {
+            visibleRooms.forEach(room => {
                 const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
                 const info = document.createElement('div'); info.className = 'min-w-0 flex items-center gap-2';
                 const hostAvatar = makePlayerAvatar({username: room.hostName}, 'w-9 h-9');
@@ -6348,13 +6404,20 @@
             // Only the host needs to check whether the canonical match already exists.
             // Other clients attach their listener and receive the host's first snapshot.
             const existingMatchSnap = (user.uid === onlineHostUid || asSpectator) ? await onlineMatchRef.get() : null;
+            if (asSpectator && (!existingMatchSnap || !existingMatchSnap.exists)) {
+                throw new Error('The live match record could not be found. It may have ended.');
+            }
             if (existingMatchSnap && existingMatchSnap.exists) {
                 const existingMatch = existingMatchSnap.data();
+                if (asSpectator && existingMatch.status !== 'active') {
+                    throw new Error('This match is no longer active. Choose another live match.');
+                }
                 if (existingMatch.status === 'active' && existingMatch.state) {
                     if (existingMatch.clock) onlineClock = Object.assign({}, existingMatch.clock);
                     applyOnlineSnapshot(existingMatch.state);
                     onlineMatchVersion = Number(existingMatch.version ?? -1);
                 } else if (existingMatch.status === 'finished') {
+                    if (asSpectator) throw new Error('This match has already ended. Choose another live match.');
                     if (existingMatch.clock) onlineClock = Object.assign({}, existingMatch.clock);
                     if (existingMatch.state) applyOnlineSnapshot(existingMatch.state);
                     onlineMatchVersion = Number(existingMatch.version ?? -1);
@@ -6437,7 +6500,20 @@
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
                     if($('winner-subtitle')) $('winner-subtitle').textContent=(win||'The opposing team').toUpperCase()+' WINS'+(data.lastAction?.type==='resign'?' — opponent resigned.':data.lastAction?.type==='timeout'?' — opponent ran out of time.':'.');
-                    $('modal-game-over')?.classList.remove('hidden'); if (asSpectator) setLobbyStatus('This match has ended. You are viewing the final board.'); return;
+                    if (asSpectator) {
+                        setLobbyStatus('This match has ended. Returning to public lobbies…');
+                        setTimeout(() => {
+                            if (activeLobbyIsSpectator && activeLobbyCode === code) {
+                                resetLobbyUI();
+                                $('main-menu')?.classList.add('hidden');
+                                $('online-multiplayer-page')?.classList.remove('hidden');
+                                refreshPublicLobbyList();
+                            }
+                        }, 1200);
+                    } else {
+                        $('modal-game-over')?.classList.remove('hidden');
+                    }
+                    return;
                 }
                 if (!asSpectator && data.lastAction && data.lastAction.by === user.uid) return;
                 if (data.state) applyOnlineSnapshot(data.state);
@@ -6591,6 +6667,11 @@
                 if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = 'auto';
                 if (controls) { controls.enabled = !G.use2DView; controls.enableRotate = true; controls.enableZoom = true; controls.enablePan = true; }
                 document.body.classList.add('is-match-spectator');
+                $('lobby-room-panel')?.classList.add('hidden');
+                $('main-menu')?.classList.add('hidden');
+                $('online-multiplayer-page')?.classList.add('hidden');
+                $('persistent-controls-bar')?.classList.add('hidden');
+                $('piece-inspector-card')?.classList.add('hidden');
                 addSpectatorCameraControls();
                 applyBoardViewMode();
                 await startOnlineBoardSync(true);
@@ -6847,8 +6928,13 @@
             const userRef = firestoreDB.doc('users/' + user.uid);
             try {
                 if (activeLobbyIsSpectator) {
+                    // A spectator does not own a lobby seat, so leaving should return
+                    // directly to the multiplayer browser rather than the main menu.
                     resetLobbyUI();
-                    setLobbyStatus('You stopped spectating.');
+                    $('main-menu')?.classList.add('hidden');
+                    $('online-multiplayer-page')?.classList.remove('hidden');
+                    $('lobby-room-panel')?.classList.add('hidden');
+                    setLobbyStatus('You stopped spectating. Choose another public match or create a room.');
                     refreshPublicLobbyList();
                     return;
                 }
