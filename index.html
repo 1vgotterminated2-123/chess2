@@ -492,6 +492,13 @@ body.is-match-spectator #chess2-2d-board { z-index: 45 !important; }
 body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
 </style>
 
+
+<style id="piece-inspector-layout-fix">
+#piece-inspector-card{box-sizing:border-box;backdrop-filter:blur(16px);background:rgba(2,6,23,.94)!important}
+#piece-inspector-card .grid{min-width:0}
+#piece-inspector-card button{min-width:0}
+@media(max-width:640px){#piece-inspector-card{top:96px;left:8px;width:min(270px,calc(100vw - 16px));max-height:34vh;padding:9px;gap:7px}#piece-inspector-card #inspector-carried-gems-box{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
 
@@ -1033,7 +1040,7 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
     </div>
 
     <!-- DETAILED PIECE INSPECTOR CARD -->
-    <div id="piece-inspector-card" class="fixed bottom-16 left-3 z-[75] pointer-events-auto w-84 glass-panel rounded-2xl p-3.5 border-cyan-500/40 shadow-2xl flex flex-col gap-2.5 hidden">
+    <div id="piece-inspector-card" class="fixed top-[108px] left-3 z-[75] pointer-events-auto glass-panel rounded-2xl p-3 border-cyan-500/40 shadow-2xl flex flex-col gap-2 hidden" style="width:min(300px,calc(100vw - 24px));max-height:min(42vh,390px);overflow-y:auto;overscroll-behavior:contain">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
             <div class="flex items-center gap-2">
                 <span id="inspector-icon-box" class="w-9 h-9 rounded-xl bg-slate-900 border border-cyan-400 flex items-center justify-center text-cyan-400 text-xl">
@@ -2065,7 +2072,7 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
         };
 
         let board2DCanvas = null, board2DCtx = null, board2DZoom = 1, board2DPan = {x:0,y:0};
-        let board2DDrag = null;
+        let board2DDrag = null, board2DClickStart = null;
         const BOARD_2D_GLYPHS = {k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟',bed:'▰',d:'✦',nec:'☠',skele:'☠',guardian:'◆'};
         function ensure2DBoardCanvas() {
             if (board2DCanvas) return;
@@ -2077,12 +2084,17 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
             board2DCtx = board2DCanvas.getContext('2d');
             board2DCanvas.addEventListener('contextmenu', e => e.preventDefault());
             board2DCanvas.addEventListener('pointerdown', e => {
-                // Left click selects and moves pieces. Pan only with right/middle
-                // mouse, or Shift+left-drag, to avoid turning piece clicks into pans.
+                // A normal left click is a two-step board action (select, then
+                // destination). Only right/middle drag or Shift+left drag pans.
+                if (e.button === 0 && !e.shiftKey) {
+                    board2DClickStart = {x:e.clientX,y:e.clientY,pointerId:e.pointerId};
+                    return;
+                }
                 const wantsPan = e.button === 1 || e.button === 2 || (e.button === 0 && e.shiftKey);
                 if (!wantsPan) return;
-                board2DDrag = {x:e.clientX,y:e.clientY,panX:board2DPan.x,panY:board2DPan.y,moved:false};
-                board2DCanvas.setPointerCapture(e.pointerId);
+                board2DClickStart = null;
+                board2DDrag = {x:e.clientX,y:e.clientY,panX:board2DPan.x,panY:board2DPan.y,moved:false,pointerId:e.pointerId};
+                try { board2DCanvas.setPointerCapture(e.pointerId); } catch (_) {}
             });
             board2DCanvas.addEventListener('pointermove', e => {
                 if (!board2DDrag) return;
@@ -2091,12 +2103,13 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
                 if (board2DDrag.moved) { board2DPan.x=board2DDrag.panX+dx; board2DPan.y=board2DDrag.panY+dy; board2DCanvas.style.cursor='grabbing'; draw2DBoard(); }
             });
             const finishDrag = e => {
-                // Non-pan left clicks are handled below as board interactions.
                 if (board2DDrag) {
                     board2DDrag=null; board2DCanvas.style.cursor='grab';
                     return;
                 }
-                if (e.button !== 0) return;
+                const start=board2DClickStart;
+                board2DClickStart=null;
+                if (e.button !== 0 || !start || Math.hypot(e.clientX-start.x,e.clientY-start.y)>8) return;
                 const rect=board2DCanvas.getBoundingClientRect();
                 const px=e.clientX-rect.left, py=e.clientY-rect.top;
                 const dims=G.mapData && G.mapData.dims; if(!dims) return;
@@ -2113,7 +2126,7 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
                 draw2DBoard();
             };
             board2DCanvas.addEventListener('pointerup',finishDrag);
-            board2DCanvas.addEventListener('pointercancel',()=>{board2DDrag=null;});
+            board2DCanvas.addEventListener('pointercancel',()=>{board2DDrag=null;board2DClickStart=null;board2DCanvas.style.cursor='grab';});
             board2DCanvas.addEventListener('wheel',e=>{e.preventDefault();board2DZoom=Math.max(.55,Math.min(2.6,board2DZoom*(e.deltaY<0?1.12:.89)));draw2DBoard();},{passive:false});
             window.addEventListener('resize',draw2DBoard);
         }
@@ -2143,13 +2156,13 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
                 if(G.selectedPiece&&G.selectedPiece.x===x&&G.selectedPiece.z===z){c.fillStyle='rgba(250,204,21,.48)';c.fillRect(sx,sy,cell,cell);}
                 if(G.validMoves.some(m=>m.x===x&&m.z===z)||G.attackTargets.some(m=>m.x===x&&m.z===z)){c.fillStyle='rgba(34,197,94,.36)';c.beginPath();c.arc(sx+cell/2,sy+cell/2,cell*.19,0,Math.PI*2);c.fill();}
             }
-            for(const p of G.pieces){const col=p.x+dims.offX,row=p.z+dims.offZ;if(col<0||col>=dims.W||row<0||row>=dims.H)continue;const sx=origin.x+col*cell,sy=origin.y+row*cell,team=TEAM_CONFIGS[p.team]||TEAM_CONFIGS.white;
+            for(const p of G.pieces){const col=p.x+dims.offX,row=dims.maxZ-p.z;if(col<0||col>=dims.W||row<0||row>=dims.H)continue;const sx=origin.x+col*cell,sy=origin.y+row*cell,team=TEAM_CONFIGS[p.team]||TEAM_CONFIGS.white;
                 const glyph=BOARD_2D_GLYPHS[p.type]||'●';
                 c.save();c.textAlign='center';c.textBaseline='middle';c.shadowColor='rgba(0,0,0,.7)';c.shadowBlur=Math.max(2,cell*.09);c.font=`900 ${Math.max(10,cell*(p.type==='bed'?.52:.76))}px "Segoe UI Symbol","Noto Sans Symbols 2",serif`;
                 c.fillStyle=p.team==='white'?'#fffdf4':p.team==='black'?'#171923':colorHex(team.hex);c.strokeStyle=p.team==='white'?'#334155':'rgba(255,255,255,.88)';c.lineWidth=Math.max(1,cell*.035);c.strokeText(glyph,sx+cell/2,sy+cell*.49);c.fillText(glyph,sx+cell/2,sy+cell*.49);c.restore();
                 if(p.hp!==undefined&&p.type!=='bed'&&cell>34){c.fillStyle='rgba(0,0,0,.65)';c.fillRect(sx+cell*.17,sy+cell*.82,cell*.66,Math.max(2,cell*.055));c.fillStyle='#4ade80';c.fillRect(sx+cell*.17,sy+cell*.82,cell*.66*Math.max(0,Math.min(1,p.hp/(p.maxHp||p.hp||1))),Math.max(2,cell*.055));}
             }
-            c.fillStyle='rgba(2,6,23,.78)';c.fillRect(12,12,Math.min(260,w-24),28);c.fillStyle='#e2e8f0';c.font='bold 11px system-ui';c.textAlign='left';c.textBaseline='middle';c.fillText('2D TOP-DOWN VIEW  ·  Scroll to zoom  ·  Drag to pan',22,26);
+            c.fillStyle='rgba(2,6,23,.78)';c.fillRect(12,12,Math.min(260,w-24),28);c.fillStyle='#e2e8f0';c.font='bold 11px system-ui';c.textAlign='left';c.textBaseline='middle';c.fillText('2D BOARD  ·  Click piece, then tile  ·  Right-drag to pan',22,26);
         }
         function applyBoardViewMode(){
             ensure2DBoardCanvas();
