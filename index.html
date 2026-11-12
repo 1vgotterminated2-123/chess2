@@ -3865,6 +3865,13 @@
             const homeBed = bedOf(team);
             const enemyObjective = nearestEnemyObjective(piece);
 
+            // Some teams send an escort with their main attacker; others rush solo.
+            if (piece.aiSupportFor) {
+                const leader = G.pieces.find(p => p.id === piece.aiSupportFor && p.team === team);
+                if (leader && cheb(piece, leader) > 1) return { x: leader.x, z: leader.z };
+                if (!leader) piece.aiSupportFor = null;
+            }
+
             if (role === 'RETREAT_BANK' && (piece.carriedEm >= 2 || piece.carriedDia >= 4 || piece.hp / piece.maxHp < 0.25)) {
                 return aiBaseCenter(team);
             }
@@ -3903,7 +3910,7 @@
             const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
             if (startKey === goalKey) return [start];
             const queue = [start], cameFrom = new Map([[startKey, null]]);
-            const dirs = [[1,0],[-1,0],[0,1],[0,-1]];
+            const dirs = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
             let found = false;
             for (let head = 0; head < queue.length; head++) {
                 const cur = queue[head];
@@ -3962,6 +3969,24 @@
                     .sort((a,b) => cheb(a, nearestEnemyObjective(a) || aiBaseCenter(team)) - cheb(b, nearestEnemyObjective(b) || aiBaseCenter(team)))[0];
                 if (candidate) { candidate.aiRouteKind = routeKind; candidate.aiRouteDone = false; carriers.push(candidate); }
             }
+
+            // Vary squad formations: solo rush, one escort, or a larger push.
+            if (!G.aiSquadFormation) G.aiSquadFormation = {};
+            if (!G.aiSquadFormation[team]) {
+                const roll = Math.random();
+                G.aiSquadFormation[team] = roll < 0.30 ? 'solo' : (roll < 0.82 ? 'duo' : 'group');
+            }
+            const formation = G.aiSquadFormation[team];
+            const activeLeader = carriers.find(p => p.aiRouteKind === 'dia') || carriers[0];
+            const supportCount = formation === 'solo' ? 0 : (formation === 'group' ? 2 : 1);
+            if (activeLeader) {
+                let supports = G.pieces.filter(p => p.team === team && p.aiSupportFor === activeLeader.id && p.type !== 'bed');
+                const available = mine.filter(p => p !== activeLeader && !p.aiRouteKind && !p.aiSupportFor && ['q','r','b','n'].includes(p.type));
+                while (supports.length < supportCount && available.length) {
+                    const escort = available.shift(); escort.aiSupportFor = activeLeader.id; supports.push(escort);
+                }
+                while (supports.length > supportCount) supports.pop().aiSupportFor = null;
+            }
             carriers.filter(p => inBase(p) && p.blocks < WOOL_QTY * 2).forEach(piece => {
                 while (piece.blocks < WOOL_QTY * 2 && res.iron >= WOOL_COST) {
                     if (!buyItem(piece, 'wool')) break;
@@ -3989,26 +4014,32 @@
             if (G.mode !== 'bedwars') return;
             const carriers = G.pieces.filter(p => p.team === team && p.aiRouteKind && p.type !== 'bed');
             const teamRes = G.resources[team];
+            const aiBridgeLimit = MAX_BRIDGES_PER_TURN * 2;
+            let placedThisTurn = 0;
+
             for (const piece of carriers) {
-                const aiBridgeLimit = MAX_BRIDGES_PER_TURN * 2;
-                if (G.bridgesThisTurn >= aiBridgeLimit) break;
+                if (G.bridgesThisTurn >= aiBridgeLimit || placedThisTurn >= 2) break;
                 const target = aiFinalTarget(piece);
                 if (!target) continue;
                 const path = findAISquadPath(piece, target);
                 if (path.length < 2) continue;
-                for (let i = 1; i < path.length && G.bridgesThisTurn < aiBridgeLimit; i++) {
-                    const step = path[i], tile = G.boardGrid[keyOf(step.x,step.z)];
+
+                // Place only the next neighboring gap tile, including diagonals.
+                // Never materialize distant sections of the planned route.
+                for (let i = 1; i < path.length; i++) {
+                    const step = path[i];
+                    const distance = Math.max(Math.abs(step.x - piece.x), Math.abs(step.z - piece.z));
+                    if (distance > 1) break;
+                    const tile = G.boardGrid[keyOf(step.x, step.z)];
                     if (!tile) break;
                     if (tile.piece && tile.piece.id !== piece.id) break;
-                    if (tile.isVoid) {
-                        // The carrier can draw another wool bundle from its team's
-                        // iron reserve while extending a planned route. Without this,
-                        // long gaps consumed the initial bundle and the bridge stalled.
-                        if (piece.blocks < 1 && teamRes && teamRes.iron >= WOOL_COST) {
-                            teamRes.iron -= WOOL_COST; piece.blocks += WOOL_QTY;
-                        }
-                        if (piece.blocks < 1 || !placeBridgeTile(piece, step.x, step.z)) break;
+                    if (!tile.isVoid) continue;
+                    if (piece.blocks < 1 && teamRes && teamRes.iron >= WOOL_COST) {
+                        teamRes.iron -= WOOL_COST; piece.blocks += WOOL_QTY;
                     }
+                    if (piece.blocks < 1 || !placeBridgeTile(piece, step.x, step.z)) break;
+                    placedThisTurn++;
+                    break;
                 }
             }
         }
@@ -4753,7 +4784,7 @@
             G.gameOver = false; G.matchRewarded = false; G.activeBattle = null; G.draftPhase = false; G.collapseDone = false;
             G.moveHistoryLog = []; G.analysisCurrentIndex = 0;
             G.reviewSnapshots = []; G.reviewPieceRegistry = {};
-            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.aiTrainingTrace = []; G.aiTrainingRecorded = false; G.isReviewing = false;
+            G.aiLastMovedPieceByTeam = {}; G.aiRecentPieceIdsByTeam = {}; G.aiTrainingTrace = []; G.aiTrainingRecorded = false; G.aiSquadFormation = {}; G.isReviewing = false;
             initResources();
             closeModals();
             syncBridgeButton();
