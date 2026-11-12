@@ -291,6 +291,9 @@
         @keyframes voidPanelGlow{from{box-shadow:0 0 18px rgba(124,58,237,.18)}to{box-shadow:0 0 34px rgba(103,232,249,.28)}}
         @keyframes glitchPanel{0%,94%,100%{transform:translateX(0)}95%{transform:translateX(1px)}97%{transform:translateX(-1px)}}
         .player-name-cosmetic{display:inline-block}
+        .player-name-cosmetic{display:inline-block;vertical-align:middle;line-height:1.12;position:relative;isolation:isolate;max-width:100%;transform-origin:center center}
+        .player-name-cosmetic[class*="name-font-"]{min-height:1.12em;}
+        .name-font-scifi{font-family:Arial,sans-serif;font-weight:900;letter-spacing:.11em;text-transform:uppercase}.name-font-roman{font-family:Georgia,'Times New Roman',serif;font-weight:900;letter-spacing:.07em;text-transform:uppercase}.name-font-pixel{font-family:'Courier New',monospace;font-weight:900;letter-spacing:.035em;text-shadow:1px 1px 0 currentColor}.name-font-elegant{font-family:'Palatino Linotype',Palatino,serif;font-style:italic;font-weight:700;letter-spacing:.025em}.name-font-draconic{font-family:Georgia,serif;font-weight:900;font-variant:small-caps;letter-spacing:.09em;text-shadow:0 1px 0 rgba(0,0,0,.35)}.name-font-quantum{font-family:'Trebuchet MS',Arial,sans-serif;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
         .name-font-arcade{font-family:monospace;letter-spacing:.08em;text-transform:uppercase}.name-font-serif{font-family:Georgia,serif;font-style:italic}.name-font-orbitron{font-family:Orbitron,monospace;letter-spacing:.04em}.name-font-hand{font-family:cursive;font-style:italic}
         .name-color-crimson{color:#fb7185!important}.name-color-cyan{color:#67e8f9!important}.name-color-gold{color:#facc15!important}.name-color-violet{color:#c4b5fd!important}.name-gradient-sunset{background:linear-gradient(90deg,#fb7185,#fbbf24);background-clip:text;-webkit-background-clip:text;color:transparent!important}.name-gradient-ocean{background:linear-gradient(90deg,#22d3ee,#818cf8);background-clip:text;-webkit-background-clip:text;color:transparent!important}.name-gradient-prism{background:linear-gradient(90deg,#f0abfc,#67e8f9,#facc15,#f0abfc);background-size:250% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;animation:namePrism 4s linear infinite}.name-effect-flame{text-shadow:0 0 5px #fb923c,0 0 12px #ef4444;animation:nameFlame 1.2s ease-in-out infinite alternate}.name-effect-electric{text-shadow:0 0 5px #67e8f9,0 0 13px #2563eb;animation:nameElectric 1.8s ease-in-out infinite}.name-effect-shadow{text-shadow:2px 2px 0 #000,0 0 9px #a78bfa}
         @keyframes namePrism{to{background-position:250% center}}@keyframes nameFlame{to{filter:brightness(1.35)}}@keyframes nameElectric{50%{text-shadow:0 0 9px #fff,0 0 18px #22d3ee}}
@@ -5340,6 +5343,10 @@
                 unlockedThemes: [...new Set(['midnight','dark','light',...(Array.isArray(profile.unlockedThemes)?profile.unlockedThemes:[])])], activeTheme: profile.activeTheme || 'midnight',
                 stats: profile.stats || { gamesPlayed: 0, wins: 0, losses: 0, winStreak: 0, bestWinStreak: 0 },
                 unlockedAchievements: profile.unlockedAchievements || [], showcaseAchievement: profile.showcaseAchievement || null,
+                unlockedNameCosmetics: Array.isArray(profile.unlockedNameCosmetics) ? profile.unlockedNameCosmetics : [],
+                activeNameFont: profile.activeNameFont || 'font-orbitron',
+                activeNameColor: profile.activeNameColor || null,
+                activeNameEffect: profile.activeNameEffect || null,
                 activeLobbyCode: profile.activeLobbyCode || null,
                 provider: user.providerData?.[0]?.providerId || 'password',
                 isAnonymous: !!user.isAnonymous
@@ -5370,7 +5377,7 @@
                 if (Object.keys(profilePatch).length) firestoreDB.doc('users/' + user.uid).update(profilePatch).catch(err => console.warn('Profile migration:', err));
             }
             const menuName = $('menu-account-name');
-            if (menuName) { menuName.textContent = currentAccount.username + (currentAccount.isAnonymous ? ' · GUEST' : ''); menuName.className+=' '+nameCosmeticClasses(); }
+            if (menuName) { menuName.textContent = currentAccount.username + (currentAccount.isAnonymous ? ' · GUEST' : ''); menuName.classList.add('player-name-cosmetic'); }
             applyNameCosmetic();
             const pu = $('profile-page-username'); if (pu) { pu.textContent = currentAccount.username; pu.className='text-2xl font-black text-emerald-300 break-words player-name-cosmetic'; }
             applyNameCosmetic();
@@ -7082,6 +7089,12 @@
           {id:'font-mono',name:'Tactical Mono',type:'font',className:'name-font-mono',cost:180,rarity:'rare',desc:'Clean tactical monospace lettering.'},
           {id:'font-blackletter',name:'Blackletter',type:'font',className:'name-font-blackletter',cost:980,rarity:'mythic',desc:'A dramatic gothic display face.'},
           {id:'font-celestial',name:'Astral Script',type:'font',className:'name-font-celestial',cost:1800,rarity:'transcendent',desc:'A luminous, elegant cosmic display style.'},
+          {id:'font-sci-fi',name:'Stellar Tech',type:'font',className:'name-font-scifi',cost:420,rarity:'epic',desc:'A sleek futuristic technical display face.'},
+          {id:'font-roman',name:'Imperial Roman',type:'font',className:'name-font-roman',cost:520,rarity:'epic',desc:'Bold classical capitals with monumental proportions.'},
+          {id:'font-pixel',name:'Pixel Vanguard',type:'font',className:'name-font-pixel',cost:760,rarity:'legendary',desc:'Crisp retro pixel lettering.'},
+          {id:'font-elegant',name:'Velvet Script',type:'font',className:'name-font-elegant',cost:850,rarity:'legendary',desc:'A refined flowing editorial style.'},
+          {id:'font-draconic',name:'Draconic',type:'font',className:'name-font-draconic',cost:1450,rarity:'mythic',desc:'Sharp fantasy lettering with a fierce silhouette.'},
+          {id:'font-quantum',name:'Quantum',type:'font',className:'name-font-quantum',cost:2300,rarity:'transcendent',desc:'A clean high-tech cosmic display face.'},
           {id:'color-crimson',name:'Crimson',type:'color',className:'name-color-crimson',cost:60,rarity:'uncommon',desc:'Vivid crimson lettering.'},
           {id:'color-cyan',name:'Glacier Cyan',type:'color',className:'name-color-cyan',cost:60,rarity:'uncommon',desc:'Bright icy cyan lettering.'},
           {id:'color-gold',name:'Royal Gold',type:'color',className:'name-color-gold',cost:110,rarity:'rare',desc:'Metallic gold lettering.'},
