@@ -220,6 +220,14 @@
         body.ui-theme-light input,body.ui-theme-light select,body.ui-theme-light textarea{background:#fff!important;color:#172033!important}
         body.ui-theme-light .hub-nav-btn{background:#e2e8f0!important;color:#1e293b!important}
 
+
+        /* Reliable custom profile-badge tooltip (instead of browser-native title popups). */
+        #profile-badge-tooltip{position:fixed;z-index:99999;display:none;max-width:min(300px,calc(100vw - 24px));padding:10px 12px;border:1px solid rgba(56,189,248,.55);border-radius:10px;background:rgba(2,6,23,.98);color:#e2e8f0;box-shadow:0 12px 32px rgba(0,0,0,.55);font:12px/1.45 Inter,sans-serif;white-space:normal;pointer-events:none}
+        #profile-badge-tooltip strong{display:block;color:#67e8f9;font-size:13px;margin-bottom:3px}
+        #profile-badge-tooltip .badge-tip-description{display:block;color:#cbd5e1}
+        #profile-badge-tooltip .badge-tip-obtained{display:block;color:#94a3b8;font-size:10px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(148,163,184,.2)}
+        #profile-badges [data-badge]{position:relative;outline-offset:3px}
+
 </style>
 </head>
 <body class="w-full h-screen relative bg-slate-950">
@@ -6484,6 +6492,33 @@
             if (!Number.isFinite(date.getTime())) return 'Unknown';
             return date.toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric', hour:'numeric', minute:'2-digit'});
         }
+        let profileBadgeTooltipEl = null;
+        function getProfileBadgeTooltip() {
+            if (profileBadgeTooltipEl && profileBadgeTooltipEl.isConnected) return profileBadgeTooltipEl;
+            const tip=document.createElement('div');
+            tip.id='profile-badge-tooltip';
+            tip.setAttribute('role','tooltip');
+            tip.innerHTML='<strong></strong><span class="badge-tip-description"></span><span class="badge-tip-obtained"></span>';
+            document.body.appendChild(tip);
+            profileBadgeTooltipEl=tip;
+            return tip;
+        }
+        function showProfileBadgeTooltip(badgeEl) {
+            if(!badgeEl)return;
+            const tip=getProfileBadgeTooltip();
+            tip.querySelector('strong').textContent=badgeEl.dataset.badgeName||'Badge';
+            tip.querySelector('.badge-tip-description').textContent=badgeEl.dataset.badgeDescription||'';
+            tip.querySelector('.badge-tip-obtained').textContent='Obtained: '+(badgeEl.dataset.badgeObtained||'Unknown');
+            tip.style.display='block';
+            const r=badgeEl.getBoundingClientRect(), tr=tip.getBoundingClientRect(), pad=10;
+            let left=r.left+(r.width/2)-(tr.width/2);
+            left=Math.max(pad,Math.min(left,window.innerWidth-tr.width-pad));
+            let top=r.top-tr.height-9;
+            if(top<pad)top=Math.min(window.innerHeight-tr.height-pad,r.bottom+9);
+            tip.style.left=left+'px';tip.style.top=top+'px';
+        }
+        function hideProfileBadgeTooltip(){if(profileBadgeTooltipEl)profileBadgeTooltipEl.style.display='none';}
+        window.addEventListener('scroll',hideProfileBadgeTooltip,true);window.addEventListener('resize',hideProfileBadgeTooltip);document.addEventListener('keydown',e=>{if(e.key==='Escape')hideProfileBadgeTooltip();});
         function renderProfileBadges(badgeIds, badgeAwardedAt, fallbackDate, accountNumber) {
             const host=$('profile-badges'); if(!host)return;
             const ids=[...new Set(badgeIds||[])];
@@ -6493,8 +6528,8 @@
                 const name=id==='account_number'?`#${accountNumber} Account`:d.name;
                 const desc=id==='account_number'?`The ${ordinalNumber(accountNumber)} account to join Chess 2`:d.description;
                 const obtained=(badgeAwardedAt&&badgeAwardedAt[id]) || fallbackDate;
-                const tooltip=`${name}\n${desc}\nObtained: ${badgeDateText(obtained)}`;
-                return `<span class="inline-flex items-center justify-center w-7 h-7 rounded-full border text-sm font-black shadow-sm cursor-help select-none ${d.cls}" title="${escapeHubText(tooltip)}" aria-label="${escapeHubText(tooltip)}" data-badge="${escapeHubText(id)}">${d.icon}</span>`;
+                const obtainedText=badgeDateText(obtained);
+                return `<span tabindex="0" role="img" class="inline-flex items-center justify-center w-7 h-7 rounded-full border text-sm font-black shadow-sm cursor-help select-none ${d.cls}" aria-label="${escapeHubText(name+'. '+desc+'. Obtained: '+obtainedText)}" data-badge="${escapeHubText(id)}" data-badge-name="${escapeHubText(name)}" data-badge-description="${escapeHubText(desc)}" data-badge-obtained="${escapeHubText(obtainedText)}" onmouseenter="showProfileBadgeTooltip(this)" onmouseleave="hideProfileBadgeTooltip()" onfocus="showProfileBadgeTooltip(this)" onblur="hideProfileBadgeTooltip()">${escapeHubText(d.icon)}</span>`;
             }).join('');
         }
         function ordinalNumber(n){const v=n%100;if(v>=11&&v<=13)return n+'th';switch(n%10){case 1:return n+'st';case 2:return n+'nd';case 3:return n+'rd';default:return n+'th';}}
