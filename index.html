@@ -466,27 +466,6 @@
         @keyframes omniStarfield{0%{transform:translate3d(0,0,0)}50%{transform:translate3d(-2%,2%,0)}100%{transform:translate3d(0,0,0)}}
         @keyframes omniNebulaSpin{to{transform:rotate(360deg)}}
         @keyframes omniPanelEdge{0%{background-position:0 0,0% 50%}100%{background-position:0 0,100% 50%}}
-
-        /* OMNIVERSE ASCENDANT — premium polish pass */
-        body[data-theme-style="omniverse"] #canvas-container{background:radial-gradient(ellipse at 50% 42%,rgba(42,27,91,.26),transparent 55%),radial-gradient(ellipse at 12% 78%,rgba(8,145,178,.16),transparent 42%),radial-gradient(ellipse at 90% 14%,rgba(190,24,93,.14),transparent 38%)}
-        body[data-theme-style="omniverse"] #canvas-container:before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background-image:radial-gradient(1px 1px at 8% 16%,rgba(255,255,255,.85) 50%,transparent 100%),radial-gradient(2px 2px at 76% 24%,rgba(165,243,252,.8) 50%,transparent 100%),radial-gradient(1px 1px at 44% 73%,rgba(216,180,254,.8) 50%,transparent 100%),radial-gradient(1px 1px at 91% 82%,rgba(253,230,138,.8) 50%,transparent 100%);background-size:240px 220px,310px 280px,190px 260px,350px 310px;opacity:.55;animation:omniBoardDust 28s linear infinite}
-        body[data-theme-style="omniverse"] #canvas-container canvas{filter:drop-shadow(0 0 10px rgba(103,232,249,.18)) drop-shadow(0 0 22px rgba(192,132,252,.10))}
-        body[data-theme-style="omniverse"] #hud-header,body[data-theme-style="omniverse"] #hud-sidebar,body[data-theme-style="omniverse"] #bottom-hud-bar{filter:drop-shadow(0 8px 18px rgba(0,0,0,.42))}
-        body[data-theme-style="omniverse"] #hud-team-cards-bar>*,body[data-theme-style="omniverse"] #hud-header .glass-panel,body[data-theme-style="omniverse"] #hud-sidebar button,body[data-theme-style="omniverse"] #bottom-hud-bar>*{border:1px solid rgba(165,243,252,.34)!important;background:linear-gradient(135deg,rgba(7,17,43,.94),rgba(35,18,62,.91),rgba(7,38,54,.94))!important;box-shadow:0 0 16px rgba(34,211,238,.12),inset 0 1px 0 rgba(255,255,255,.10)!important}
-        body[data-theme-style="omniverse"] .public-lobby-card,body[data-theme-style="omniverse"] .theme-card,body[data-theme-style="omniverse"] .profile-card{position:relative;overflow:hidden}
-        body[data-theme-style="omniverse"] .public-lobby-card:before,body[data-theme-style="omniverse"] .theme-card:before,body[data-theme-style="omniverse"] .profile-card:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(112deg,transparent 20%,rgba(255,255,255,.055) 48%,transparent 72%);background-size:220% 100%;animation:omniCardSheen 9s ease-in-out infinite}
-        body[data-theme-style="omniverse"] .text-cyan-300,body[data-theme-style="omniverse"] .text-purple-300,body[data-theme-style="omniverse"] .text-pink-300,body[data-theme-style="omniverse"] .text-amber-300{ text-shadow:0 0 10px currentColor; }
-        body[data-theme-style="omniverse"] .bg-slate-800,body[data-theme-style="omniverse"] .bg-slate-700,body[data-theme-style="omniverse"] .bg-slate-900{background-color:rgba(19,24,54,.84)!important}
-        body[data-theme-style="omniverse"] .shadow,body[data-theme-style="omniverse"] .shadow-lg,body[data-theme-style="omniverse"] .shadow-xl{box-shadow:0 12px 28px rgba(1,4,18,.36),0 0 18px rgba(103,232,249,.08)!important}
-        body[data-theme-style="omniverse"] .spectator-exit-button{color:#f8fafc;background:linear-gradient(100deg,#0e7490,#6d28d9,#be185d,#a16207);background-size:240% 100%;animation:omniverseFlow 6s linear infinite;border:1px solid rgba(255,255,255,.42);box-shadow:0 0 18px rgba(103,232,249,.24)}
-        #spectator-exit-banner{color:#eafaff;background:linear-gradient(115deg,rgba(4,16,37,.96),rgba(37,17,65,.96),rgba(6,37,52,.96));border:1px solid rgba(103,232,249,.52);box-shadow:0 10px 35px rgba(0,0,0,.5),0 0 24px rgba(34,211,238,.18);backdrop-filter:blur(18px)}
-        .spectator-live-dot{width:8px;height:8px;border-radius:50%;background:#fb7185;box-shadow:0 0 0 4px rgba(251,113,133,.15),0 0 14px #fb7185;animation:spectatorDotPulse 1.5s ease-in-out infinite}
-        body.is-match-spectator #online-team-banner{display:block!important}
-        @keyframes omniBoardDust{0%{background-position:0 0,0 0,0 0,0 0}100%{background-position:0 220px,0 -280px,0 260px,0 -310px}}
-        @keyframes omniCardSheen{0%,65%,100%{background-position:220% 0}82%{background-position:-220% 0}}
-        @keyframes spectatorDotPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.78)}}
-        @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"] #canvas-container:before,body[data-theme-style="omniverse"] .public-lobby-card:before,body[data-theme-style="omniverse"] .theme-card:before,body[data-theme-style="omniverse"] .profile-card:before,#spectator-exit-banner .spectator-live-dot{animation:none!important}}
-
         @media(prefers-reduced-motion:reduce){body[data-theme-style="omniverse"],body[data-theme-style="omniverse"]:before,body[data-theme-style="omniverse"]:after,body[data-theme-style="omniverse"] .glass-panel,.theme-preview-omniverse,.theme-preview-omniverse *{animation:none!important;scroll-behavior:auto!important}}
 </style>
 </head>
@@ -914,7 +893,7 @@
       </div>
     </div>
 
-    <div id="settings-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-xl rounded-3xl border-cyan-500/40 p-6 space-y-5 my-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-cyan-400 font-mono">PLAYER HUB</div><h2 class="font-orbitron text-2xl font-black">SETTINGS</h2></div><button onclick="closeHubPage('settings-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div class="rounded-xl bg-slate-950 border border-slate-700 p-3"><div class="text-[9px] text-slate-500 font-mono">PRIVATE ACCOUNT EMAIL</div><div class="flex items-center gap-2 mt-1"><div id="settings-account-email" class="text-sm text-slate-200 break-all flex-1" data-revealed="false">Not available</div><button id="settings-email-reveal" type="button" onclick="togglePrivateEmail()" class="shrink-0 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-[10px] font-bold text-cyan-200">REVEAL</button></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><label class="hub-setting"><span>Sound effects</span><input id="hub-sound" type="checkbox" onchange="G.soundEnabled=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Adaptive AI strategy</span><input id="hub-ai" type="checkbox" onchange="G.enableAIStrategy=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Dynamic piece roles</span><input id="hub-roles" type="checkbox" onchange="G.enablePieceRoles=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Chaos pieces</span><input id="hub-chaos" type="checkbox" onchange="G.chaosPieces=this.checked; if($('toggle-chaos-pieces'))$('toggle-chaos-pieces').checked=this.checked; saveAccountSettings()"></label></div><p class="text-[10px] text-slate-500">Online matches with AI opponents force Adaptive AI Strategy and Dynamic Piece Roles ON. Chaos Pieces can be selected separately for each online room.</p><button onclick="signOutAccount()" class="w-full py-3 rounded-xl bg-red-950 border border-red-500/50 text-red-200 text-xs font-bold"><i class="fa-solid fa-right-from-bracket mr-2"></i>SIGN OUT</button></div></div>
+    <div id="settings-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-xl rounded-3xl border-cyan-500/40 p-6 space-y-5 my-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-cyan-400 font-mono">PLAYER HUB</div><h2 class="font-orbitron text-2xl font-black">SETTINGS</h2></div><button onclick="closeHubPage('settings-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div class="rounded-xl bg-slate-950 border border-slate-700 p-3"><div class="text-[9px] text-slate-500 font-mono">PRIVATE ACCOUNT EMAIL</div><div class="flex items-center gap-2 mt-1"><div id="settings-account-email" class="text-sm text-slate-200 break-all flex-1" data-revealed="false">Not available</div><button id="settings-email-reveal" type="button" onclick="togglePrivateEmail()" class="shrink-0 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-600 text-[10px] font-bold text-cyan-200">REVEAL</button></div></div><div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><label class="hub-setting"><span>Sound effects</span><input id="hub-sound" type="checkbox" onchange="G.soundEnabled=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>2D board (top-down)</span><input id="hub-2d" type="checkbox" onchange="G.use2DView=this.checked; applyBoardViewMode(); saveAccountSettings()"></label><label class="hub-setting"><span>Adaptive AI strategy</span><input id="hub-ai" type="checkbox" onchange="G.enableAIStrategy=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Dynamic piece roles</span><input id="hub-roles" type="checkbox" onchange="G.enablePieceRoles=this.checked; saveAccountSettings()"></label><label class="hub-setting"><span>Chaos pieces</span><input id="hub-chaos" type="checkbox" onchange="G.chaosPieces=this.checked; if($('toggle-chaos-pieces'))$('toggle-chaos-pieces').checked=this.checked; saveAccountSettings()"></label></div><p class="text-[10px] text-slate-500">2D board switches to a flat top-down board with illustrated chess-style pieces; drag to pan and scroll to zoom. Spectators can use camera presets and zoom controls. Online matches with AI opponents force Adaptive AI Strategy and Dynamic Piece Roles ON. Chaos Pieces can be selected separately for each online room.</p><button onclick="signOutAccount()" class="w-full py-3 rounded-xl bg-red-950 border border-red-500/50 text-red-200 text-xs font-bold"><i class="fa-solid fa-right-from-bracket mr-2"></i>SIGN OUT</button></div></div>
 
     <div id="player-search-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-2xl rounded-3xl border-purple-500/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-purple-300 font-mono">COMMUNITY</div><h2 class="font-orbitron text-2xl font-black">FIND PLAYERS</h2></div><button onclick="closeHubPage('player-search-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><input id="player-search-input" oninput="searchPlayersDebounced()" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-white outline-none focus:border-purple-400" placeholder="Search any username..."><div id="player-search-results" class="space-y-2 text-sm text-slate-400">Start typing to find players.</div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-emerald-300 mb-2">FRIENDS</h3><div id="player-friends-list" class="space-y-2 text-sm text-slate-400">No friends yet.</div></div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-cyan-300 mb-2">RECENTLY PLAYED AGAINST</h3><div id="recent-opponents-list" class="space-y-2 text-sm text-slate-400">No recent opponents yet.</div></div></div></div>
 
@@ -1586,6 +1565,7 @@
             mode: 'bedwars',
             chaosPieces: true,
             soundEnabled: true,
+            use2DView: false,
             enableAIStrategy: false, // OFF by default
             enablePieceRoles: false,  // OFF by default
             turnIndex: 0,
@@ -2060,6 +2040,107 @@
             tpMarker: new THREE.TorusGeometry(0.75, 0.05, 8, 32)
         };
 
+        let board2DCanvas = null, board2DCtx = null, board2DZoom = 1, board2DPan = {x:0,y:0};
+        let board2DDrag = null;
+        const BOARD_2D_GLYPHS = {k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟',bed:'▰',d:'✦',nec:'☠',skele:'☠',guardian:'◆'};
+        function ensure2DBoardCanvas() {
+            if (board2DCanvas) return;
+            const host = $('canvas-container');
+            board2DCanvas = document.createElement('canvas');
+            board2DCanvas.id = 'chess2-2d-board';
+            board2DCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:3;display:none;touch-action:none;cursor:grab;background:#111827';
+            host.appendChild(board2DCanvas);
+            board2DCtx = board2DCanvas.getContext('2d');
+            board2DCanvas.addEventListener('pointerdown', e => {
+                if (e.button !== 0) return;
+                board2DDrag = {x:e.clientX,y:e.clientY,panX:board2DPan.x,panY:board2DPan.y,moved:false};
+                board2DCanvas.setPointerCapture(e.pointerId);
+            });
+            board2DCanvas.addEventListener('pointermove', e => {
+                if (!board2DDrag) return;
+                const dx=e.clientX-board2DDrag.x, dy=e.clientY-board2DDrag.y;
+                if (Math.hypot(dx,dy)>4) board2DDrag.moved=true;
+                if (board2DDrag.moved) { board2DPan.x=board2DDrag.panX+dx; board2DPan.y=board2DDrag.panY+dy; board2DCanvas.style.cursor='grabbing'; draw2DBoard(); }
+            });
+            const finishDrag = e => {
+                if (!board2DDrag) return;
+                const drag=board2DDrag; board2DDrag=null; board2DCanvas.style.cursor='grab';
+                if (drag.moved) return;
+                const rect=board2DCanvas.getBoundingClientRect();
+                const px=e.clientX-rect.left, py=e.clientY-rect.top;
+                const dims=G.mapData && G.mapData.dims; if(!dims) return;
+                const dpr=board2DCanvas.width/Math.max(1,rect.width);
+                const cell=board2DCellSize(rect.width,rect.height,dims);
+                const origin=board2DOrigin(rect.width,rect.height,dims,cell);
+                const col=Math.floor((px-origin.x)/cell), row=Math.floor((py-origin.y)/cell);
+                const x=col-dims.offX, z=dims.maxZ-row;
+                if(col<0||col>=dims.W||row<0||row>=dims.H) return;
+                const tile=G.boardGrid[keyOf(x,z)];
+                if(!tile || tile.isVoid) return;
+                const piece=tile.piece || G.pieces.find(p=>p.x===x&&p.z===z) || null;
+                onCanvasClick({__chess2Pick:{piece,tile,ghost:null}});
+                draw2DBoard();
+            };
+            board2DCanvas.addEventListener('pointerup',finishDrag);
+            board2DCanvas.addEventListener('pointercancel',()=>{board2DDrag=null;});
+            board2DCanvas.addEventListener('wheel',e=>{e.preventDefault();board2DZoom=Math.max(.55,Math.min(2.6,board2DZoom*(e.deltaY<0?1.12:.89)));draw2DBoard();},{passive:false});
+            window.addEventListener('resize',draw2DBoard);
+        }
+        function board2DCellSize(w,h,dims){return Math.max(8,Math.min((w-36)/dims.W,(h-36)/dims.H)*board2DZoom);}
+        function board2DOrigin(w,h,dims,cell){return {x:(w-dims.W*cell)/2+board2DPan.x,y:(h-dims.H*cell)/2+board2DPan.y};}
+        function draw2DBoard(){
+            if(!board2DCanvas||!board2DCtx||!G.use2DView||!G.mapData||!G.mapData.dims)return;
+            const rect=board2DCanvas.getBoundingClientRect(); if(!rect.width||!rect.height)return;
+            const dpr=Math.min(window.devicePixelRatio||1,2), w=rect.width,h=rect.height;
+            const pw=Math.round(w*dpr),ph=Math.round(h*dpr);
+            if(board2DCanvas.width!==pw||board2DCanvas.height!==ph){board2DCanvas.width=pw;board2DCanvas.height=ph;}
+            const c=board2DCtx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
+            const dims=G.mapData.dims,cell=board2DCellSize(w,h,dims),origin=board2DOrigin(w,h,dims,cell);
+            const theme=MAP_THEMES[G.mapData.theme]||MAP_THEMES.neon;
+            const colorHex=n=>'#'+(Number(n)>>>0).toString(16).padStart(6,'0').slice(-6);
+            const light=colorHex(theme.tileA||0xdbeafe),dark=colorHex(theme.tileB||0x475569);
+            c.fillStyle='#111827';c.fillRect(0,0,w,h);
+            for(let row=0;row<dims.H;row++)for(let col=0;col<dims.W;col++){
+                const x=col-dims.offX,z=dims.maxZ-row,tile=G.boardGrid[keyOf(x,z)],sx=origin.x+col*cell,sy=origin.y+row*cell;
+                if(!tile||tile.isVoid){c.fillStyle='#080d18';c.fillRect(sx,sy,cell,cell);continue;}
+                let fill=((row+col)&1)?dark:light;
+                if(tile.baseTeam&&TEAM_CONFIGS[tile.baseTeam])fill=colorHex(TEAM_CONFIGS[tile.baseTeam].hex);
+                if(tile.isGenerator)fill=tile.genType==='diamond'?'#075985':'#166534';
+                c.fillStyle=fill;c.fillRect(sx,sy,cell,cell);
+                c.strokeStyle='rgba(15,23,42,.32)';c.lineWidth=1;c.strokeRect(sx+.5,sy+.5,cell-1,cell-1);
+                if(tile.isGenerator){c.fillStyle='rgba(255,255,255,.18)';c.beginPath();c.arc(sx+cell/2,sy+cell/2,cell*.19,0,Math.PI*2);c.fill();c.fillStyle='#fff';c.font=`${Math.max(9,cell*.28)}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(tile.genType==='diamond'?'◆':'✦',sx+cell/2,sy+cell/2);}
+                if(G.selectedPiece&&G.selectedPiece.x===x&&G.selectedPiece.z===z){c.fillStyle='rgba(250,204,21,.48)';c.fillRect(sx,sy,cell,cell);}
+                if(G.validMoves.some(m=>m.x===x&&m.z===z)||G.attackTargets.some(m=>m.x===x&&m.z===z)){c.fillStyle='rgba(34,197,94,.36)';c.beginPath();c.arc(sx+cell/2,sy+cell/2,cell*.19,0,Math.PI*2);c.fill();}
+            }
+            for(const p of G.pieces){const col=p.x+dims.offX,row=p.z+dims.offZ;if(col<0||col>=dims.W||row<0||row>=dims.H)continue;const sx=origin.x+col*cell,sy=origin.y+row*cell,team=TEAM_CONFIGS[p.team]||TEAM_CONFIGS.white;
+                const glyph=BOARD_2D_GLYPHS[p.type]||'●';
+                c.save();c.textAlign='center';c.textBaseline='middle';c.shadowColor='rgba(0,0,0,.7)';c.shadowBlur=Math.max(2,cell*.09);c.font=`900 ${Math.max(10,cell*(p.type==='bed'?.52:.76))}px "Segoe UI Symbol","Noto Sans Symbols 2",serif`;
+                c.fillStyle=p.team==='white'?'#fffdf4':p.team==='black'?'#171923':colorHex(team.hex);c.strokeStyle=p.team==='white'?'#334155':'rgba(255,255,255,.88)';c.lineWidth=Math.max(1,cell*.035);c.strokeText(glyph,sx+cell/2,sy+cell*.49);c.fillText(glyph,sx+cell/2,sy+cell*.49);c.restore();
+                if(p.hp!==undefined&&p.type!=='bed'&&cell>34){c.fillStyle='rgba(0,0,0,.65)';c.fillRect(sx+cell*.17,sy+cell*.82,cell*.66,Math.max(2,cell*.055));c.fillStyle='#4ade80';c.fillRect(sx+cell*.17,sy+cell*.82,cell*.66*Math.max(0,Math.min(1,p.hp/(p.maxHp||p.hp||1))),Math.max(2,cell*.055));}
+            }
+            c.fillStyle='rgba(2,6,23,.78)';c.fillRect(12,12,Math.min(260,w-24),28);c.fillStyle='#e2e8f0';c.font='bold 11px system-ui';c.textAlign='left';c.textBaseline='middle';c.fillText('2D TOP-DOWN VIEW  ·  Scroll to zoom  ·  Drag to pan',22,26);
+        }
+        function applyBoardViewMode(){
+            ensure2DBoardCanvas();
+            const active=!!G.use2DView;
+            board2DCanvas.style.display=active?'block':'none';
+            if(renderer&&renderer.domElement)renderer.domElement.style.visibility=active?'hidden':'visible';
+            if(controls)controls.enabled=!active;
+            if(active){board2DZoom=1;board2DPan={x:0,y:0};draw2DBoard();}
+        }
+        function zoomSpectatorBoard(factor){
+            if(G.use2DView){board2DZoom=Math.max(.55,Math.min(2.6,board2DZoom*factor));draw2DBoard();}
+            else if(camera){camera.position.multiplyScalar(1/factor);controls&&controls.update();}
+        }
+        function addSpectatorCameraControls(){
+            let bar=$('spectator-camera-controls');if(bar)bar.remove();
+            bar=document.createElement('div');bar.id='spectator-camera-controls';
+            bar.style.cssText='position:fixed;z-index:120;top:64px;left:50%;transform:translateX(-50%);display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:7px 9px;border:1px solid rgba(103,232,249,.45);border-radius:14px;background:rgba(2,6,23,.88);backdrop-filter:blur(12px);box-shadow:0 8px 30px #0008';
+            const actions=[...(G.use2DView?[]:[['ORBIT',()=>setCameraPreset('orbit')],['TOP',()=>setCameraPreset('top')],['ISO',()=>setCameraPreset('iso')]]),['−',()=>zoomSpectatorBoard(.85)],['＋',()=>zoomSpectatorBoard(1.18)],['RESET',()=>{board2DZoom=1;board2DPan={x:0,y:0};if(!G.use2DView)resetCamera();draw2DBoard();}]];
+            actions.forEach(([label,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='padding:6px 10px;border-radius:8px;background:#0f2a40;color:#cffafe;border:1px solid #155e75;font:700 10px system-ui;letter-spacing:.04em';b.addEventListener('click',fn);bar.appendChild(b);});
+            document.body.appendChild(bar);
+        }
+
         function initThreeEngine() {
             const container = $('canvas-container');
             scene = new THREE.Scene();
@@ -2075,6 +2156,7 @@
             renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             container.appendChild(renderer.domElement);
+            ensure2DBoardCanvas();
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -2158,6 +2240,7 @@
                 if (t >= 1) p.mesh.userData.moveAnimation = null;
             });
             renderer.render(scene, camera);
+            if(G.use2DView) draw2DBoard();
         }
 
         /* --- PROCEDURAL 3D PIECE GENERATOR --- */
@@ -2605,6 +2688,7 @@
             camScale = Math.max(0.55, Math.max(W, H) / 22);
             setCameraPreset('orbit');
             spawnPiecesForMap(map);
+            applyBoardViewMode();
         }
 
         function refreshGenVisual(gen) {
@@ -2941,7 +3025,7 @@
         function onCanvasHover(event) {
             const menu = $('main-menu');
             if (G.gameOver || G.activeBattle || G.draftPhase || (menu && !menu.classList.contains('hidden'))) return;
-            const pick = pickAt(event);
+            const pick = event && event.__chess2Pick ? event.__chess2Pick : pickAt(event);
             const gen = (pick.tile && pick.tile.isGenerator) ? G.gens.find(g => g.x === pick.tile.x && g.z === pick.tile.z) : null;
             if (gen) {
                 setPrompt(`${GEN_CFG[gen.type].label} GENERATOR: ${gen.stock} stored (+1 every ${GEN_CFG[gen.type].interval} turns). Carry them home!`);
@@ -2957,7 +3041,7 @@
 
         function onCanvasClick(event) {
             if (inputBlocked()) return;
-            const pick = pickAt(event);
+            const pick = event && event.__chess2Pick ? event.__chess2Pick : pickAt(event);
 
             if (G.draftPhase) { handleDraftClick(pick); return; }
             if (G.spellMode) { handleSpellClick(pick); return; }
@@ -5497,7 +5581,7 @@
         function collectSettings() {
             return {
                 teamFormat: G.teamFormat, mode: G.mode, chaosPieces: G.chaosPieces,
-                soundEnabled: G.soundEnabled, enableAIStrategy: G.enableAIStrategy,
+                soundEnabled: G.soundEnabled, use2DView: !!G.use2DView, enableAIStrategy: G.enableAIStrategy,
                 enablePieceRoles: G.enablePieceRoles, speedMultiplier: G.speedMultiplier,
                 selectedMapId: G.selectedMapId, teamControllers: G.teamControllers
             };
@@ -5518,6 +5602,7 @@
             G.teamControllers = Object.assign(G.teamControllers, settings.teamControllers || {});
             G.chaosPieces = settings.chaosPieces ?? G.chaosPieces;
             G.soundEnabled = settings.soundEnabled ?? G.soundEnabled;
+            G.use2DView = settings.use2DView ?? G.use2DView;
             G.enableAIStrategy = settings.enableAIStrategy ?? G.enableAIStrategy;
             G.enablePieceRoles = settings.enablePieceRoles ?? G.enablePieceRoles;
             G.speedMultiplier = 1.0; // AI playback always starts at the normal 1x default.
@@ -5525,6 +5610,8 @@
             selectGameMode(['bedwars','standard','commander'].includes(settings.mode) ? settings.mode : 'bedwars');
             if (settings.selectedMapId && MAP_CATALOG.some(m => m.id === settings.selectedMapId && isMapAllowed(m.id, G.mode, G.teamFormat))) G.selectedMapId = settings.selectedMapId;
             if ($('toggle-chaos-pieces')) $('toggle-chaos-pieces').checked = G.chaosPieces;
+            if ($('hub-2d')) $('hub-2d').checked = !!G.use2DView;
+            applyBoardViewMode();
             if ($('toggle-ai-strategy')) $('toggle-ai-strategy').checked = G.enableAIStrategy;
             if ($('toggle-piece-roles')) $('toggle-piece-roles').checked = G.enablePieceRoles;
             $('autoplay-speed-select').value = '1.0';
@@ -5833,47 +5920,22 @@
             }
             renderOnlineMapPreview();
         }
-        let publicLobbyRenderVersion = 0;
-        async function renderPublicLobbyList(snapshot) {
+        function renderPublicLobbyList(snapshot) {
             const list = $('public-lobby-list'); if (!list) return;
-            const renderVersion = ++publicLobbyRenderVersion;
-            const candidates = [];
-            snapshot.forEach(doc => {
-                const d = doc.data();
-                if (d.visibility === 'public' && d.status === 'waiting') candidates.push({ id:doc.id, ...d });
-                else if (d.visibility === 'public' && d.status === 'started') candidates.push({ id:doc.id, ...d, _needsLiveCheck:true });
-            });
-            // A lobby can remain marked "started" after a resignation or a browser
-            // closing unexpectedly. Only show it as spectatable when its canonical
-            // match document still says status=active.
-            const rooms = await Promise.all(candidates.map(async room => {
-                if (!room._needsLiveCheck) return room;
-                try {
-                    const matchSnap = await firestoreDB.collection('matches').doc(room.id).get();
-                    if (!matchSnap.exists || matchSnap.data().status !== 'active') return null;
-                    return room;
-                } catch (err) {
-                    // Do not advertise a match we cannot verify as live. The rules
-                    // must allow signed-in users to read active public match docs.
-                    console.warn('Could not verify public match status for', room.id, err);
-                    return null;
-                }
-            }));
-            if (renderVersion !== publicLobbyRenderVersion || !list.isConnected) return;
-            const visibleRooms = rooms.filter(Boolean);
-            visibleRooms.sort((a,b) => {
+            const rooms = [];
+            snapshot.forEach(doc => { const d = doc.data(); if (d.visibility === 'public' && (d.status === 'waiting' || d.status === 'started')) rooms.push({ id: doc.id, ...d }); });
+            rooms.sort((a,b) => {
                 if (a.status !== b.status) return a.status === 'started' ? -1 : 1;
                 const ta = a.createdAt && a.createdAt.toMillis ? a.createdAt.toMillis() : 0;
                 const tb = b.createdAt && b.createdAt.toMillis ? b.createdAt.toMillis() : 0;
                 return tb - ta;
             });
             list.innerHTML = '';
-            if (!visibleRooms.length) {
-                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8';
-                empty.textContent = 'No waiting rooms or live public matches right now.'; list.appendChild(empty); return;
+            if (!rooms.length) {
+                const empty = document.createElement('div'); empty.className = 'text-xs text-slate-500 text-center py-8'; empty.textContent = 'No public rooms yet. Create one to see it here, or check back for live matches to spectate.'; list.appendChild(empty); return;
             }
-            visibleRooms.forEach(room => {
-                const card = document.createElement('div'); card.className = 'public-lobby-card rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
+            rooms.forEach(room => {
+                const card = document.createElement('div'); card.className = 'rounded-xl border border-slate-700 bg-slate-950/80 p-3 flex items-center justify-between gap-3';
                 const info = document.createElement('div'); info.className = 'min-w-0 flex items-center gap-2';
                 const hostAvatar = makePlayerAvatar({username: room.hostName}, 'w-9 h-9');
                 const textWrap = document.createElement('div'); textWrap.className = 'min-w-0';
@@ -5884,7 +5946,8 @@
                 textWrap.append(title, details); info.append(hostAvatar, textWrap);
                 if (room.hostUid) getPublicUserProfile(room.hostUid).then(profile => {
                     if (!card.isConnected) return;
-                    const fresh = makePlayerAvatar({...profile, username: profile.username || room.hostName}, 'w-9 h-9'); hostAvatar.replaceWith(fresh);
+                    const fresh = makePlayerAvatar({...profile, username: profile.username || room.hostName}, 'w-9 h-9');
+                    hostAvatar.replaceWith(fresh);
                 });
                 const join = document.createElement('button');
                 const alreadyJoined = activeLobbyCode === room.id;
@@ -5906,11 +5969,11 @@
                 $('public-lobby-list').textContent = 'Sign in to browse rooms.'; return;
             }
             stopPublicLobbyListener();
-            $('public-lobby-status').textContent = 'Checking waiting rooms and verifying live matches...';
-            $('public-lobby-list').textContent = 'Loading public rooms...';
+            $('public-lobby-status').textContent = 'Listening for public rooms...';
+            // Query only the public visibility field. Private rooms are never returned in this list.
             publicLobbyUnsubscribe = firestoreDB.collection('lobbies').where('visibility', '==', 'public').limit(60).onSnapshot(snapshot => {
                 renderPublicLobbyList(snapshot);
-                $('public-lobby-status').textContent = 'Waiting rooms and verified live matches • refreshed automatically';
+                $('public-lobby-status').textContent = 'Live rooms and waiting rooms • refreshed automatically';
             }, err => {
                 console.error('Public room list failed:', err);
                 $('public-lobby-status').textContent = 'Could not load public rooms: ' + err.message;
@@ -6285,12 +6348,6 @@
             // Only the host needs to check whether the canonical match already exists.
             // Other clients attach their listener and receive the host's first snapshot.
             const existingMatchSnap = (user.uid === onlineHostUid || asSpectator) ? await onlineMatchRef.get() : null;
-            if (asSpectator && (!existingMatchSnap || !existingMatchSnap.exists)) {
-                throw new Error('The live match record is missing. The host may still be starting the board, or Firestore rules are blocking match reads.');
-            }
-            if (asSpectator && existingMatchSnap.exists && existingMatchSnap.data().status !== 'active') {
-                throw new Error('This match has already ended or been resigned. Only active matches can be spectated.');
-            }
             if (existingMatchSnap && existingMatchSnap.exists) {
                 const existingMatch = existingMatchSnap.data();
                 if (existingMatch.status === 'active' && existingMatch.state) {
@@ -6531,29 +6588,17 @@
                 if (banner) { banner.textContent = '◉ SPECTATING LIVE MATCH'; banner.style.color = '#67e8f9'; banner.style.borderColor = '#67e8f9'; banner.classList.remove('hidden'); }
                 $('online-clock-controls')?.classList.remove('hidden');
                 $('online-clock-minutes')?.setAttribute('disabled','disabled');
-                if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = 'none';
+                if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = 'auto';
+                if (controls) { controls.enabled = !G.use2DView; controls.enableRotate = true; controls.enableZoom = true; controls.enablePan = true; }
                 document.body.classList.add('is-match-spectator');
-                $('persistent-controls-bar')?.classList.add('hidden');
-                $('hud-sidebar')?.classList.add('hidden');
-                $('bottom-hud-bar')?.classList.add('hidden');
-                let spectatorBar = $('spectator-exit-banner');
-                if (!spectatorBar) {
-                    spectatorBar = document.createElement('div'); spectatorBar.id = 'spectator-exit-banner';
-                    spectatorBar.className = 'fixed top-3 left-1/2 -translate-x-1/2 z-[120] flex items-center gap-3 rounded-2xl px-4 py-2';
-                    spectatorBar.innerHTML = '<span class="spectator-live-dot"></span><span class="text-[10px] sm:text-xs font-black tracking-widest">LIVE SPECTATING</span><button type="button" onclick="leaveLobby()" class="spectator-exit-button rounded-lg px-3 py-2 text-[10px] font-black">STOP WATCHING ✕</button>';
-                    document.body.appendChild(spectatorBar);
-                }
-                spectatorBar.classList.remove('hidden');
+                addSpectatorCameraControls();
+                applyBoardViewMode();
                 await startOnlineBoardSync(true);
                 setLobbyStatus('Spectating ' + (room.hostName || 'a public match') + '. Live board updates are read-only.');
             } catch (err) {
                 lobbyLaunchHandled = false;
                 console.error('Could not load spectator match:', err);
-                const message = 'Could not load live match: ' + err.message;
-                resetLobbyUI();
-                setLobbyStatus(message, true);
-                const status = $('public-lobby-status'); if (status) status.textContent = message;
-                refreshPublicLobbyList();
+                setLobbyStatus('Could not load live match: ' + err.message, true);
             }
         }
 
@@ -6785,11 +6830,9 @@
             stopOnlineClockTicker();
             activeLobbyCode = null; activeLobbyIsHost = false; activeLobbyIsSpectator = false; onlineSpectatorMode = false; activeLobbyReady = false; activeLobbyRoomData = null; lobbyLaunchHandled = false; onlineLocalTeam = null; onlineLocalUid = null; onlineHostUid = null;
             document.body.classList.remove('is-match-spectator');
-            $('spectator-exit-banner')?.remove();
-            if (renderer && renderer.domElement) renderer.domElement.style.pointerEvents = '';
-            $('persistent-controls-bar')?.classList.remove('hidden');
-            $('hud-sidebar')?.classList.remove('hidden');
-            $('bottom-hud-bar')?.classList.remove('hidden');
+            const spectatorControls=$('spectator-camera-controls');if(spectatorControls)spectatorControls.remove();
+            if (renderer && renderer.domElement) { renderer.domElement.style.pointerEvents = ''; renderer.domElement.style.visibility = G.use2DView ? 'hidden' : 'visible'; }
+            if (controls) controls.enabled = !G.use2DView;
             $('online-clock-minutes')?.removeAttribute('disabled');
             const panel = $('lobby-room-panel'); if (panel) panel.classList.add('hidden');
             const ready = $('lobby-ready-button'); if (ready) ready.classList.toggle('hidden', !!activeLobbyIsSpectator); if (ready) ready.textContent = "I'M READY";
@@ -6975,7 +7018,7 @@
         function renderOwnProfileStats(){if(!currentAccount)return;const st=currentAccount.stats||{};const games=Number(st.gamesPlayed||0),wins=Number(st.wins||0);$('profile-page-games').textContent=games;$('profile-page-wins').textContent=wins;$('profile-page-winrate').textContent=(games?Math.round(wins/games*100):0)+'%';$('profile-page-material').textContent='◆ '+Number(currentAccount.material||0);$('menu-material').textContent='◆ '+Number(currentAccount.material||0)+' MATERIAL';const showcase=ACHIEVEMENTS.find(a=>a.id===currentAccount.showcaseAchievement);$('profile-showcase').innerHTML=showcase?`<div class="achievement-card rarity-${showcase.rarity}"><div class="text-xl">${showcase.icon}</div><b>${showcase.name}</b><div class="text-[10px] uppercase mt-1">${RARITY_LABELS[showcase.rarity]}</div></div>`:'No achievement displayed yet.';}
         function maskPrivateEmail(email){return email?'••••••••••••••••':'Guest account';}
         function togglePrivateEmail(){const el=$('settings-account-email'),btn=$('settings-email-reveal');if(!el||!currentAccount)return;const reveal=el.dataset.revealed!=='true';el.dataset.revealed=String(reveal);el.textContent=reveal?(currentAccount.email||'Guest account'):maskPrivateEmail(currentAccount.email);if(btn)btn.textContent=reveal?'HIDE':'REVEAL';}
-        function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');const emailEl=$('settings-account-email');emailEl.dataset.revealed='false';emailEl.textContent=maskPrivateEmail(currentAccount.email);$('settings-email-reveal').textContent='REVEAL';$('hub-sound').checked=!!G.soundEnabled;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
+        function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');const emailEl=$('settings-account-email');emailEl.dataset.revealed='false';emailEl.textContent=maskPrivateEmail(currentAccount.email);$('settings-email-reveal').textContent='REVEAL';$('hub-sound').checked=!!G.soundEnabled;$('hub-2d').checked=!!G.use2DView;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
         function formatProfileDate(value){if(!value)return 'Unknown';const d=value.toDate?value.toDate():(value.seconds?new Date(value.seconds*1000):new Date(value));if(!Number.isFinite(d.getTime()))return 'Unknown';return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
         const COMPETITIVE_RANKS = [
             {name:'Bronze',min:0,color:'#cd7f32'}, {name:'Silver',min:500,color:'#cbd5e1'},
