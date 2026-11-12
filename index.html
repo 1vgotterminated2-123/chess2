@@ -309,12 +309,12 @@
             <select id="online-clock-minutes" title="Starting time for both teams" class="bg-slate-950 border border-slate-600 rounded-lg px-1 py-2 text-cyan-200">
                 <option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option><option value="8">8 min</option><option value="9">9 min</option><option value="10" selected>10 min</option><option value="11">11 min</option><option value="12">12 min</option><option value="13">13 min</option><option value="14">14 min</option><option value="15">15 min</option><option value="16">16 min</option><option value="17">17 min</option><option value="18">18 min</option><option value="19">19 min</option><option value="20">20 min</option><option value="21">21 min</option><option value="22">22 min</option><option value="23">23 min</option><option value="24">24 min</option><option value="25">25 min</option><option value="26">26 min</option><option value="27">27 min</option><option value="28">28 min</option><option value="29">29 min</option><option value="30">30 min</option>
             </select>
-            <button onclick="setOnlineClockTime()" class="px-2 py-2 rounded-lg bg-slate-800 border border-cyan-700 text-cyan-200">SET</button>
+            <button id="online-clock-set-button" onclick="setOnlineClockTime()" class="px-2 py-2 rounded-lg bg-slate-800 border border-cyan-700 text-cyan-200">SET</button>
             <button onclick="resignOnlineMatch()" class="px-2 py-2 rounded-lg bg-red-950 border border-red-600 text-red-300 font-bold">RESIGN</button>
         </div>
 
         <!-- Playback Speed Controls & Steppers -->
-        <div class="flex items-center gap-1.5 font-mono text-xs">
+        <div id="playback-ai-controls" class="flex items-center gap-1.5 font-mono text-xs">
             <button id="btn-autoplay-toggle" onclick="toggleAutoPlay()" class="px-3 py-1.5 rounded-xl bg-emerald-950 border border-emerald-500 text-emerald-300 font-bold hover:bg-emerald-900 transition flex items-center gap-1 shadow">
                 <i id="autoplay-icon" class="fa-solid fa-play"></i> <span id="autoplay-text">AUTO-PLAY</span>
             </button>
@@ -4600,12 +4600,23 @@
             $('commander-draft-bar').classList.add('hidden');
         }
 
+        function syncRankedMatchControls() {
+            const rankedOnline = !!(activeLobbyCode && activeLobbyRoomData?.ranked === true);
+            const playbackControls = $('playback-ai-controls');
+            if (playbackControls) playbackControls.classList.toggle('hidden', rankedOnline);
+            const clockMinutes = $('online-clock-minutes');
+            const clockSet = $('online-clock-set-button');
+            if (clockMinutes) clockMinutes.classList.toggle('hidden', rankedOnline);
+            if (clockSet) clockSet.classList.toggle('hidden', rankedOnline);
+        }
+
         function launchGameMatch() {
             ensureValidMap();
             resetMatchState();
             $('main-menu').classList.add('hidden');
             $('online-multiplayer-page').classList.add('hidden');
             if(!activeLobbyCode) { $('online-clock-controls')?.classList.add('hidden'); stopOnlineClockTicker(); }
+            syncRankedMatchControls();
             $('hud-header').classList.remove('hidden');
             $('persistent-controls-bar').classList.remove('hidden');
             $('persistent-controls-bar').style.display = '';
@@ -4653,6 +4664,7 @@
             if (onlineMatchUnsubscribe) onlineMatchUnsubscribe();
             stopOnlineClockTicker();
             $('online-clock-controls')?.classList.add('hidden');
+            syncRankedMatchControls();
             onlineMatchUnsubscribe = null; onlineMatchRef = null; onlineMatchVersion = -1;
             activeLobbyCode = null; onlineLocalTeam = null;
             const teamBanner = $('online-team-banner'); if (teamBanner) teamBanner.classList.add('hidden');
