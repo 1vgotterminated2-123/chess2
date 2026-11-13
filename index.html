@@ -854,7 +854,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                             <span class="min-w-0">
                                 <span class="block text-xs font-orbitron font-black tracking-wide text-amber-200">🏆 RANKED LOBBY</span>
                                 <span class="block text-[10px] text-slate-400 mt-1">Enable ELO rating changes for this match</span>
-                                <span class="block text-[9px] text-slate-500 mt-1">AI matches are available at any ELO. At 1,000+ ELO, solo AI matches automatically become unranked.</span>
+                                <span class="block text-[9px] text-slate-500 mt-1">Solo AI matches are ranked below 750 Elo. At 750+ Elo, they automatically become unranked.</span>
                             </span>
                             <input id="online-ranked" type="checkbox" class="w-5 h-5 shrink-0 accent-amber-400" aria-label="Make this lobby ranked">
                         </label>
@@ -4070,6 +4070,20 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const published = await publishOnlineBoard(ending);
                 // Do not let the next AI turn run on an uncommitted local board.
                 if (!published) return;
+                if (G.gameOver) {
+                    // The final board is now committed with status=finished. Save
+                    // the rating while the lobby roster still contains this player.
+                    const finishedCode = activeLobbyCode;
+                    const finishedRef = onlineMatchRef;
+                    if (finishedRef && finishedCode) {
+                        const finishedSnap = await finishedRef.get().catch(() => null);
+                        if (finishedSnap && finishedSnap.exists) {
+                            await recordOnlineMatchElo(finishedSnap.data(), finishedCode);
+                        }
+                    }
+                    await releaseLobbyAfterMatch();
+                    return;
+                }
             }
 
             if (!G.gameOver && !G.paused && (isCurrentAI() || G.autoPlayActive)) {
@@ -5444,12 +5458,29 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             updateHUDCounters();
         }
 
-        function returnToMainMenu() {
+        async function returnToMainMenu() {
             if (activeLobbyCode && onlineMatchRef && !G.gameOver) {
-                const leaveAsResign = confirm('Leaving an online match counts as a RESIGNATION. The other team will win. Are you sure you want to resign and return to the main menu?');
-                if (!leaveAsResign) return;
-                resignOnlineMatch(true, true);
-                return;
+                // Trust the canonical match document, not a possibly stale local flag.
+                try {
+                    const authoritative = await onlineMatchRef.get();
+                    if (authoritative.exists && authoritative.data().status === 'finished') {
+                        const finished = authoritative.data();
+                        if (finished.state) applyOnlineSnapshot(finished.state);
+                        G.gameOver = true;
+                        G.winnerTeam = finished.winner || finished.state?.winnerTeam || G.winnerTeam;
+                        await recordOnlineMatchElo(finished, activeLobbyCode);
+                        await releaseLobbyAfterMatch();
+                    } else if (authoritative.exists && authoritative.data().status === 'active') {
+                        const leaveAsResign = confirm('Leaving an online match counts as a RESIGNATION. The other team will win. Are you sure you want to resign and return to the main menu?');
+                        if (!leaveAsResign) return;
+                        await resignOnlineMatch(true, true);
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('Could not verify match status before leaving:', err);
+                    alert('I could not verify whether this match has ended. Please wait for the match to sync before leaving, so a finished win is not mistaken for a resignation.');
+                    return;
+                }
             }
             clearTimeout(G.aiTimer);
             G.matchId++;
@@ -5524,21 +5555,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             $('btn-review-toolbar').classList.remove('hidden');
             $('btn-review-floating').classList.remove('hidden');
             $('modal-game-over').classList.remove('hidden');
-            if (onlineLocalTeam && !applyingOnlineState && (G.turn === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid))) {
-                const finishedCode = activeLobbyCode;
-                const finishedRef = onlineMatchRef;
-                publishOnlineBoard(G.turn).then(async published => {
-                    if (!published) return;
-                    // Record ELO while the room roster still exists, then clear membership.
-                    if (finishedRef && finishedCode) {
-                        const finishedSnap = await finishedRef.get().catch(() => null);
-                        if (finishedSnap && finishedSnap.exists) await recordOnlineMatchElo(finishedSnap.data(), finishedCode);
-                    }
-                    await releaseLobbyAfterMatch();
-                }).catch(err => console.warn('Could not finalize online match:', err));
-            } else if (activeLobbyCode && !applyingOnlineState) {
-                releaseLobbyAfterMatch();
-            }
+            // Online terminal state is published by endTurn(), which retains the
+            // actual team that owned the turn. Publishing here used G.turn (already
+            // advanced to the next team) and could race the authoritative final write.
         }
 
 
@@ -5647,11 +5666,16 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             if(!alreadyConfirmed && !confirm('Resign this online match? The other team will immediately win.')) return;
             const user=firebaseAuth.currentUser;
             try {
-                const finishedMatch = await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return d;const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);const finished={...d,status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner}};tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:finished.version,lastAction:finished.lastAction,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return finished;});
-                // Save this player's loss before any return-home cleanup removes their lobby roster entry.
+                const finishedMatch = await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return {...d,_alreadyFinished:true};const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);const finished={...d,status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner}};tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:finished.version,lastAction:finished.lastAction,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return finished;});
+                // Save this player's result before cleanup removes their lobby roster entry.
                 if (finishedMatch) await recordOnlineMatchElo(finishedMatch, activeLobbyCode);
                 await releaseLobbyAfterMatch();
-                G.gameOver=true; hideTeamStatsHUD(); stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
+                G.gameOver=true; hideTeamStatsHUD(); stopOnlineClockTicker();
+                const alreadyFinished = !!finishedMatch?._alreadyFinished;
+                const winner = finishedMatch?.winner || (G.teams||[]).find(t=>t!==onlineLocalTeam);
+                if($('winner-title'))$('winner-title').textContent=alreadyFinished?'MATCH FINISHED':'RESIGNATION';
+                if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS'+(alreadyFinished?'.':' — opponent resigned.');
+                if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
                 if(returnHome){returnToMainMenu();}
             } catch(e){alert('Could not resign: '+e.message);}
         }
@@ -6458,7 +6482,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
                 // Prefer the explicit playerTeams map saved at match creation. The
                 // seats map and stable roster order are compatibility fallbacks.
+                const seatTeam = Object.keys(matchData.seats || {}).find(team => matchData.seats[team] === user.uid);
                 const myTeam = playerTeams[user.uid]
+                    || seatTeam
                     || teams[humans.findIndex(p => p.uid === user.uid)];
                 if (!myTeam || !teams.includes(myTeam)) {
                     console.warn('Ranked Elo was not recorded: this account has no saved team assignment.', { matchCode, uid:user.uid, playerTeams, rosterCount:humans.length });
@@ -7090,9 +7116,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     if (humans.length > capacity) throw new Error('The room has more players than its allowed capacity.');
                     const key = room.mode === 'bedwars' ? 'bedwars' : (room.mode === 'commander' ? 'draft' : 'classic');
                     const elos = humans.map(p => Number(p.eloType === key && p.elo ? p.elo : 300));
-                    // AI matches are allowed at every rating. A solo AI match at 1,000+ Elo
-                    // is always converted to unranked before the room starts.
-                    const forceUnrankedForHighEloAI = humans.length === 1 && elos[0] >= 1000;
+                    // Solo ranked AI matches are available below 750 Elo. At 750+,
+                    // solo AI matches are automatically unranked.
+                    const forceUnrankedForHighEloAI = humans.length === 1 && elos[0] >= 750;
                     const finalRanked = room.ranked === true && !forceUnrankedForHighEloAI;
                     const averageElo = elos.reduce((a,b) => a+b, 0) / elos.length;
                     const level = aiLevelFromAverageElo(averageElo);
@@ -7104,7 +7130,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     tx.update(roomRef, { status: 'started', aiPlayers, ranked: finalRanked, startedAt: firebase.firestore.FieldValue.serverTimestamp(), startedBy: firebaseAuth.currentUser.uid });
                 });
                 G.enableAIStrategy = true; G.enablePieceRoles = true; G.chaosPieces = !!(activeLobbyRoomData && activeLobbyRoomData.chaosPieces);
-                setLobbyStatus('Room started. Empty seats were filled with AI opponents scaled to your Elo. Adaptive AI and Dynamic Piece Roles are ON.' + (activeLobbyPlayers.length === 1 && eloForLobbyPlayer() >= 1000 ? ' This 1,000+ Elo AI match is UNRANKED.' : ''));
+                setLobbyStatus('Room started. Empty seats were filled with AI opponents scaled to your Elo. Adaptive AI and Dynamic Piece Roles are ON.' + (activeLobbyPlayers.length === 1 && eloForLobbyPlayer() >= 750 ? ' This 750+ Elo AI match is UNRANKED.' : ''));
             } catch (err) { setLobbyStatus('Could not start match: ' + err.message, true); }
             finally { activeLobbyStartBusy = false; }
         }
