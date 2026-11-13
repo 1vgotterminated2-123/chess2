@@ -2133,23 +2133,26 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 if (Math.hypot(dx,dy)>3) board2DDrag.moved=true;
                 if (board2DDrag.moved) { board2DPan.x=board2DDrag.panX+dx; board2DPan.y=board2DDrag.panY+dy; board2DCanvas.style.cursor='grabbing'; draw2DBoard(); }
             });
-            const finishDrag = e => {
+            const finishDrag = () => {
                 if (board2DDrag) {
-                    board2DDrag=null; board2DCanvas.style.cursor='grab';
-                    return;
+                    board2DDrag=null;
+                    board2DCanvas.style.cursor='grab';
                 }
-                const start=board2DClickStart;
                 board2DClickStart=null;
-                if (e.button !== 0 || !start || Math.hypot(e.clientX-start.x,e.clientY-start.y)>8) return;
+            };
+            // Use the browser's click event for board actions instead of
+            // interpreting pointerup. This is more reliable across mouse,
+            // trackpad and touch input, and avoids pointer-button state quirks.
+            const handleBoardClick = e => {
+                if (e.shiftKey || e.button !== 0) return;
                 const rect=board2DCanvas.getBoundingClientRect();
                 const px=e.clientX-rect.left, py=e.clientY-rect.top;
                 const dims=G.mapData && G.mapData.dims; if(!dims) return;
-                const dpr=board2DCanvas.width/Math.max(1,rect.width);
                 const cell=board2DCellSize(rect.width,rect.height,dims);
                 const origin=board2DOrigin(rect.width,rect.height,dims,cell);
                 const col=Math.floor((px-origin.x)/cell), row=Math.floor((py-origin.y)/cell);
-                const x=col-dims.offX, z=dims.maxZ-row;
                 if(col<0||col>=dims.W||row<0||row>=dims.H) return;
+                const x=col-dims.offX, z=dims.maxZ-row;
                 const tile=G.boardGrid[keyOf(x,z)];
                 if(!tile || tile.isVoid) return;
                 const piece=tile.piece || G.pieces.find(p=>p.x===x&&p.z===z) || null;
@@ -2157,6 +2160,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 draw2DBoard();
             };
             board2DCanvas.addEventListener('pointerup',finishDrag);
+            board2DCanvas.addEventListener('click',handleBoardClick);
             board2DCanvas.addEventListener('pointercancel',()=>{board2DDrag=null;board2DClickStart=null;board2DCanvas.style.cursor='grab';});
             board2DCanvas.addEventListener('wheel',e=>{e.preventDefault();board2DZoom=Math.max(.55,Math.min(2.6,board2DZoom*(e.deltaY<0?1.12:.89)));draw2DBoard();},{passive:false});
             window.addEventListener('resize',draw2DBoard);
@@ -3115,7 +3119,16 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         }
 
         function onCanvasClick(event) {
-            if (inputBlocked()) return;
+            if (inputBlocked()) {
+                if (G.use2DView && !G.gameOver && !G.activeBattle && !G.paused) {
+                    const reason = onlineLocalTeam && G.turn !== onlineLocalTeam
+                        ? `WAIT FOR YOUR TURN — YOU CONTROL ${onlineLocalTeam.toUpperCase()}`
+                        : isCurrentAI() ? 'THE AI IS TAKING ITS TURN'
+                        : 'PIECES CANNOT MOVE DURING THIS PHASE';
+                    setPrompt(reason);
+                }
+                return;
+            }
             const pick = event && event.__chess2Pick ? event.__chess2Pick : pickAt(event);
 
             if (G.draftPhase) { handleDraftClick(pick); return; }
