@@ -550,8 +550,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
 
     <!-- ACCOUNT GATE -->
-    <div id="account-gate" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto">
-      <div class="glass-panel w-full max-w-md rounded-3xl p-6 md:p-8 border-cyan-500/40 shadow-2xl">
+    <div id="account-gate" class="fixed inset-0 z-[100] flex items-start sm:items-center justify-center bg-slate-950/95 backdrop-blur-xl p-4 overflow-y-auto overscroll-contain">
+      <div class="glass-panel my-auto w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl p-6 md:p-8 border-cyan-500/40 shadow-2xl">
         <div class="text-center mb-6">
           <div class="text-4xl mb-2">♟️</div>
           <h2 class="font-orbitron font-black text-2xl text-cyan-300 text-glow-cyan">CHESS 2 ACCOUNT</h2>
@@ -4952,6 +4952,14 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             }, 1100);
         }
 
+        function hideTeamStatsHUD() {
+            const teamHud = $('hud-header');
+            if (!teamHud) return;
+            teamHud.classList.add('hidden');
+            teamHud.style.visibility = 'hidden';
+            teamHud.style.display = 'none';
+        }
+
         let analysisReturnToGameOver = false;
 
         function openAnalysisModal() {
@@ -4977,6 +4985,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             analysisReturnToGameOver = false;
             if (shouldReturnToGameOver) {
                 G.gameOver = true;
+                hideTeamStatsHUD();
                 $('modal-game-over').classList.remove('hidden');
             } else {
                 returnToMainMenu();
@@ -5488,6 +5497,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             if (wasPostGameReview) {
                 analysisReturnToGameOver = false;
                 G.gameOver = true;
+                hideTeamStatsHUD();
                 $('modal-game-over').classList.remove('hidden');
             }
             if (wasReviewing && !G.gameOver && isCurrentAI()) triggerAITurnDelay();
@@ -5496,6 +5506,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
         function triggerGameOver(winnerTeam, reason) {
             G.gameOver = true;
+                hideTeamStatsHUD();
             G.winnerTeam = winnerTeam;
             trainAIFromFinishedMatch(winnerTeam);
             $('persistent-controls-bar')?.classList.add('hidden');
@@ -5618,7 +5629,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const finishedMatch = await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return d;const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);const finished={...d,status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner}};tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:finished.version,lastAction:finished.lastAction,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return finished;});
                 // Save this player's loss before any return-home cleanup removes their lobby roster entry.
                 if (finishedMatch) await recordOnlineMatchElo(finishedMatch, activeLobbyCode);
-                G.gameOver=true; stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
+                G.gameOver=true; hideTeamStatsHUD(); stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
                 if(returnHome){await releaseLobbyAfterMatch();returnToMainMenu();}
             } catch(e){alert('Could not resign: '+e.message);}
         }
@@ -5644,6 +5655,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 });
                 if (result) {
                     G.gameOver = true;
+                hideTeamStatsHUD();
                     stopOnlineClockTicker();
                     if ($('winner-title')) $('winner-title').textContent = 'TIME OUT';
                     if ($('winner-subtitle')) $('winner-subtitle').textContent =
@@ -6515,6 +6527,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     onlineMatchVersion = Number(existingMatch.version ?? -1);
                     if (!asSpectator) recordOnlineMatchElo(existingMatch, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true;
+                hideTeamStatsHUD();
                     stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
                     $('modal-game-over')?.classList.remove('hidden');
@@ -6587,7 +6600,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     // review the position from one move before the actual finish.
                     if (data.state) applyOnlineSnapshot(data.state);
                     if (!asSpectator) recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
-                    G.gameOver = true; stopOnlineClockTicker();
+                    G.gameOver = true;
+                hideTeamStatsHUD(); stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
                     const win=data.winner || (data.resignedTeam || data.timeoutTeam ? (G.teams||[]).find(t=>t!==(data.resignedTeam||data.timeoutTeam)) : null);
                     if($('winner-title')) $('winner-title').textContent=data.lastAction?.type==='resign'?'RESIGNATION':data.lastAction?.type==='timeout'?'TIME OUT':'MATCH FINISHED';
@@ -7096,7 +7110,13 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             $('account-password').value = '';
             setAccountTab(options.tab === 'login' ? 'login' : 'signup');
             accountStatus(wasAnonymous ? 'Temporary guest account deleted. Create an account or sign in to continue.' : 'Signed out.');
-            if (options.reopenGate) $('account-gate').classList.remove('hidden');
+            if (options.reopenGate) {
+                $('account-gate').classList.remove('hidden');
+            } else {
+                // A user-initiated sign-out should fully reset the app and auth UI.
+                window.location.reload();
+                return;
+            }
         }
 
         async function restoreActiveLobbyFromProfile(profile, user) {
