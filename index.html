@@ -2893,8 +2893,11 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 // Mirror X as well as Z so both armies receive the same two pieces.
                 placePiece('d', 'white', -5, startZ - 1);
                 placePiece('nec', 'white', 4, startZ - 1);
-                placePiece('d', 'black', 5, blackPawnZ);
-                placePiece('nec', 'black', -4, blackPawnZ);
+                // Keep both black Chaos pieces on the outer side files.
+                // -4 is occupied by the black army's leftmost pawn, so the
+                // old nec spawn was silently displaced into the formation.
+                placePiece('d', 'black', 4, blackPawnZ);
+                placePiece('nec', 'black', -5, blackPawnZ);
             }
         }
 
@@ -5398,7 +5401,14 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             $('online-multiplayer-page').classList.add('hidden');
             if(!activeLobbyCode) { $('online-clock-controls')?.classList.add('hidden'); stopOnlineClockTicker(); }
             syncRankedMatchControls();
-            $('hud-header').classList.remove('hidden');
+            const teamHud = $('hud-header');
+            teamHud.classList.remove('hidden');
+            // Explicitly restore the header's layout at match start. Some
+            // startup paths leave its inline display state hidden until the
+            // first turn refresh, making the team cards appear one move late.
+            teamHud.style.display = 'flex';
+            teamHud.style.visibility = 'visible';
+            renderHUDTeamCards();
             $('persistent-controls-bar').classList.remove('hidden');
             $('persistent-controls-bar').style.display = '';
             $('hud-sidebar').classList.remove('hidden');
