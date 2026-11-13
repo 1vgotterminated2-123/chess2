@@ -4066,6 +4066,10 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
             updateTurnUI();
             updateHUDCounters();
+            if (G.gameOver && onlineFinalizationPromise) {
+                await onlineFinalizationPromise;
+                return;
+            }
             if (onlineLocalTeam && !applyingOnlineState && (ending === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid && G.teamControllers[ending] && G.teamControllers[ending].type === 'ai'))) {
                 const published = await publishOnlineBoard(ending);
                 // Do not let the next AI turn run on an uncommitted local board.
@@ -5459,6 +5463,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         }
 
         async function returnToMainMenu() {
+            // If the game has already ended, wait for its authoritative result and
+            // Elo write before tearing down the online session.
+            if (G.gameOver && onlineFinalizationPromise) await onlineFinalizationPromise;
             if (activeLobbyCode && onlineMatchRef && !G.gameOver) {
                 // Trust the canonical match document, not a possibly stale local flag.
                 try {
@@ -5555,9 +5562,11 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             $('btn-review-toolbar').classList.remove('hidden');
             $('btn-review-floating').classList.remove('hidden');
             $('modal-game-over').classList.remove('hidden');
-            // Online terminal state is published by endTurn(), which retains the
-            // actual team that owned the turn. Publishing here used G.turn (already
-            // advanced to the next team) and could race the authoritative final write.
+            // Some wins are detected inside eliminatePiece()/combat and return before
+            // endTurn() can publish. Finalize from Firestore's authoritative turn.
+            if (onlineMatchRef && activeLobbyCode && !onlineSpectatorMode) {
+                finalizeOnlineGameOver();
+            }
         }
 
 
@@ -5721,6 +5730,10 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         let onlinePublishBusy = false;
         // Serialize all board writes so rapid actions cannot silently overwrite or drop one another.
         let onlinePublishQueue = Promise.resolve();
+        // A win can be detected while eliminating a piece, before endTurn() runs.
+        // Finalize from the authoritative Firestore turn so that path also persists
+        // the terminal board and records Elo exactly once.
+        let onlineFinalizationPromise = null;
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -6452,6 +6465,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 // Still clear the local session so the finished match does not trap the player in the room.
                 await firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }).catch(() => {});
             }
+            onlineFinalizationPromise = null;
             resetLobbyUI();
             setLobbyStatus('Match finished. You have left the room.');
             refreshPublicLobbyList();
@@ -6510,7 +6524,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 }
                 if (!opponents.length) return;
 
-                let winningTeam = matchData.winner || matchData.state?.winnerTeam || null;
+                let winningTeam = matchData.winner || matchData.state?.winnerTeam || matchData.winnerTeam || null;
                 const forfeitingTeam = matchData.resignedTeam || matchData.timeoutTeam;
                 if (!winningTeam && forfeitingTeam) winningTeam = teams.find(team => team !== forfeitingTeam) || null;
                 if (!winningTeam) {
@@ -6518,7 +6532,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     return;
                 }
                 const opponentAverage = opponents.reduce((sum,elo) => sum + elo, 0) / opponents.length;
-                const didWin = String(winningTeam).toLowerCase() === String(myTeam).toLowerCase();
+                const didWin = String(winningTeam).trim().toLowerCase() === String(myTeam).trim().toLowerCase();
                 const profileRef = firestoreDB.doc('users/' + user.uid);
                 await firestoreDB.runTransaction(async tx => {
                     const profileSnap = await tx.get(profileRef);
@@ -6566,6 +6580,43 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             } catch (err) {
                 console.warn('Could not update online Elo:', err);
             }
+        }
+
+        async function finalizeOnlineGameOver() {
+            if (!onlineMatchRef || !activeLobbyCode || onlineSpectatorMode) return;
+            if (onlineFinalizationPromise) return onlineFinalizationPromise;
+            const matchCode = activeLobbyCode;
+            const matchRef = onlineMatchRef;
+            onlineFinalizationPromise = (async () => {
+                try {
+                    let snap = await matchRef.get();
+                    if (!snap.exists) throw new Error('Finished match record is missing.');
+                    let data = snap.data();
+                    if (data.status === 'active') {
+                        // Firestore's turn is the team whose action is being committed.
+                        // G.turn may already have advanced locally by the time checkWin()
+                        // runs at the end of a turn.
+                        const actingTeam = data.turn || onlineLocalTeam || G.turn;
+                        await publishOnlineBoard(actingTeam);
+                        snap = await matchRef.get();
+                        if (!snap.exists) throw new Error('Finished match record disappeared.');
+                        data = snap.data();
+                    }
+                    if (data.status !== 'finished') {
+                        throw new Error('The final board has not been confirmed by Firestore yet.');
+                    }
+                    // Save Elo before removing the lobby roster: it contains the
+                    // human's stable seat assignment used by the rating calculation.
+                    await recordOnlineMatchElo(data, matchCode);
+                    if (activeLobbyCode === matchCode) await releaseLobbyAfterMatch();
+                } catch (err) {
+                    console.error('Could not finalize online match / Elo:', err);
+                    accountStatus('Match ended, but its final result or Elo could not be saved. Keep this page open and try returning to the menu again.', true);
+                } finally {
+                    onlineFinalizationPromise = null;
+                }
+            })();
+            return onlineFinalizationPromise;
         }
 
         async function startOnlineBoardSync(asSpectator = false) {
