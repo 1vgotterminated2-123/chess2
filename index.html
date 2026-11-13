@@ -494,39 +494,54 @@ body.is-match-spectator #spectator-camera-controls { z-index: 140 !important; }
 
 
 <style id="piece-inspector-layout-fix">
-#piece-inspector-card{box-sizing:border-box;backdrop-filter:blur(16px);background:rgba(2,6,23,.94)!important}
+#piece-inspector-card{
+  position:fixed!important;
+  top:auto!important;right:auto!important;
+  bottom:12px!important;left:12px!important;
+  z-index:9999!important;
+  box-sizing:border-box;
+  width:min(300px,calc(100vw - 24px));
+  max-width:calc(100vw - 24px);
+  max-height:min(42vh,390px);
+  overflow-x:hidden;overflow-y:auto;
+  transform:none!important;
+  backdrop-filter:blur(16px);
+  background:rgba(2,6,23,.94)!important;
+}
 #piece-inspector-card .grid{min-width:0}
 #piece-inspector-card button{min-width:0}
-@media(max-width:640px){#piece-inspector-card{top:96px;left:8px;width:min(270px,calc(100vw - 16px));max-height:34vh;padding:9px;gap:7px}#piece-inspector-card #inspector-carried-gems-box{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){
+  #piece-inspector-card{
+    bottom:8px!important;left:8px!important;
+    width:min(270px,calc(100vw - 16px));
+    max-width:calc(100vw - 16px);
+    max-height:34vh;padding:9px;gap:7px;
+  }
+  #piece-inspector-card #inspector-carried-gems-box{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 
-<style id="omniverse-inspector-position-override">
-/* The Omniverse theme gives every .glass-panel position:relative.
-   The piece inspector is a viewport overlay and must remain fixed. */
-body[data-theme-style="omniverse"] #piece-inspector-card {
-  position: fixed !important;
-  top: 108px !important;
-  left: 12px !important;
-  right: auto !important;
-  bottom: auto !important;
-  z-index: 75 !important;
-  width: min(300px, calc(100vw - 24px)) !important;
-  max-width: calc(100vw - 24px) !important;
-  max-height: min(42vh, 390px) !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-  pointer-events: auto !important;
-  box-sizing: border-box !important;
-  transform: none !important;
+
+
+
+<style id="omniverse-live-preview-alignment">
+body[data-theme-style="omniverse"] .glass-panel {
+  box-shadow:
+    0 0 18px rgba(103,232,249,.18),
+    0 0 30px rgba(192,132,252,.16),
+    inset 0 0 24px rgba(103,232,249,.045) !important;
 }
-@media (max-width: 640px) {
-  body[data-theme-style="omniverse"] #piece-inspector-card {
-    top: 96px !important;
-    left: 8px !important;
-    width: min(270px, calc(100vw - 16px)) !important;
-    max-width: calc(100vw - 16px) !important;
-    max-height: 34vh !important;
-  }
+body[data-theme-style="omniverse"] #piece-inspector-card {
+  isolation: isolate;
+  border: 1px solid rgba(141,252,255,.65) !important;
+  box-shadow:
+    0 0 16px rgba(103,232,249,.30),
+    0 0 28px rgba(192,132,252,.22),
+    0 14px 36px rgba(0,0,0,.42) !important;
+  backdrop-filter: blur(16px) saturate(1.15) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[data-theme-style="omniverse"] .glass-panel { animation: none !important; }
 }
 </style>
 
@@ -2152,7 +2167,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const origin=board2DOrigin(rect.width,rect.height,dims,cell);
                 const col=Math.floor((px-origin.x)/cell), row=Math.floor((py-origin.y)/cell);
                 if(col<0||col>=dims.W||row<0||row>=dims.H) return;
-                const x=col-dims.offX, z=dims.maxZ-row;
+                const x=col-dims.offX, z=dims.H-1-row-dims.offZ;
                 const tile=G.boardGrid[keyOf(x,z)];
                 if(!tile || tile.isVoid) return;
                 const piece=tile.piece || G.pieces.find(p=>p.x===x&&p.z===z) || null;
@@ -2180,7 +2195,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const light=colorHex(theme.tileA||0xdbeafe),dark=colorHex(theme.tileB||0x475569);
             c.fillStyle='#111827';c.fillRect(0,0,w,h);
             for(let row=0;row<dims.H;row++)for(let col=0;col<dims.W;col++){
-                const x=col-dims.offX,z=dims.maxZ-row,tile=G.boardGrid[keyOf(x,z)],sx=origin.x+col*cell,sy=origin.y+row*cell;
+                const x=col-dims.offX,z=dims.H-1-row-dims.offZ,tile=G.boardGrid[keyOf(x,z)],sx=origin.x+col*cell,sy=origin.y+row*cell;
                 if(!tile||tile.isVoid){c.fillStyle='#080d18';c.fillRect(sx,sy,cell,cell);continue;}
                 let fill=((row+col)&1)?dark:light;
                 if(tile.baseTeam&&TEAM_CONFIGS[tile.baseTeam])fill=colorHex(TEAM_CONFIGS[tile.baseTeam].hex);
@@ -2865,10 +2880,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const x = c - 4; // Eight unique files: -4 through +3.
                 placePiece(order[c], 'white', x, startZ);
                 placePiece('p', 'white', x, startZ - 1);
-                // The classic black formation was one rank too low in the
-                // board's world-space layout. Shift its full formation up
-                // one rank while keeping its pawn row directly in front.
-                const blackBackZ = -startZ + 1;
+                const blackBackZ = -startZ - 1;
                 const blackPawnZ = blackBackZ + 1;
                 placePiece(order[c], 'black', x, blackBackZ);
                 placePiece('p', 'black', x, blackPawnZ);
