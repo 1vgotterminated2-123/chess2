@@ -7219,11 +7219,11 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');const emailEl=$('settings-account-email');emailEl.dataset.revealed='false';emailEl.textContent=maskPrivateEmail(currentAccount.email);$('settings-email-reveal').textContent='REVEAL';$('hub-sound').checked=!!G.soundEnabled;$('hub-2d').checked=!!G.use2DView;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
         function formatProfileDate(value){if(!value)return 'Unknown';const d=value.toDate?value.toDate():(value.seconds?new Date(value.seconds*1000):new Date(value));if(!Number.isFinite(d.getTime()))return 'Unknown';return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
         const COMPETITIVE_RANKS = [
-            {name:'Bronze',min:0,color:'#cd7f32'}, {name:'Silver',min:500,color:'#cbd5e1'},
-            {name:'Gold',min:700,color:'#facc15'}, {name:'Platinum',min:900,color:'#67e8f9'},
-            {name:'Diamond',min:1100,color:'#60a5fa'}, {name:'Emerald',min:1300,color:'#34d399'},
-            {name:'Opal',min:1500,color:'#a5f3fc'}, {name:'Grandmaster',min:1800,color:'#c084fc'},
-            {name:'Abyssal',min:2100,color:'#818cf8'}, {name:'Nightmare',min:2400,color:'#fb7185'}
+            {name:'Bronze',min:0,color:'#cd7f32'}, {name:'Silver',min:250,color:'#cbd5e1'},
+            {name:'Gold',min:400,color:'#facc15'}, {name:'Platinum',min:650,color:'#67e8f9'},
+            {name:'Diamond',min:900,color:'#60a5fa'}, {name:'Emerald',min:1100,color:'#34d399'},
+            {name:'Opal',min:1300,color:'#a5f3fc'}, {name:'Grandmaster',min:1500,color:'#c084fc'},
+            {name:'Abyssal',min:1800,color:'#818cf8'}, {name:'Nightmare',min:2100,color:'#fb7185'}
         ];
         function getOverallElo(ratings){
             const r=ratings||{};
