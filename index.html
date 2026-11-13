@@ -3982,7 +3982,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             btn.classList.toggle('text-emerald-300', G.paused);
         }
 
-        function endTurn() {
+        async function endTurn() {
             if (G.gameOver) return;
             const ending = G.turn;
             tickTeleportChannels(ending);
@@ -4066,7 +4066,11 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
             updateTurnUI();
             updateHUDCounters();
-            if (onlineLocalTeam && !applyingOnlineState && (ending === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid && G.teamControllers[ending] && G.teamControllers[ending].type === 'ai'))) publishOnlineBoard(ending);
+            if (onlineLocalTeam && !applyingOnlineState && (ending === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid && G.teamControllers[ending] && G.teamControllers[ending].type === 'ai'))) {
+                const published = await publishOnlineBoard(ending);
+                // Do not let the next AI turn run on an uncommitted local board.
+                if (!published) return;
+            }
 
             if (!G.gameOver && !G.paused && (isCurrentAI() || G.autoPlayActive)) {
                 triggerAITurnDelay();
@@ -5523,7 +5527,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             if (onlineLocalTeam && !applyingOnlineState && (G.turn === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid))) {
                 const finishedCode = activeLobbyCode;
                 const finishedRef = onlineMatchRef;
-                publishOnlineBoard(G.turn).then(async () => {
+                publishOnlineBoard(G.turn).then(async published => {
+                    if (!published) return;
                     // Record ELO while the room roster still exists, then clear membership.
                     if (finishedRef && finishedCode) {
                         const finishedSnap = await finishedRef.get().catch(() => null);
@@ -5690,6 +5695,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         }
         let applyingOnlineState = false;
         let onlinePublishBusy = false;
+        // Serialize all board writes so rapid actions cannot silently overwrite or drop one another.
+        let onlinePublishQueue = Promise.resolve();
 
         function accountStatus(message, isError = false) {
             const el = $('account-status');
@@ -6658,31 +6665,64 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         }
 
         async function publishOnlineBoard(actingTeam) {
-            if (onlineSpectatorMode || !onlineMatchRef || applyingOnlineState || onlinePublishBusy || !firebaseAuth || !firebaseAuth.currentUser) return;
-            onlinePublishBusy = true;
+            if (onlineSpectatorMode || !onlineMatchRef || applyingOnlineState || !firebaseAuth || !firebaseAuth.currentUser) return false;
             const user = firebaseAuth.currentUser;
+            // Capture this exact board revision now; queued writes preserve call order.
             const state = makeOnlineSnapshot();
-            try {
-                await firestoreDB.runTransaction(async tx => {
-                    const snap = await tx.get(onlineMatchRef);
-                    if (!snap.exists) throw new Error('Online match record is missing.');
-                    const data = snap.data();
-                    if (data.status !== 'active') return;
-                    if (data.turn !== actingTeam) throw new Error('The shared turn changed. Wait for the board to sync.');
-                    if (data.seats && data.seats[actingTeam] && data.seats[actingTeam] !== user.uid) throw new Error('This browser does not own that team.');
-                    tx.update(onlineMatchRef, {
-                        state, turn:G.turn, status:G.gameOver ? 'finished' : 'active',
-                        ...(G.gameOver ? { winner:G.winnerTeam || state.winnerTeam || null } : {}),
-                        clock:onlineClockForNextTurn(G.turn),
-                        version:(data.version || 0) + 1,
-                        lastAction:{by:user.uid, team:actingTeam, type:'turn-complete'},
-                        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+            const task = async () => {
+                onlinePublishBusy = true;
+                try {
+                    const committedVersion = await firestoreDB.runTransaction(async tx => {
+                        const snap = await tx.get(onlineMatchRef);
+                        if (!snap.exists) throw new Error('Online match record is missing.');
+                        const data = snap.data();
+                        if (data.status !== 'active') throw new Error('The online match has already ended.');
+                        if (data.turn !== actingTeam) throw new Error('The shared turn changed. Your board is being resynchronized.');
+                        if (data.seats && data.seats[actingTeam] && data.seats[actingTeam] !== user.uid) throw new Error('This browser does not own that team.');
+                        const nextVersion = Number(data.version || 0) + 1;
+                        tx.update(onlineMatchRef, {
+                            state,
+                            turn: state.turn,
+                            status: state.gameOver ? 'finished' : 'active',
+                            ...(state.gameOver ? { winner: state.winnerTeam || null } : {}),
+                            clock: onlineClockForNextTurn(state.turn),
+                            version: nextVersion,
+                            lastAction: { by:user.uid, team:actingTeam, type:'turn-complete' },
+                            updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        return nextVersion;
                     });
-                });
-            } catch (err) {
-                console.error('Could not publish online board:', err);
-                setLobbyStatus('Move sync failed: ' + err.message, true);
-            } finally { onlinePublishBusy = false; }
+                    onlineMatchVersion = Math.max(onlineMatchVersion, committedVersion);
+                    return true;
+                } catch (err) {
+                    console.error('Could not publish online board; restoring authoritative state:', err);
+                    try {
+                        const latest = await onlineMatchRef.get();
+                        if (latest.exists) {
+                            const data = latest.data();
+                            onlineMatchVersion = Math.max(onlineMatchVersion, Number(data.version || 0));
+                            if (data.clock) onlineClock = Object.assign({}, data.clock);
+                            if (data.state) applyOnlineSnapshot(data.state);
+                            if (data.status === 'finished') {
+                                G.gameOver = true;
+                                hideTeamStatsHUD();
+                                stopOnlineClockTicker();
+                                $('persistent-controls-bar')?.classList.add('hidden');
+                                $('modal-game-over')?.classList.remove('hidden');
+                            }
+                        }
+                    } catch (syncErr) {
+                        console.error('Could not reload authoritative match state:', syncErr);
+                    }
+                    setLobbyStatus('Move was not saved. The board has been resynchronized. ' + (err.message || ''), true);
+                    return false;
+                } finally {
+                    onlinePublishBusy = false;
+                }
+            };
+            const queued = onlinePublishQueue.then(task, task);
+            onlinePublishQueue = queued.then(() => undefined, () => undefined);
+            return queued;
         }
 
         async function launchStartedLobby(room) {
