@@ -2876,22 +2876,25 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const maxZ = map.dims.maxZ;
             const order = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'];
             const startZ = Math.min(maxZ, Math.floor(map.dims.H / 2) - 1);
+            // The board's rows are offset by offZ, so the opposite home edge is
+            // one coordinate farther from zero. Keep both teams one pawn-rank
+            // in front of their back rank and mirror their extra Chaos pieces.
+            const blackBackZ = -startZ - 1;
+            const blackPawnZ = blackBackZ + 1;
             for (let c = 0; c < 8; c++) {
                 const x = c - 4; // Eight unique files: -4 through +3.
                 placePiece(order[c], 'white', x, startZ);
                 placePiece('p', 'white', x, startZ - 1);
-                const blackBackZ = -startZ - 1;
-                const blackPawnZ = blackBackZ + 1;
                 placePiece(order[c], 'black', x, blackBackZ);
                 placePiece('p', 'black', x, blackPawnZ);
             }
             if (G.chaosPieces) {
-                // Keep the special pieces outside the eight-file formation; never stack
-                // them on top of pawns or duplicate the same dragon/necromancer.
+                // Chaos pieces use the extra side platforms beyond the eight files.
+                // Mirror X as well as Z so both armies receive the same two pieces.
                 placePiece('d', 'white', -5, startZ - 1);
                 placePiece('nec', 'white', 4, startZ - 1);
-                placePiece('d', 'black', -5, blackPawnZ);
-                placePiece('nec', 'black', 4, blackPawnZ);
+                placePiece('d', 'black', 5, blackPawnZ);
+                placePiece('nec', 'black', -4, blackPawnZ);
             }
         }
 
