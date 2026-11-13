@@ -854,7 +854,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                             <span class="min-w-0">
                                 <span class="block text-xs font-orbitron font-black tracking-wide text-amber-200">🏆 RANKED LOBBY</span>
                                 <span class="block text-[10px] text-slate-400 mt-1">Enable ELO rating changes for this match</span>
-                                <span class="block text-[9px] text-slate-500 mt-1">AI matches are available at any ELO. At 500+ ELO, AI matches automatically become unranked.</span>
+                                <span class="block text-[9px] text-slate-500 mt-1">AI matches are available at any ELO. At 1,000+ ELO, solo AI matches automatically become unranked.</span>
                             </span>
                             <input id="online-ranked" type="checkbox" class="w-5 h-5 shrink-0 accent-amber-400" aria-label="Make this lobby ranked">
                         </label>
@@ -6436,28 +6436,37 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
         async function recordOnlineMatchElo(matchData, matchCode) {
             const user = firebaseAuth?.currentUser;
-            // The final winner is normally stored at the match root. Also accept the
-            // authoritative final board snapshot for matches finished by a client that
-            // only published state.winnerTeam.
-            const winningTeam = matchData?.winner || matchData?.state?.winnerTeam;
-            if (!user || user.isAnonymous || !firestoreDB || !matchData || !winningTeam || !matchCode || matchData.config?.ranked !== true) return;
+            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchCode) return;
             try {
-                const rosterSnap = await firestoreDB.collection('lobbies').doc(matchCode).collection('players').get();
-                const humans = rosterSnap.docs.map(d => ({ uid:d.id, ...d.data() }))
-                    .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
-                const fmt = matchData.config?.teamFormat === '4-team' ? '4-team' : '2-team';
-                const teams = TEAM_FORMATS[fmt] || ['white','black'];
+                // Read the lobby before deciding whether this was ranked. The lobby is
+                // the source of truth for the room setting; older/partially-created
+                // match documents may not have copied config.ranked correctly.
+                const lobbyRef = firestoreDB.collection('lobbies').doc(matchCode);
+                const [rosterSnap, lobbySnap] = await Promise.all([
+                    lobbyRef.collection('players').get(),
+                    lobbyRef.get()
+                ]);
+                const lobbyData = lobbySnap.exists ? lobbySnap.data() : {};
+                const rankedMatch = matchData.config?.ranked === true || lobbyData.ranked === true;
+                if (!rankedMatch) return;
+
+                const teams = TEAM_FORMATS[matchData.config?.teamFormat === '4-team' ? '4-team' : '2-team'] || ['white','black'];
                 const playerTeams = matchData.config?.playerTeams || {};
                 const playerElos = matchData.config?.playerElos || {};
                 const aiElos = matchData.config?.aiElos || {};
-                // Use the exact seat mapping saved when the match started. The lobby roster
-                // can disappear as players leave a finished room, so it is not authoritative.
-                const myTeam = playerTeams[user.uid] || teams[humans.findIndex(p => p.uid === user.uid)];
-                if (!myTeam || !teams.includes(myTeam)) return;
-                const mode = matchData.config?.mode || 'bedwars';
+                const humans = rosterSnap.docs.map(d => ({ uid:d.id, ...d.data() }))
+                    .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
+                // Prefer the explicit playerTeams map saved at match creation. The
+                // seats map and stable roster order are compatibility fallbacks.
+                const myTeam = playerTeams[user.uid]
+                    || teams[humans.findIndex(p => p.uid === user.uid)];
+                if (!myTeam || !teams.includes(myTeam)) {
+                    console.warn('Ranked Elo was not recorded: this account has no saved team assignment.', { matchCode, uid:user.uid, playerTeams, rosterCount:humans.length });
+                    return;
+                }
+
+                const mode = matchData.config?.mode || lobbyData.mode || 'bedwars';
                 const ratingKey = mode === 'bedwars' ? 'bedwars' : (mode === 'commander' ? 'draft' : 'classic');
-                const lobbySnap = await firestoreDB.collection('lobbies').doc(matchCode).get();
-                const lobbyData = lobbySnap.exists ? lobbySnap.data() : {};
                 const aiPlayers = Array.isArray(lobbyData.aiPlayers) ? lobbyData.aiPlayers : [];
                 const opponents = [];
                 for (const team of teams) {
@@ -6468,11 +6477,20 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                         const rating = Number(playerElos[team] ?? rosterPlayer?.elo ?? rosterPlayer?.ratings?.[ratingKey] ?? 300);
                         opponents.push(Number.isFinite(rating) ? rating : 300);
                     } else {
-                        const rating = Number(aiElos[team] ?? 300);
+                        const lobbyAI = aiPlayers.find(ai => ai && ai.id && String(ai.id).startsWith('ai_'));
+                        const rating = Number(aiElos[team] ?? lobbyAI?.elo ?? 300);
                         opponents.push(Number.isFinite(rating) ? Math.max(100, rating) : 300);
                     }
                 }
                 if (!opponents.length) return;
+
+                let winningTeam = matchData.winner || matchData.state?.winnerTeam || null;
+                const forfeitingTeam = matchData.resignedTeam || matchData.timeoutTeam;
+                if (!winningTeam && forfeitingTeam) winningTeam = teams.find(team => team !== forfeitingTeam) || null;
+                if (!winningTeam) {
+                    console.warn('Ranked Elo was not recorded: finished match has no winner.', matchCode, matchData);
+                    return;
+                }
                 const opponentAverage = opponents.reduce((sum,elo) => sum + elo, 0) / opponents.length;
                 const didWin = String(winningTeam).toLowerCase() === String(myTeam).toLowerCase();
                 const profileRef = firestoreDB.doc('users/' + user.uid);
@@ -7072,9 +7090,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     if (humans.length > capacity) throw new Error('The room has more players than its allowed capacity.');
                     const key = room.mode === 'bedwars' ? 'bedwars' : (room.mode === 'commander' ? 'draft' : 'classic');
                     const elos = humans.map(p => Number(p.eloType === key && p.elo ? p.elo : 300));
-                    // AI matches are allowed at every rating. A solo AI match at 500+ Elo
+                    // AI matches are allowed at every rating. A solo AI match at 1,000+ Elo
                     // is always converted to unranked before the room starts.
-                    const forceUnrankedForHighEloAI = humans.length === 1 && elos[0] >= 500;
+                    const forceUnrankedForHighEloAI = humans.length === 1 && elos[0] >= 1000;
                     const finalRanked = room.ranked === true && !forceUnrankedForHighEloAI;
                     const averageElo = elos.reduce((a,b) => a+b, 0) / elos.length;
                     const level = aiLevelFromAverageElo(averageElo);
@@ -7086,7 +7104,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     tx.update(roomRef, { status: 'started', aiPlayers, ranked: finalRanked, startedAt: firebase.firestore.FieldValue.serverTimestamp(), startedBy: firebaseAuth.currentUser.uid });
                 });
                 G.enableAIStrategy = true; G.enablePieceRoles = true; G.chaosPieces = !!(activeLobbyRoomData && activeLobbyRoomData.chaosPieces);
-                setLobbyStatus('Room started. Empty seats were filled with AI opponents scaled to your Elo. Adaptive AI and Dynamic Piece Roles are ON.' + (activeLobbyPlayers.length === 1 && eloForLobbyPlayer() >= 500 ? ' This 500+ Elo AI match is UNRANKED.' : ''));
+                setLobbyStatus('Room started. Empty seats were filled with AI opponents scaled to your Elo. Adaptive AI and Dynamic Piece Roles are ON.' + (activeLobbyPlayers.length === 1 && eloForLobbyPlayer() >= 1000 ? ' This 1,000+ Elo AI match is UNRANKED.' : ''));
             } catch (err) { setLobbyStatus('Could not start match: ' + err.message, true); }
             finally { activeLobbyStartBusy = false; }
         }
