@@ -530,110 +530,6 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 }
 </style>
 
-
-<style id="omniverse-ascendant-enhanced-effects">
-/* Omniverse Ascendant: bring the live interface up to the animated preview's intensity. */
-body[data-theme-style="omniverse"] {
-  background:
-    radial-gradient(ellipse at 18% 16%,rgba(34,211,238,.30),transparent 34%),
-    radial-gradient(ellipse at 82% 22%,rgba(217,70,239,.30),transparent 36%),
-    radial-gradient(ellipse at 50% 90%,rgba(250,204,21,.18),transparent 42%),
-    linear-gradient(125deg,#030615,#10102e 28%,#25103d 57%,#062b3b 78%,#10091f)!important;
-  background-size:220% 220%!important;
-}
-body[data-theme-style="omniverse"] #main-menu,
-body[data-theme-style="omniverse"] #online-multiplayer-page,
-body[data-theme-style="omniverse"] .hub-page {
-  position:relative;
-  isolation:isolate;
-}
-body[data-theme-style="omniverse"] .glass-panel,
-body[data-theme-style="omniverse"] .theme-card,
-body[data-theme-style="omniverse"] .profile-card,
-body[data-theme-style="omniverse"] #public-lobby-list>div,
-body[data-theme-style="omniverse"] #lobby-room-panel {
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.08),
-    0 10px 32px rgba(1,4,18,.42),
-    0 0 22px rgba(34,211,238,.18),
-    0 0 38px rgba(192,132,252,.16),
-    inset 0 0 28px rgba(103,232,249,.07)!important;
-}
-body[data-theme-style="omniverse"] .theme-preview-omniverse {
-  overflow:hidden;
-  box-shadow:0 0 24px rgba(103,232,249,.55),0 0 48px rgba(192,132,252,.38),inset 0 0 28px rgba(255,255,255,.18)!important;
-}
-body[data-theme-style="omniverse"] .theme-preview-omniverse:after {
-  content:"";
-  position:absolute;inset:-60%;
-  pointer-events:none;
-  background:conic-gradient(from 0deg,transparent,rgba(103,232,249,.20),transparent,rgba(244,114,182,.22),transparent,rgba(250,204,21,.16),transparent);
-  filter:blur(12px);
-  animation:omniNebulaSpin 18s linear infinite;
-}
-body[data-theme-style="omniverse"] #game-container,
-body[data-theme-style="omniverse"] #game-canvas-container {
-  /* A filter here creates a containing block that breaks fixed-position inspector overlays. */
-  filter:none!important;
-}
-body[data-theme-style="omniverse"] #game-canvas-container canvas:not(#chess2-2d-board) {
-  filter:drop-shadow(0 0 9px rgba(103,232,249,.18)) drop-shadow(0 0 18px rgba(192,132,252,.12));
-}
-body[data-theme-style="omniverse"] #piece-inspector-card {
-  position:fixed!important;
-  inset:108px auto auto 12px!important;
-  z-index:9999!important;
-  width:min(300px,calc(100vw - 24px))!important;
-  max-width:calc(100vw - 24px)!important;
-  max-height:min(42vh,390px)!important;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
-  transform:none!important;
-  contain:layout paint;
-  border:1px solid rgba(125,211,252,.72)!important;
-  background:
-    linear-gradient(135deg,rgba(5,13,35,.97),rgba(32,13,57,.96),rgba(5,35,49,.97)) padding-box,
-    linear-gradient(115deg,#67e8f9,#a78bfa,#f472b6,#facc15,#67e8f9) border-box!important;
-  box-shadow:0 0 16px rgba(103,232,249,.34),0 0 32px rgba(192,132,252,.24),0 18px 45px rgba(0,0,0,.48),inset 0 0 24px rgba(103,232,249,.08)!important;
-  backdrop-filter:blur(18px) saturate(1.3)!important;
-}
-body[data-theme-style="omniverse"] #piece-inspector-card:before {
-  content:"";
-  position:absolute;inset:0;
-  pointer-events:none;
-  border-radius:inherit;
-  background:linear-gradient(115deg,transparent 15%,rgba(255,255,255,.075) 48%,transparent 68%);
-  background-size:220% 100%;
-  animation:omniInspectorSheen 6s linear infinite;
-}
-body[data-theme-style="omniverse"] #piece-inspector-card>* {position:relative;z-index:1}
-body[data-theme-style="omniverse"] #piece-inspector-card.hidden {display:none!important}
-body[data-theme-style="omniverse"] #game-canvas-container:after {
-  content:"";
-  position:absolute;inset:0;
-  z-index:2;pointer-events:none;
-  background:
-    radial-gradient(ellipse at 50% 50%,transparent 48%,rgba(34,211,238,.055) 78%,rgba(192,132,252,.10)),
-    linear-gradient(125deg,rgba(103,232,249,.025),transparent 35%,rgba(244,114,182,.035) 70%,rgba(250,204,21,.025));
-  mix-blend-mode:screen;
-}
-body[data-theme-style="omniverse"] .hub-nav-btn.active,
-body[data-theme-style="omniverse"] [role="tab"].active {
-  box-shadow:0 0 14px rgba(103,232,249,.34),0 0 28px rgba(192,132,252,.24),inset 0 1px 0 rgba(255,255,255,.25)!important;
-}
-@keyframes omniInspectorSheen {0%{background-position:-120% 0}100%{background-position:120% 0}}
-@media(max-width:640px) {
-  body[data-theme-style="omniverse"] #piece-inspector-card {
-    top:96px!important;left:8px!important;width:min(270px,calc(100vw - 16px))!important;
-    max-width:calc(100vw - 16px)!important;max-height:34vh!important;
-  }
-}
-@media(prefers-reduced-motion:reduce) {
-  body[data-theme-style="omniverse"] #piece-inspector-card:before,
-  body[data-theme-style="omniverse"] .theme-preview-omniverse:after {animation:none!important}
-}
-</style>
-
 </head>
 <body class="w-full h-screen relative bg-slate-950">
 
@@ -2252,13 +2148,11 @@ body[data-theme-style="omniverse"] [role="tab"].active {
                 const rect=board2DCanvas.getBoundingClientRect();
                 const px=e.clientX-rect.left, py=e.clientY-rect.top;
                 const dims=G.mapData && G.mapData.dims; if(!dims) return;
-                const classicEight=G.mapData.kind==='classic'&&G.mapData.id==='classic';
-                const viewDims={...dims,W:classicEight?8:dims.W,H:classicEight?8:dims.H,offX:classicEight?4:dims.offX,maxZ:classicEight?3:dims.maxZ};
-                const cell=board2DCellSize(rect.width,rect.height,viewDims);
-                const origin=board2DOrigin(rect.width,rect.height,viewDims,cell);
+                const cell=board2DCellSize(rect.width,rect.height,dims);
+                const origin=board2DOrigin(rect.width,rect.height,dims,cell);
                 const col=Math.floor((px-origin.x)/cell), row=Math.floor((py-origin.y)/cell);
-                if(col<0||col>=viewDims.W||row<0||row>=viewDims.H) return;
-                const x=col-viewDims.offX, z=viewDims.maxZ-row;
+                if(col<0||col>=dims.W||row<0||row>=dims.H) return;
+                const x=col-dims.offX, z=dims.maxZ-row;
                 const tile=G.boardGrid[keyOf(x,z)];
                 if(!tile || tile.isVoid) return;
                 const piece=tile.piece || G.pieces.find(p=>p.x===x&&p.z===z) || null;
@@ -2280,17 +2174,13 @@ body[data-theme-style="omniverse"] [role="tab"].active {
             const pw=Math.round(w*dpr),ph=Math.round(h*dpr);
             if(board2DCanvas.width!==pw||board2DCanvas.height!==ph){board2DCanvas.width=pw;board2DCanvas.height=ph;}
             const c=board2DCtx;c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,w,h);
-            const dims=G.mapData.dims;
-            const classicEight=G.mapData.kind==='classic'&&G.mapData.id==='classic';
-            const gridW=classicEight?8:dims.W, gridH=classicEight?8:dims.H;
-            const viewDims={...dims,W:gridW,H:gridH,offX:classicEight?4:dims.offX,maxZ:classicEight?3:dims.maxZ};
-            const cell=board2DCellSize(w,h,viewDims),origin=board2DOrigin(w,h,viewDims,cell);
+            const dims=G.mapData.dims,cell=board2DCellSize(w,h,dims),origin=board2DOrigin(w,h,dims,cell);
             const theme=MAP_THEMES[G.mapData.theme]||MAP_THEMES.neon;
             const colorHex=n=>'#'+(Number(n)>>>0).toString(16).padStart(6,'0').slice(-6);
             const light=colorHex(theme.tileA||0xdbeafe),dark=colorHex(theme.tileB||0x475569);
             c.fillStyle='#111827';c.fillRect(0,0,w,h);
-            for(let row=0;row<gridH;row++)for(let col=0;col<gridW;col++){
-                const x=col-viewDims.offX,z=viewDims.maxZ-row,tile=G.boardGrid[keyOf(x,z)],sx=origin.x+col*cell,sy=origin.y+row*cell;
+            for(let row=0;row<dims.H;row++)for(let col=0;col<dims.W;col++){
+                const x=col-dims.offX,z=dims.maxZ-row,tile=G.boardGrid[keyOf(x,z)],sx=origin.x+col*cell,sy=origin.y+row*cell;
                 if(!tile||tile.isVoid){c.fillStyle='#080d18';c.fillRect(sx,sy,cell,cell);continue;}
                 let fill=((row+col)&1)?dark:light;
                 if(tile.baseTeam&&TEAM_CONFIGS[tile.baseTeam])fill=colorHex(TEAM_CONFIGS[tile.baseTeam].hex);
@@ -2301,7 +2191,7 @@ body[data-theme-style="omniverse"] [role="tab"].active {
                 if(G.selectedPiece&&G.selectedPiece.x===x&&G.selectedPiece.z===z){c.fillStyle='rgba(250,204,21,.48)';c.fillRect(sx,sy,cell,cell);}
                 if(G.validMoves.some(m=>m.x===x&&m.z===z)||G.attackTargets.some(m=>m.x===x&&m.z===z)){c.fillStyle='rgba(34,197,94,.36)';c.beginPath();c.arc(sx+cell/2,sy+cell/2,cell*.19,0,Math.PI*2);c.fill();}
             }
-            for(const p of G.pieces){const col=p.x+viewDims.offX,row=viewDims.maxZ-p.z;if(col<0||col>=gridW||row<0||row>=gridH)continue;const sx=origin.x+col*cell,sy=origin.y+row*cell,team=TEAM_CONFIGS[p.team]||TEAM_CONFIGS.white;
+            for(const p of G.pieces){const col=p.x+dims.offX,row=dims.maxZ-p.z;if(col<0||col>=dims.W||row<0||row>=dims.H)continue;const sx=origin.x+col*cell,sy=origin.y+row*cell,team=TEAM_CONFIGS[p.team]||TEAM_CONFIGS.white;
                 const glyph=BOARD_2D_GLYPHS[p.type]||'●';
                 c.save();c.textAlign='center';c.textBaseline='middle';c.shadowColor='rgba(0,0,0,.7)';c.shadowBlur=Math.max(2,cell*.09);c.font=`900 ${Math.max(10,cell*(p.type==='bed'?.52:.76))}px "Segoe UI Symbol","Noto Sans Symbols 2",serif`;
                 c.fillStyle=p.team==='white'?'#fffdf4':p.team==='black'?'#171923':colorHex(team.hex);c.strokeStyle=p.team==='white'?'#334155':'rgba(255,255,255,.88)';c.lineWidth=Math.max(1,cell*.035);c.strokeText(glyph,sx+cell/2,sy+cell*.49);c.fillText(glyph,sx+cell/2,sy+cell*.49);c.restore();
@@ -2978,7 +2868,7 @@ body[data-theme-style="omniverse"] [role="tab"].active {
                 // The classic black formation was one rank too low in the
                 // board's world-space layout. Shift its full formation up
                 // one rank while keeping its pawn row directly in front.
-                const blackBackZ = -startZ - 1;
+                const blackBackZ = -startZ + 1;
                 const blackPawnZ = blackBackZ + 1;
                 placePiece(order[c], 'black', x, blackBackZ);
                 placePiece('p', 'black', x, blackPawnZ);
