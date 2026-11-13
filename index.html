@@ -638,7 +638,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 <div class="flex flex-col items-center px-2 py-1 rounded-lg bg-slate-950 border border-slate-700"><span class="text-[9px] text-slate-400">BLACK</span><b class="text-lg text-slate-300 tabular-nums">10:00</b></div>
             </div>
             <select id="online-clock-minutes" title="Starting time for both teams" class="bg-slate-950 border border-slate-600 rounded-lg px-1 py-2 text-cyan-200">
-                <option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option><option value="8">8 min</option><option value="9">9 min</option><option value="10" selected>10 min</option><option value="11">11 min</option><option value="12">12 min</option><option value="13">13 min</option><option value="14">14 min</option><option value="15">15 min</option><option value="16">16 min</option><option value="17">17 min</option><option value="18">18 min</option><option value="19">19 min</option><option value="20">20 min</option><option value="21">21 min</option><option value="22">22 min</option><option value="23">23 min</option><option value="24">24 min</option><option value="25">25 min</option><option value="26">26 min</option><option value="27">27 min</option><option value="28">28 min</option><option value="29">29 min</option><option value="30">30 min</option><option value="unlimited">∞</option>
+                <option value="1">1 min</option><option value="2">2 min</option><option value="3">3 min</option><option value="4">4 min</option><option value="5">5 min</option><option value="6">6 min</option><option value="7">7 min</option><option value="8">8 min</option><option value="9">9 min</option><option value="10" selected>10 min</option><option value="11">11 min</option><option value="12">12 min</option><option value="13">13 min</option><option value="14">14 min</option><option value="15">15 min</option><option value="16">16 min</option><option value="17">17 min</option><option value="18">18 min</option><option value="19">19 min</option><option value="20">20 min</option><option value="21">21 min</option><option value="22">22 min</option><option value="23">23 min</option><option value="24">24 min</option><option value="25">25 min</option><option value="26">26 min</option><option value="27">27 min</option><option value="28">28 min</option><option value="29">29 min</option><option value="30">30 min</option>
             </select>
             <button id="online-clock-set-button" onclick="setOnlineClockTime()" class="px-2 py-2 rounded-lg bg-slate-800 border border-cyan-700 text-cyan-200">SET</button>
             <button onclick="resignOnlineMatch()" class="px-2 py-2 rounded-lg bg-red-950 border border-red-600 text-red-300 font-bold">RESIGN</button>
@@ -860,7 +860,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                         </label>
                         <label class="col-span-2 space-y-1 text-[10px] text-slate-400">MATCH TIMER (PER PLAYER)
                             <select id="online-lobby-clock-minutes" class="w-full rounded-xl bg-slate-950 border border-slate-700 text-white px-3 py-2.5 text-xs">
-                                <option value="1">1 minute</option><option value="3">3 minutes</option><option value="5">5 minutes</option><option value="10" selected>10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="unlimited">Unlimited ∞</option>
+                                <option value="1">1 minute</option><option value="3">3 minutes</option><option value="5">5 minutes</option><option value="10" selected>10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option>
                             </select>
                         </label>
                         <div class="col-span-2 rounded-xl bg-slate-950 border border-cyan-500/20 p-3"><div class="text-[10px] font-bold text-cyan-200 mb-1">ONLINE AI RULES</div><p class="text-[10px] text-slate-400">When a room starts with AI fill-ins, Adaptive AI Strategy and Dynamic Piece Roles are automatically forced ON.</p></div>
@@ -5520,20 +5520,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             $('btn-review-toolbar').classList.remove('hidden');
             $('btn-review-floating').classList.remove('hidden');
             $('modal-game-over').classList.remove('hidden');
-            if (onlineLocalTeam && !applyingOnlineState && (G.turn === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid))) {
-                const finishedCode = activeLobbyCode;
-                const finishedRef = onlineMatchRef;
-                publishOnlineBoard(G.turn).then(async () => {
-                    // Record ELO while the room roster still exists, then clear membership.
-                    if (finishedRef && finishedCode) {
-                        const finishedSnap = await finishedRef.get().catch(() => null);
-                        if (finishedSnap && finishedSnap.exists) await recordOnlineMatchElo(finishedSnap.data(), finishedCode);
-                    }
-                    await releaseLobbyAfterMatch();
-                }).catch(err => console.warn('Could not finalize online match:', err));
-            } else if (activeLobbyCode && !applyingOnlineState) {
-                releaseLobbyAfterMatch();
-            }
+            if (onlineLocalTeam && !applyingOnlineState && (G.turn === onlineLocalTeam || (firebaseAuth && firebaseAuth.currentUser && firebaseAuth.currentUser.uid === onlineHostUid))) publishOnlineBoard(G.turn);
         }
 
 
@@ -5588,7 +5575,6 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         let onlineClockFinishing = false;
         function onlineClockKey(team) { return team + 'Ms'; }
         function onlineClockRemaining(team, clock=onlineClock, now=Date.now()) {
-            if (clock?.unlimited) return Infinity;
             const base = Number(clock[onlineClockKey(team)] ?? (Number(clock.minutes || 10) * 60000));
             return Math.max(0, base - (clock.activeTeam === team ? Math.max(0, now - Number(clock.activeSinceMs || now)) : 0));
         }
@@ -5608,7 +5594,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             teams.forEach((team,index)=>{
                 const remaining=onlineClockRemaining(team,onlineClock,now);
                 const value=$('online-clock-value-'+team), label=$('online-clock-label-'+team);
-                if(value){value.textContent=onlineClock.unlimited?'∞':formatOnlineClock(remaining);value.classList.toggle('text-red-400',!onlineClock.unlimited&&remaining<=10000);value.classList.toggle('text-cyan-300',onlineClock.unlimited||remaining>10000&&index===0);}
+                if(value){value.textContent=formatOnlineClock(remaining);value.classList.toggle('text-red-400',remaining<=10000);value.classList.toggle('text-cyan-300',remaining>10000&&index===0);}
                 if(label)label.textContent=team.toUpperCase()+(onlineClock.activeTeam===team?' • RUNNING':'');
                 if(remaining<=0&&onlineClock.activeTeam===team)expiredTeam=team;
             });
@@ -5622,18 +5608,16 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         function stopOnlineClockTicker(){ if(onlineClockInterval) clearInterval(onlineClockInterval); onlineClockInterval=null; }
         function onlineClockForNextTurn(nextTeam) {
             const now=Date.now(), previous=onlineClock.activeTeam;
-            const out={activeTeam:nextTeam,activeSinceMs:now,minutes:onlineClock.minutes||10,unlimited:!!onlineClock.unlimited};
-            (G.teams||['white','black']).forEach(team=>{out[onlineClockKey(team)]=onlineClock.unlimited?0:onlineClockRemaining(team,onlineClock,now);});
+            const out={activeTeam:nextTeam,activeSinceMs:now,minutes:onlineClock.minutes||10};
+            (G.teams||['white','black']).forEach(team=>{out[onlineClockKey(team)]=onlineClockRemaining(team,onlineClock,now);});
             return out;
         }
         async function setOnlineClockTime() {
             if(onlineSpectatorMode) return;
             if(!onlineMatchRef||!firebaseAuth?.currentUser) return;
-            const selection=$('online-clock-minutes')?.value||'10';
-            const unlimited=selection==='unlimited';
-            const minutes=unlimited?10:Math.max(1,Math.min(30,Number(selection||10)));
-            const ms=unlimited?0:minutes*60000, now=Date.now();
-            try { await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists||snap.data().status!=='active')throw new Error('This match is no longer active.');const d=snap.data(),clock={activeTeam:d.turn,activeSinceMs:now,minutes,unlimited};(G.teams||['white','black']).forEach(t=>clock[onlineClockKey(t)]=ms);tx.update(onlineMatchRef,{clock,version:(d.version||0)+1,lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'clock-set'},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}); }
+            const minutes=Math.max(1,Math.min(30,Number($('online-clock-minutes')?.value||10)));
+            const ms=minutes*60000, now=Date.now();
+            try { await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists||snap.data().status!=='active')throw new Error('This match is no longer active.');const d=snap.data(),clock={activeTeam:d.turn,activeSinceMs:now,minutes};(G.teams||['white','black']).forEach(t=>clock[onlineClockKey(t)]=ms);tx.update(onlineMatchRef,{clock,version:(d.version||0)+1,lastAction:{by:firebaseAuth.currentUser.uid,team:d.turn,type:'clock-set'},updatedAt:firebase.firestore.FieldValue.serverTimestamp()});}); }
             catch(e){alert('Could not set the match clock: '+e.message);}
         }
         async function resignOnlineMatch(returnHome=false, alreadyConfirmed=false) {
@@ -5645,9 +5629,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const finishedMatch = await firestoreDB.runTransaction(async tx=>{const snap=await tx.get(onlineMatchRef);if(!snap.exists)throw new Error('Match record not found.');const d=snap.data();if(d.status!=='active')return d;const myTeam=onlineLocalTeam||Object.keys(d.seats||{}).find(t=>d.seats[t]===user.uid);if(!myTeam)throw new Error('Your team seat could not be identified.');const winner=(G.teams||Object.keys(d.seats||{})).find(t=>t!==myTeam);const finished={...d,status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:(d.version||0)+1,lastAction:{by:user.uid,team:myTeam,type:'resign',winner}};tx.update(onlineMatchRef,{status:'finished',winner,resignedBy:user.uid,resignedTeam:myTeam,version:finished.version,lastAction:finished.lastAction,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});return finished;});
                 // Save this player's loss before any return-home cleanup removes their lobby roster entry.
                 if (finishedMatch) await recordOnlineMatchElo(finishedMatch, activeLobbyCode);
-                await releaseLobbyAfterMatch();
                 G.gameOver=true; hideTeamStatsHUD(); stopOnlineClockTicker(); const winner=(G.teams||[]).find(t=>t!==onlineLocalTeam); if($('winner-title'))$('winner-title').textContent='RESIGNATION'; if($('winner-subtitle'))$('winner-subtitle').textContent=(winner||'The opposing team').toUpperCase()+' WINS — opponent resigned.'; if($('modal-game-over'))$('modal-game-over').classList.remove('hidden');
-                if(returnHome){returnToMainMenu();}
+                if(returnHome){await releaseLobbyAfterMatch();returnToMainMenu();}
             } catch(e){alert('Could not resign: '+e.message);}
         }
         async function finishOnlineOnTime(loserTeam) {
@@ -5678,9 +5661,6 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     if ($('winner-subtitle')) $('winner-subtitle').textContent =
                         String(result.winner || 'The opposing team').toUpperCase() + ' WINS — opponent ran out of time.';
                     $('modal-game-over')?.classList.remove('hidden');
-                    const finishedSnap = await onlineMatchRef.get().catch(() => null);
-                    if (finishedSnap && finishedSnap.exists) await recordOnlineMatchElo(finishedSnap.data(), activeLobbyCode);
-                    await releaseLobbyAfterMatch();
                 }
             } catch (e) {
                 console.warn('Clock timeout update failed:', e);
@@ -6520,10 +6500,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             onlineMatchRef = firestoreDB.collection('matches').doc(code);
             const user = firebaseAuth.currentUser;
             const lobbyMinutes = Math.max(1, Math.min(30, Number(activeLobbyRoomData?.clockMinutes || 10)));
-            const lobbyUnlimited = !!activeLobbyRoomData?.clockUnlimited;
-            const lobbyClockMs = lobbyUnlimited ? 0 : lobbyMinutes * 60000;
-            onlineClock = Object.assign({ activeTeam:G.turn, activeSinceMs:Date.now(), minutes:lobbyMinutes, unlimited:lobbyUnlimited }, Object.fromEntries((G.teams||['white','black']).map(team=>[onlineClockKey(team),lobbyClockMs])));
-            if ($('online-clock-minutes')) $('online-clock-minutes').value = lobbyUnlimited ? 'unlimited' : String(lobbyMinutes);
+            const lobbyClockMs = lobbyMinutes * 60000;
+            onlineClock = Object.assign({ activeTeam:G.turn, activeSinceMs:Date.now(), minutes:lobbyMinutes }, Object.fromEntries((G.teams||['white','black']).map(team=>[onlineClockKey(team),lobbyClockMs])));
+            if ($('online-clock-minutes')) $('online-clock-minutes').value = String(lobbyMinutes);
             onlineMatchVersion = -1;
             const initial = makeOnlineSnapshot();
             // Only the host needs to check whether the canonical match already exists.
@@ -6858,9 +6837,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 if (!map || !isMapAllowed(mapId, mode, teamFormat)) return setLobbyStatus('Choose a valid map for this mode and team format.', true);
                 const visibility = $('online-visibility').value;
                 const ranked = !!$('online-ranked')?.checked;
-                const clockSelection = $('online-lobby-clock-minutes')?.value || '10';
-                const clockUnlimited = clockSelection === 'unlimited';
-                const clockMinutes = clockUnlimited ? 10 : Math.max(1, Math.min(30, Number(clockSelection || 10)));
+                const clockMinutes = Math.max(1, Math.min(30, Number($('online-lobby-clock-minutes')?.value || 10)));
                 const maxPlayers = teamFormat === '4-team' ? 4 : 2;
                 const user = firebaseAuth.currentUser;
                 const userRef = firestoreDB.doc('users/' + user.uid);
@@ -6876,12 +6853,12 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     tx.set(roomRef, {
                         code, hostUid: user.uid, hostName: currentAccount.username, status: 'waiting',
                         visibility, mode, teamFormat, mapId, mapName: map.name, maxPlayers, ranked,
-                        chaosPieces: !!$('online-chaos-pieces')?.checked, clockMinutes, clockUnlimited, adaptiveAI: true, dynamicPieceRoles: true, aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        chaosPieces: !!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI: true, dynamicPieceRoles: true, aiPlayers: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     tx.set(playerRef, { uid: user.uid, username: currentAccount.username, ready: false, ...currentLobbyElo(mode), joinedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     tx.update(userRef, { activeLobbyCode: code });
                 });
-                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, ranked, chaosPieces:!!$('online-chaos-pieces')?.checked, clockMinutes, clockUnlimited, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
+                activeLobbyIsHost = true; activeLobbyReady = false; activeLobbyRoomData = { visibility, mode, teamFormat, mapId, mapName: map.name, hostName: currentAccount.username, maxPlayers, ranked, chaosPieces:!!$('online-chaos-pieces')?.checked, clockMinutes, adaptiveAI:true, dynamicPieceRoles:true, status: 'waiting' };
                 watchLobby(code);
                 setLobbyStatus((visibility === 'private' ? 'Private' : 'Public') + ' room created.');
             } catch (err) { console.error(err); setLobbyStatus('Could not create room: ' + err.message, true); }
