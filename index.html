@@ -1717,7 +1717,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         /* =====================================================================
            MAP CATALOG (15 DISTINCT UNIQUE MAPS)
            ===================================================================== */
-        const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, -1], blue: [-1, 0], green: [0, 1], yellow: [1, 0] };
+        const FWD_NS = { white: [0, -1], black: [0, 1], red: [0, 1], blue: [-1, 0], green: [0, -1], yellow: [1, 0] };
 
         const MAP_CATALOG = [
             /* --- 4-TEAM BEDWARS SQUAD ARENAS (5 MAPS) --- */
@@ -2865,16 +2865,21 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const x = c - 4; // Eight unique files: -4 through +3.
                 placePiece(order[c], 'white', x, startZ);
                 placePiece('p', 'white', x, startZ - 1);
-                placePiece(order[c], 'black', x, -startZ);
-                placePiece('p', 'black', x, -startZ + 1);
+                // The classic black formation was one rank too low in the
+                // board's world-space layout. Shift its full formation up
+                // one rank while keeping its pawn row directly in front.
+                const blackBackZ = -startZ + 1;
+                const blackPawnZ = blackBackZ + 1;
+                placePiece(order[c], 'black', x, blackBackZ);
+                placePiece('p', 'black', x, blackPawnZ);
             }
             if (G.chaosPieces) {
                 // Keep the special pieces outside the eight-file formation; never stack
                 // them on top of pawns or duplicate the same dragon/necromancer.
                 placePiece('d', 'white', -5, startZ - 1);
                 placePiece('nec', 'white', 4, startZ - 1);
-                placePiece('d', 'black', -5, -startZ + 1);
-                placePiece('nec', 'black', 4, -startZ + 1);
+                placePiece('d', 'black', -5, blackPawnZ);
+                placePiece('nec', 'black', 4, blackPawnZ);
             }
         }
 
