@@ -1326,10 +1326,10 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 <div class="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
                     <div>
                         <div class="font-orbitron font-bold text-xs text-cyan-300">💥 ORBITAL LASER STRIKE</div>
-                        <div class="text-[10px] text-slate-400 font-mono">Deals 8 damage to a target piece anywhere on the board in Normal mode.</div>
+                        <div class="text-[10px] text-slate-400 font-mono">Deals 7 damage to any target piece except the King, anywhere on the board.</div>
                     </div>
                     <button onclick="castSpell('laser')" class="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-orbitron font-bold text-xs uppercase whitespace-nowrap">
-                        5 MANA (NORMAL) / 4
+                        5 MANA
                     </button>
                 </div>
 
@@ -4142,8 +4142,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         /* =====================================================================
            MANA SPELLS
            ===================================================================== */
-        const SPELL_COST = { laser: 4, swap: 3, skele: 2, shield: 3 };
-        const spellCost = type => type === 'laser' && G.mode === 'standard' ? 5 : SPELL_COST[type];
+        const SPELL_COST = { laser: 5, swap: 3, skele: 2, shield: 3 };
+        const spellCost = type => SPELL_COST[type];
 
         function castSpell(type) {
             if (G.mode === 'bedwars' || inputBlocked()) return;
@@ -4170,10 +4170,15 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             if (!p) return;
             const res = G.resources[G.turn];
             if (sm.type === 'laser') {
+                // Kings are immune to the Orbital Laser; don't spend mana.
+                if (p.type === 'king') {
+                    showFloatingText('THE KING CANNOT BE TARGETED!', p.x, p.z, '#fbbf24');
+                    return;
+                }
                 res.mana -= spellCost('laser');
                 playSound('laser');
                 showFloatingText('ORBITAL LASER!', p.x, p.z, '#06b6d4');
-                const strikeDamage = G.mode === 'standard' ? 8 : 15;
+                const strikeDamage = 7;
                 applyDamage(p, strikeDamage);
                 showFloatingText(`-${strikeDamage} HP`, p.x, p.z, '#06b6d4');
                 if (p.hp <= 0) eliminatePiece(p);
