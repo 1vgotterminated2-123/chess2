@@ -6623,10 +6623,19 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             onlineMatchUnsubscribe = onlineMatchRef.onSnapshot(snap => {
                 if (!snap.exists) return;
                 const data = snap.data();
-                if (typeof data.version !== 'number' || data.version <= onlineMatchVersion) return;
-                onlineMatchVersion = data.version;
+                // A terminal status is authoritative even if this browser already
+                // observed the same board version during startup. Never let the
+                // version de-duplication guard hide the match-finished transition.
+                const terminalSnapshot = data.status === 'finished';
+                if (typeof data.version !== 'number') return;
+                if (terminalSnapshot) {
+                    if (data.version < onlineMatchVersion) return;
+                } else if (data.version <= onlineMatchVersion) {
+                    return;
+                }
+                onlineMatchVersion = Math.max(onlineMatchVersion, data.version);
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
-                if (data.status === 'finished') {
+                if (terminalSnapshot) {
                     // Apply the final board + replay log before opening the result UI.
                     // Previously this branch returned early, so the opponent could
                     // review the position from one move before the actual finish.
@@ -7204,9 +7213,28 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     if (currentAccount) currentAccount.activeLobbyCode = null;
                     return;
                 }
-                activeLobbyIsHost = roomSnap.data().hostUid === user.uid;
+
+                const restoredRoom = roomSnap.data();
+                if (restoredRoom.status === 'started') {
+                    const matchSnap = await firestoreDB.collection('matches').doc(code).get().catch(() => null);
+                    const matchData = matchSnap && matchSnap.exists ? (matchSnap.data() || {}) : null;
+                    if (!matchData || matchData.status !== 'active') {
+                        // The room document can outlive the match. Clear this stale
+                        // membership instead of relaunching the board from old state.
+                        const batch = firestoreDB.batch();
+                        batch.update(firestoreDB.doc('users/' + user.uid), { activeLobbyCode: null });
+                        batch.delete(roomRef.collection('players').doc(user.uid));
+                        await batch.commit().catch(async () => {
+                            await firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }).catch(() => {});
+                        });
+                        if (currentAccount) currentAccount.activeLobbyCode = null;
+                        return;
+                    }
+                }
+
+                activeLobbyIsHost = restoredRoom.hostUid === user.uid;
                 activeLobbyReady = !!playerSnap.data().ready;
-                activeLobbyRoomData = roomSnap.data();
+                activeLobbyRoomData = restoredRoom;
                 watchLobby(code);
                 $('main-menu').classList.add('hidden');
                 $('online-multiplayer-page').classList.remove('hidden');
