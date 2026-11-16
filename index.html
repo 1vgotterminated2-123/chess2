@@ -4512,46 +4512,94 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const inBounds = (x, z) => x >= -offX && x < W - offX && z >= -offZ && z < H - offZ;
             const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
             if (startKey === goalKey) return [start];
-            const queue = [start], cameFrom = new Map([[startKey, null]]);
-            // Bridge routes are deliberately orthogonal: when a destination is diagonal,
-            // build/run vertically first (Z axis), then turn sideways (X axis).
-            // This prevents AI wool from creating diagonal corner-to-corner shortcuts.
+
+            // Weighted A*: existing wool is dramatically cheaper than creating
+            // another bridge. This lets squads take a modest detour to reuse a
+            // shared bridge instead of spending iron/wool on a parallel route.
             const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+            const heuristic = (x, z) => (Math.abs(x - goal.x) + Math.abs(z - goal.z)) * 0.15;
+            const stepCost = (tile) => {
+                if (tile?.wool) return 0.15;       // Reuse any existing wool bridge.
+                if (tile?.isVoid) return 7.0;      // New bridge tile costs materials.
+                return 1.0;                        // Ordinary walkable terrain.
+            };
+
+            const distance = new Map([[startKey, 0]]);
+            const cameFrom = new Map();
+            const closed = new Set();
+            const open = [];
+            const push = node => {
+                open.push(node);
+                let i = open.length - 1;
+                while (i > 0) {
+                    const parent = (i - 1) >> 1;
+                    if (open[parent].f <= node.f) break;
+                    open[i] = open[parent];
+                    i = parent;
+                }
+                open[i] = node;
+            };
+            const pop = () => {
+                const root = open[0], last = open.pop();
+                if (open.length) {
+                    let i = 0;
+                    while (true) {
+                        let child = i * 2 + 1;
+                        if (child >= open.length) break;
+                        if (child + 1 < open.length && open[child + 1].f < open[child].f) child++;
+                        if (open[child].f >= last.f) break;
+                        open[i] = open[child];
+                        i = child;
+                    }
+                    open[i] = last;
+                }
+                return root;
+            };
+
+            push({ x: start.x, z: start.z, key: startKey, g: 0, f: heuristic(start.x, start.z) });
             let found = false;
-            for (let head = 0; head < queue.length; head++) {
-                const cur = queue[head];
-                const nexts = dirs.map(([dx,dz]) => ({x:cur.x+dx,z:cur.z+dz}));
-                nexts.sort((a,b) => {
-                    const da = Math.abs(a.x-goal.x)+Math.abs(a.z-goal.z);
-                    const db = Math.abs(b.x-goal.x)+Math.abs(b.z-goal.z);
-                    if (da !== db) return da-db;
-                    // Prefer already-built wool, then vertical movement, to reuse
-                    // shared bridges and make diagonal routes visibly dog-leg.
-                    const ta=G.boardGrid[keyOf(a.x,a.z)], tb=G.boardGrid[keyOf(b.x,b.z)];
+            while (open.length) {
+                const cur = pop();
+                if (closed.has(cur.key)) continue;
+                if (cur.key === goalKey) { found = true; break; }
+                closed.add(cur.key);
+
+                const nexts = dirs.map(([dx, dz]) => ({ x: cur.x + dx, z: cur.z + dz }));
+                // Deterministic tie-break: reuse wool first, then continue along Z.
+                nexts.sort((a, b) => {
+                    const ta = G.boardGrid[keyOf(a.x, a.z)], tb = G.boardGrid[keyOf(b.x, b.z)];
                     if (!!ta?.wool !== !!tb?.wool) return ta?.wool ? -1 : 1;
                     return (a.x === cur.x ? -1 : 0) - (b.x === cur.x ? -1 : 0);
                 });
+
                 for (const next of nexts) {
-                    if (!inBounds(next.x,next.z)) continue;
-                    const key = keyOf(next.x,next.z), tile = G.boardGrid[key];
-                    if (!tile || cameFrom.has(key)) continue;
+                    if (!inBounds(next.x, next.z)) continue;
+                    const key = keyOf(next.x, next.z);
+                    if (closed.has(key)) continue;
+                    const tile = G.boardGrid[key];
+                    if (!tile) continue;
                     if (tile.piece && tile.piece.id !== piece.id && key !== goalKey) continue;
-                    // Void cells are deliberately traversable in the PLAN; the
-                    // bridge builder turns those planned cells into real tiles.
-                    cameFrom.set(key, keyOf(cur.x,cur.z));
-                    if (key === goalKey) { found = true; break; }
-                    queue.push(next);
+
+                    const nextG = cur.g + stepCost(tile);
+                    if (nextG >= (distance.get(key) ?? Infinity)) continue;
+                    distance.set(key, nextG);
+                    cameFrom.set(key, cur.key);
+                    push({ x: next.x, z: next.z, key, g: nextG, f: nextG + heuristic(next.x, next.z) });
                 }
-                if (found) break;
             }
             if (!found) return [];
-            const path = []; let key = goalKey;
-            while (key) {
-                const [x,z] = key.split(',').map(Number); path.push({x,z}); key = cameFrom.get(key);
-            }
-            return path.reverse();
-        }
 
+            const path = [];
+            let key = goalKey;
+            while (key) {
+                const [x, z] = key.split(',').map(Number);
+                path.push({ x, z });
+                if (key === startKey) break;
+                key = cameFrom.get(key);
+            }
+            return path[path.length - 1] && keyOf(path[path.length - 1].x, path[path.length - 1].z) === startKey
+                ? path.reverse() : [];
+        }
         function nearestGeneratorForTeam(team, type) {
             const home = aiBaseCenter(team);
             const candidates = G.gens.filter(g => g.type === type);
