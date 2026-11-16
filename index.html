@@ -40,6 +40,12 @@
         #profile-rank-next.rank-next-tier-7 { background:linear-gradient(100deg,#c084fc,#f5d0fe,#818cf8,#e9d5ff);background-size:240% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 15px rgba(192,132,252,.8);animation:rankPrismatic 2s linear infinite; }
         #profile-rank-next.rank-next-tier-8 { background:linear-gradient(100deg,#6366f1,#c4b5fd,#312e81,#a5b4fc);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 16px rgba(129,140,248,.95);animation:rankAbyss 2.2s ease-in-out infinite; }
         #profile-rank-next.rank-next-tier-9 { background:linear-gradient(90deg,#fb7185,#fda4af,#fff,#f43f5e,#be123c);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 18px rgba(251,113,133,.95),0 0 30px rgba(244,63,94,.6);animation:rankNightmare 1.6s linear infinite; }
+        #profile-rank-next.rank-next-tier-10 { color:#f0abfc!important;text-shadow:0 0 15px rgba(240,171,252,.9);animation:rankNightmare 2.4s ease-in-out infinite; }
+        #profile-rank-next.rank-next-tier-11 { background:linear-gradient(90deg,#fde68a,#fff,#fbbf24);background-size:220% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 18px rgba(253,230,138,.9);animation:rankPrismatic 2.6s linear infinite; }
+        #profile-rank-next.rank-next-tier-12 { color:#a78bfa!important;text-shadow:0 0 18px rgba(167,139,250,.95),0 0 32px rgba(91,33,182,.7);animation:rankAbyss 2s ease-in-out infinite; }
+        #profile-rank-next.rank-next-tier-13 { background:linear-gradient(90deg,#67e8f9,#fff,#2dd4bf);background-size:240% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 20px rgba(103,232,249,.95);animation:rankPrismatic 1.9s linear infinite; }
+        #profile-rank-next.rank-next-tier-14 { background:linear-gradient(90deg,#f9a8d4,#fff,#c084fc,#f9a8d4);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 22px rgba(249,168,212,.95);animation:rankPrismatic 1.7s linear infinite; }
+        #profile-rank-next.rank-next-tier-15 { background:linear-gradient(90deg,#fff1a6,#fff,#fbbf24,#fff1a6);background-size:260% auto;background-clip:text;-webkit-background-clip:text;color:transparent!important;text-shadow:0 0 24px rgba(255,241,166,1),0 0 42px rgba(245,158,11,.8);animation:rankPrismatic 1.35s linear infinite; }
         @keyframes rankDiamondPulse { 50% { filter:brightness(1.5);text-shadow:0 0 16px rgba(96,165,250,1),0 0 28px rgba(96,165,250,.7); } }
         @keyframes rankEmeraldPulse { 50% { filter:brightness(1.55);text-shadow:0 0 18px rgba(52,211,153,1),0 0 32px rgba(16,185,129,.8); } }
         @keyframes rankPrismatic { to { background-position:220% center;filter:brightness(1.3); } }
@@ -2569,6 +2575,29 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             if (G.selectedPiece) updatePieceInspector(G.selectedPiece);
         }
 
+
+        // Bedless teams cannot rely on respawns: clear intruders from the home
+        // island and keep the King out of easy reach until the squad stabilizes.
+        function aiHomeIntruders(team) {
+            return G.pieces.filter(p =>
+                p.team !== team && p.team !== 'neutral' &&
+                p.type !== 'bed' && p.type !== 'guardian' &&
+                isPosInBase(p.x, p.z, team)
+            );
+        }
+
+        function aiKingThreat(team) {
+            const king = G.pieces.find(p => p.team === team && p.type === 'k');
+            if (!king) return { king: null, enemies: [], nearest: null };
+            const enemies = G.pieces.filter(p =>
+                p.team !== team && p.team !== 'neutral' &&
+                p.type !== 'bed' && p.type !== 'guardian' &&
+                cheb(p, king) <= 5
+            );
+            enemies.sort((a,b) => cheb(a, king) - cheb(b, king));
+            return { king, enemies, nearest: enemies[0] || null };
+        }
+
         function evaluatePieceRole(piece) {
             if (!piece || piece.type === 'bed') return 'GUARD';
             if (!G.enablePieceRoles) {
@@ -2578,6 +2607,15 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             
             const homeBed = bedOf(piece.team);
             const nearEnemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed');
+
+            if (G.mode === 'bedwars' && G.resources[piece.team] && !G.resources[piece.team].bedAlive) {
+                const intruders = aiHomeIntruders(piece.team);
+                const kingThreat = aiKingThreat(piece.team);
+                if (intruders.length || kingThreat.enemies.length) {
+                    piece.role = 'CLUTCH_DEFEND';
+                    return piece.role;
+                }
+            }
             
             // Trigger 1: CLUTCH_DEFEND (Home Bed under attack / enemy within 4 tiles of home base)
             if (homeBed) {
@@ -4468,6 +4506,23 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const homeBed = bedOf(team);
             const enemyObjective = nearestEnemyObjective(piece);
 
+            if (G.mode === 'bedwars' && G.resources[team] && !G.resources[team].bedAlive) {
+                const intruders = aiHomeIntruders(team);
+                if (intruders.length) {
+                    // All pieces may help, but favor the intruder closest to the
+                    // King; this is more urgent than generators or an enemy bed.
+                    intruders.sort((a,b) => {
+                        const king = G.pieces.find(p => p.team === team && p.type === 'k');
+                        const da = king ? cheb(a, king) : cheb(piece, a);
+                        const db = king ? cheb(b, king) : cheb(piece, b);
+                        return da - db || cheb(piece, a) - cheb(piece, b);
+                    });
+                    return intruders[0];
+                }
+                const kingThreat = aiKingThreat(team);
+                if (kingThreat.nearest) return kingThreat.nearest;
+            }
+
             // Some teams send an escort with their main attacker; others rush solo.
             if (piece.aiSupportFor) {
                 const leader = G.pieces.find(p => p.id === piece.aiSupportFor && p.team === team);
@@ -4489,9 +4544,21 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             // Wool carriers deliberately secure an intermediate resource island before rushing.
             if (G.mode === 'bedwars' && piece.aiRouteKind && !piece.aiRouteDone) {
                 const wantedType = piece.aiRouteKind === 'mid' ? 'em' : 'dia';
-                const gen = nearestGeneratorForTeam(team, wantedType);
+                const gen = wantedType === 'em' ? bestMidGeneratorForPiece(piece) : nearestGeneratorForTeam(team, wantedType);
                 if (gen && cheb(piece, gen) > 1) return gen;
                 if (gen) piece.aiRouteDone = true;
+            }
+
+            // Emerald generators are strategic objectives, not incidental pickups.
+            // A large stored stack should pull several units toward mid, while avoiding
+            // sending already-loaded carriers or every unit onto an occupied square.
+            if (G.mode === 'bedwars' && piece.carriedEm < 3 && piece.carriedDia < 5) {
+                const midGen = bestMidGeneratorForPiece(piece);
+                if (midGen) {
+                    const midValue = midGen.stock * 2.8 - cheb(piece, midGen) * 1.15;
+                    const objectiveValue = enemyObjective ? 5 - cheb(piece, enemyObjective) * 0.35 : -Infinity;
+                    if (midGen.stock >= 2 && midValue > objectiveValue + 2) return midGen;
+                }
             }
 
             if (role === 'GATHER' && enemyObjective) {
@@ -4513,15 +4580,24 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const startKey = keyOf(start.x, start.z), goalKey = keyOf(goal.x, goal.z);
             if (startKey === goalKey) return [start];
 
-            // Weighted A*: existing wool is dramatically cheaper than creating
-            // another bridge. This lets squads take a modest detour to reuse a
-            // shared bridge instead of spending iron/wool on a parallel route.
-            const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-            const heuristic = (x, z) => (Math.abs(x - goal.x) + Math.abs(z - goal.z)) * 0.15;
-            const stepCost = (tile) => {
-                if (tile?.wool) return 0.15;       // Reuse any existing wool bridge.
-                if (tile?.isVoid) return 7.0;      // New bridge tile costs materials.
-                return 1.0;                        // Ordinary walkable terrain.
+            // Movement-aware weighted A*: route edges match the piece's actual
+            // movement pattern. Queens/bishops/kings can use diagonal bridge runs;
+            // rooks stay orthogonal. This avoids planning a cheap-looking diagonal
+            // bridge that the assigned carrier cannot actually traverse.
+            const ORTHO = [[0,1],[0,-1],[1,0],[-1,0]];
+            const DIAG = [[1,1],[-1,1],[1,-1],[-1,-1]];
+            const canDiagonal = ['q','b','k','nec','guardian'].includes(piece.type);
+            const dirs = canDiagonal ? ORTHO.concat(DIAG) : ORTHO;
+            const heuristic = (x, z) => {
+                const dx = Math.abs(x - goal.x), dz = Math.abs(z - goal.z);
+                if (!canDiagonal) return (dx + dz) * 0.15;
+                return (Math.max(dx, dz) + (Math.SQRT2 - 1) * Math.min(dx, dz)) * 0.15;
+            };
+            const stepCost = (tile, dx, dz) => {
+                const diagonalFactor = dx && dz ? Math.SQRT2 : 1;
+                if (tile?.wool) return 0.15 * diagonalFactor; // Reuse existing bridges.
+                if (tile?.isVoid) return 7.0 * diagonalFactor; // New bridge is expensive.
+                return 1.0 * diagonalFactor; // Walkable terrain.
             };
 
             const distance = new Map([[startKey, 0]]);
@@ -4580,7 +4656,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     if (!tile) continue;
                     if (tile.piece && tile.piece.id !== piece.id && key !== goalKey) continue;
 
-                    const nextG = cur.g + stepCost(tile);
+                    const nextG = cur.g + stepCost(tile, next.x - cur.x, next.z - cur.z);
                     if (nextG >= (distance.get(key) ?? Infinity)) continue;
                     distance.set(key, nextG);
                     cameFrom.set(key, cur.key);
@@ -4604,6 +4680,23 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const home = aiBaseCenter(team);
             const candidates = G.gens.filter(g => g.type === type);
             return candidates.sort((a,b) => (Math.abs(a.x-home.x)+Math.abs(a.z-home.z)) - (Math.abs(b.x-home.x)+Math.abs(b.z-home.z)))[0] || null;
+        }
+
+        function bestMidGeneratorForPiece(piece) {
+            if (!piece || !G.gens?.length) return null;
+            const center = { x: 0, z: 0 };
+            const candidates = G.gens.filter(g => g.type === 'em');
+            if (!candidates.length) return null;
+            return candidates.map(g => {
+                const distance = cheb(piece, g);
+                const alliesOnGen = G.pieces.filter(p => p.team === piece.team && p.type !== 'bed' && p.id !== piece.id && p.x === g.x && p.z === g.z).length;
+                const alliesNearby = G.pieces.filter(p => p.team === piece.team && p.type !== 'bed' && p.id !== piece.id && cheb(p, g) <= 1).length;
+                const centerBias = Math.max(0, 5 - cheb(g, center)) * 0.8;
+                // Stock is the key signal: a neglected stack of 50 EM outweighs
+                // a modest distance penalty. Nearby squadmates reduce duplicate trips.
+                const value = (Math.max(0, Number(g.stock) || 0) * 3.2) - distance * 1.25 - alliesOnGen * 5 - alliesNearby * 1.1 + centerBias;
+                return { gen: g, value };
+            }).sort((a,b) => b.value - a.value)[0]?.gen || null;
         }
 
         function aiTarget(piece) {
@@ -4714,6 +4807,14 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
             if (attackTarget) {
                 score += 260 + getAtk(attackTarget) * 8;
+                if (G.mode === 'bedwars' && G.resources[piece.team] && !G.resources[piece.team].bedAlive) {
+                    if (isPosInBase(attackTarget.x, attackTarget.z, piece.team)) {
+                        score += 1900 + (attackTarget.type === 'q' || attackTarget.type === 'd' ? 180 : 0);
+                    }
+                    const kingThreat = aiKingThreat(piece.team);
+                    if (kingThreat.king && cheb(attackTarget, kingThreat.king) <= 3) score += 1050;
+                    if (attackTarget.type === 'k') score += 800;
+                }
                 if (attackTarget.type === 'bed') score += 520;
                 if (attackTarget.type === 'k') score += 260;
                 if (attackTarget.type === 'guardian') score += 210;
@@ -4743,6 +4844,50 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const wasInBase = isPosInBase(piece.x, piece.z, piece.team);
                 const willBeInBase = isPosInBase(move.x, move.z, piece.team);
                 const defensiveRole = role === 'CLUTCH_DEFEND' || role === 'RETREAT_BANK';
+                if (G.mode === 'bedwars') {
+                    const ownKing = G.pieces.find(p => p.team === piece.team && p.type === 'k');
+                    const bedGone = !!(G.resources[piece.team] && !G.resources[piece.team].bedAlive);
+                    if (bedGone) {
+                        const intruders = aiHomeIntruders(piece.team);
+                        if (intruders.length && piece.type !== 'k') {
+                            const urgent = intruders.slice().sort((a,b) => {
+                                const da = ownKing ? cheb(a, ownKing) : cheb(piece, a);
+                                const db = ownKing ? cheb(b, ownKing) : cheb(piece, b);
+                                return da - db;
+                            })[0];
+                            const before = cheb(piece, urgent), after = cheb(move, urgent);
+                            if (after < before) score += 260 + (before - after) * 220;
+                            if (willBeInBase) score += 90;
+                        }
+                        if (piece.type === 'k') {
+                            const enemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed' && p.type !== 'guardian');
+                            const beforeThreat = enemies.length ? Math.min(...enemies.map(e => cheb(piece, e))) : 99;
+                            const afterThreat = enemies.length ? Math.min(...enemies.map(e => cheb(move, e))) : 99;
+                            // Preserve a safe retreat route; only leave the base if
+                            // staying would be even more dangerous.
+                            score += (afterThreat - beforeThreat) * 240;
+                            if (willBeInBase) score += 180;
+                            else score -= 260;
+                            if (afterThreat <= 2) score -= 900;
+                            if (afterThreat <= 1) score -= 1500;
+                        } else if (ownKing && cheb(ownKing, move) <= 2 && intruders.length) {
+                            score += 180;
+                        }
+                    } else if (piece.type === 'k') {
+                        // Even before the bed falls, avoid walking the King toward
+                        // enemy pieces; favor remaining on the protected home island.
+                        const enemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed' && p.type !== 'guardian');
+                        if (enemies.length) {
+                            const beforeThreat = Math.min(...enemies.map(e => cheb(piece, e)));
+                            const afterThreat = Math.min(...enemies.map(e => cheb(move, e)));
+                            score += (afterThreat - beforeThreat) * 135;
+                            if (willBeInBase) score += 100;
+                            else score -= 180;
+                            if (afterThreat <= 1) score -= 1000;
+                            else if (afterThreat <= 2) score -= 500;
+                        }
+                    }
+                }
                 if (G.mode === 'bedwars' && !defensiveRole) {
                     const targetProgress = target ? cheb(piece, target) - cheb(move, target) : 0;
                     if (wasInBase && !willBeInBase) score += 1800 + targetProgress * 90;
@@ -4758,7 +4903,24 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
                 if (piece.type === 'k' && G.mode === 'bedwars') score -= 15;
                 if (move.isCastle) score += 50;
-                if (G.boardGrid[keyOf(move.x, move.z)] && G.boardGrid[keyOf(move.x, move.z)].isGenerator) score += 110;
+                const landingTile = G.boardGrid[keyOf(move.x, move.z)];
+                if (landingTile && landingTile.isGenerator) {
+                    const landingGen = G.gens.find(g => g.x === move.x && g.z === move.z);
+                    const stock = landingGen ? Math.max(0, Number(landingGen.stock) || 0) : 0;
+                    const isEmerald = landingGen?.type === 'em';
+                    score += 110 + stock * (isEmerald ? 34 : 20);
+                    if (isEmerald && stock >= 3) score += 180;
+                }
+                // Reward moves that close distance to a valuable, stocked mid EM gen.
+                // This applies even before the unit reaches the generator tile.
+                if (G.mode === 'bedwars' && piece.carriedEm < 3 && piece.carriedDia < 5) {
+                    const midGen = bestMidGeneratorForPiece(piece);
+                    if (midGen) {
+                        const before = cheb(piece, midGen), after = cheb(move, midGen);
+                        const stock = Math.max(0, Number(midGen.stock) || 0);
+                        if (stock > 0 && after < before) score += (before - after) * Math.min(95, 24 + stock * 1.4);
+                    }
+                }
                 if (G.mode === 'bedwars' && !defensiveRole && target && cheb(move, target) <= cheb(piece, target)) score += 35;
                 // Don't send valuable carriers onto squares adjacent to several enemies.
                 const nearbyEnemies = G.pieces.filter(p => p.team !== piece.team && p.team !== 'neutral' && p.type !== 'bed' && cheb(p, move) <= 1).length;
@@ -5747,7 +5909,15 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     const remaining = Math.max(0, Number(clock[loserTeam + 'Ms'] || 0) -
                         (clock.activeTeam === loserTeam ? Math.max(0, now - Number(clock.activeSinceMs || now)) : 0));
                     if (remaining > 0) return null;
-                    const winner = (G.teams || Object.keys(d.seats || {})).find(t => t !== loserTeam);
+                    const allTeams = G.teams || Object.keys(d.seats || {});
+                    const playerTeams = d.config?.playerTeams || {};
+                    const humanTeams = [...new Set(Object.values(playerTeams).filter(t => allTeams.includes(t)))];
+                    const loserIsHuman = humanTeams.includes(loserTeam) || Object.keys(d.seats || {}).some(t => t === loserTeam && d.seats[t]);
+                    // If an AI runs out of time, award the timeout win to a human
+                    // team rather than accidentally selecting another AI squad.
+                    const winner = !loserIsHuman && humanTeams.length
+                        ? (humanTeams.find(t => t !== loserTeam) || humanTeams[0])
+                        : allTeams.find(t => t !== loserTeam);
                     tx.update(onlineMatchRef, {
                         status:'finished', winner, timeoutTeam:loserTeam,
                         version:(d.version || 0) + 1,
@@ -6751,7 +6921,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     },
                     state:initial,
                     turn:G.turn,
-                    clock:Object.assign({activeTeam:G.turn,activeSinceMs:Date.now(),minutes:lobbyMinutes},Object.fromEntries(G.teams.map(t=>[onlineClockKey(t),lobbyClockMs]))),
+                    clock:Object.assign({activeTeam:G.turn,activeSinceMs:Date.now(),minutes:lobbyMinutes,unlimited:lobbyUnlimited},Object.fromEntries(G.teams.map(t=>[onlineClockKey(t),lobbyClockMs]))),
                     version:0,
                     status:'active',
                     lastAction:{type:'match-created', by:user.uid, team:G.turn},
@@ -7486,11 +7656,22 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         function openSettingsPage(){if(!currentAccount)return;openHubPage('settings-page');const emailEl=$('settings-account-email');emailEl.dataset.revealed='false';emailEl.textContent=maskPrivateEmail(currentAccount.email);$('settings-email-reveal').textContent='REVEAL';$('hub-sound').checked=!!G.soundEnabled;$('hub-2d').checked=!!G.use2DView;$('hub-ai').checked=!!G.enableAIStrategy;$('hub-roles').checked=!!G.enablePieceRoles;$('hub-chaos').checked=!!G.chaosPieces;}
         function formatProfileDate(value){if(!value)return 'Unknown';const d=value.toDate?value.toDate():(value.seconds?new Date(value.seconds*1000):new Date(value));if(!Number.isFinite(d.getTime()))return 'Unknown';return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
         const COMPETITIVE_RANKS = [
-            {name:'Bronze',min:0,color:'#cd7f32'}, {name:'Silver',min:500,color:'#cbd5e1'},
-            {name:'Gold',min:700,color:'#facc15'}, {name:'Platinum',min:900,color:'#67e8f9'},
-            {name:'Diamond',min:1100,color:'#60a5fa'}, {name:'Emerald',min:1300,color:'#34d399'},
-            {name:'Opal',min:1500,color:'#a5f3fc'}, {name:'Grandmaster',min:1800,color:'#c084fc'},
-            {name:'Abyssal',min:2100,color:'#818cf8'}, {name:'Nightmare',min:2400,color:'#fb7185'}
+            {name:'Bronze',min:0,color:'#cd7f32'},
+            {name:'Silver',min:250,color:'#cbd5e1'},
+            {name:'Gold',min:400,color:'#facc15'},
+            {name:'Platinum',min:550,color:'#67e8f9'},
+            {name:'Diamond',min:700,color:'#60a5fa'},
+            {name:'Emerald',min:850,color:'#34d399'},
+            {name:'Opal',min:1000,color:'#a5f3fc'},
+            {name:'Grandmaster',min:1200,color:'#c084fc'},
+            {name:'Abyssal',min:1350,color:'#818cf8'},
+            {name:'Nightmare',min:1500,color:'#fb7185'},
+            {name:'Mythic',min:1650,color:'#f0abfc'},
+            {name:'Celestial',min:1800,color:'#fde68a'},
+            {name:'Voidwalker',min:1950,color:'#a78bfa'},
+            {name:'Eternal',min:2100,color:'#67e8f9'},
+            {name:'Transcendent',min:2300,color:'#f9a8d4'},
+            {name:'Sovereign',min:2500,color:'#fff1a6'}
         ];
         function getOverallElo(ratings){
             const r=ratings||{};
@@ -7514,12 +7695,12 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             currentEl.style.color=placed?current.color:'#94a3b8';
             nextEl.textContent=placed?(next?next.name.toUpperCase():'MAX RANK'):'BRONZE';
             const nextTierIndex=placed?(next?idx+1:idx):0;
-            for(let i=0;i<COMPETITIVE_RANKS.length;i++) nextEl.classList.remove('rank-next-tier-'+i);
+            for(let i=0;i<20;i++) nextEl.classList.remove('rank-next-tier-'+i);
             nextEl.classList.add('rank-next-tier-'+nextTierIndex);
             nextEl.style.color=next?next.color:(placed?current.color:COMPETITIVE_RANKS[0].color);
             if(!placed){const pct=Math.min(100,rankedMatches/3*100);bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=rankedMatches+' / 3 ranked matches';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Complete 3 ranked matches to receive your first rank. Overall Elo is the average of Classic, Draft, and Bedwars Elo.';}
             else if(next){const pct=Math.max(0,Math.min(100,(elo-current.min)/(next.min-current.min)*100));bar.style.width=pct+'%';$('profile-rank-progress-label').textContent=Math.max(0,elo-current.min)+' / '+(next.min-current.min)+' Elo in '+current.name;$('profile-rank-elo-label').textContent=elo+' / '+next.min+' Overall Elo';$('profile-rank-caption').textContent=(next.min-elo)+' Overall Elo until '+next.name+'. Your rank uses the average of Classic, Draft, and Bedwars Elo.';}
-            else{bar.style.width='100%';$('profile-rank-progress-label').textContent='Highest rank achieved';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Nightmare rank achieved. Keep climbing your average Elo across all game modes.';}
+            else{bar.style.width='100%';$('profile-rank-progress-label').textContent='Highest rank achieved';$('profile-rank-elo-label').textContent=elo+' Overall Elo';$('profile-rank-caption').textContent='Sovereign rank achieved at 2,500 Overall Elo — the highest competitive rank. Keep defending your place at the top.';}
         }
 
         function drawProfileEloGraph(profile){
