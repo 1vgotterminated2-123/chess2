@@ -6136,7 +6136,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     const matchSnap = await firestoreDB.collection('matches').doc(room.id).get();
                     if (!matchSnap.exists) return null;
                     const match = matchSnap.data() || {};
-                    return match.status === 'active' ? room : null;
+                    const terminalState = !!(match.state && match.state.gameOver);
+                    const hasWinner = !!(match.winner || match.state?.winnerTeam);
+                    return match.status === 'active' && !terminalState && !hasWinner ? room : null;
                 } catch (err) {
                     // If match read permission is unavailable, never advertise a
                     // potentially ended match as spectatable.
@@ -6589,15 +6591,19 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             const matchRef = onlineMatchRef;
             onlineFinalizationPromise = (async () => {
                 try {
+                    // Drain every move/state write already queued before choosing the
+                    // authoritative Firestore turn. Reading the turn before the queue
+                    // drains can race a just-committed turn change: the terminal write
+                    // then uses the old team and is rejected, leaving a pre-win board.
+                    await onlinePublishQueue;
                     let snap = await matchRef.get();
                     if (!snap.exists) throw new Error('Finished match record is missing.');
                     let data = snap.data();
                     if (data.status === 'active') {
-                        // Firestore's turn is the team whose action is being committed.
-                        // G.turn may already have advanced locally by the time checkWin()
-                        // runs at the end of a turn.
                         const actingTeam = data.turn || onlineLocalTeam || G.turn;
-                        await publishOnlineBoard(actingTeam);
+                        const published = await publishOnlineBoard(actingTeam);
+                        if (!published) throw new Error('The final winning board could not be committed.');
+                        await onlinePublishQueue;
                         snap = await matchRef.get();
                         if (!snap.exists) throw new Error('Finished match record disappeared.');
                         data = snap.data();
@@ -6640,7 +6646,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             }
             if (existingMatchSnap && existingMatchSnap.exists) {
                 const existingMatch = existingMatchSnap.data();
-                if (asSpectator && existingMatch.status !== 'active') {
+                if (asSpectator && (existingMatch.status !== 'active' || existingMatch.state?.gameOver || existingMatch.winner || existingMatch.state?.winnerTeam)) {
                     throw new Error('This match is no longer active. Choose another live match.');
                 }
                 if (existingMatch.status === 'active' && existingMatch.state) {
@@ -6721,7 +6727,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 // A terminal status is authoritative even if this browser already
                 // observed the same board version during startup. Never let the
                 // version de-duplication guard hide the match-finished transition.
-                const terminalSnapshot = data.status === 'finished';
+                const terminalSnapshot = data.status === 'finished' || !!(data.state && data.state.gameOver);
                 if (typeof data.version !== 'number') return;
                 if (terminalSnapshot) {
                     if (data.version < onlineMatchVersion) return;
@@ -6731,9 +6737,25 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 onlineMatchVersion = Math.max(onlineMatchVersion, data.version);
                 if (data.clock) { onlineClock = Object.assign({}, data.clock); startOnlineClockTicker(); }
                 if (terminalSnapshot) {
+                    // Repair older/inconsistent records that saved a terminal board
+                    // but left status='active'. This keeps future public-list checks
+                    // and refreshes from treating a finished game as live.
+                    if (data.status !== 'finished' && data.state?.gameOver) {
+                        firestoreDB.runTransaction(async tx => {
+                            const latest = await tx.get(onlineMatchRef);
+                            if (!latest.exists) return;
+                            const current = latest.data() || {};
+                            if (current.status === 'active' && current.state?.gameOver) {
+                                tx.update(onlineMatchRef, {
+                                    status:'finished',
+                                    winner:current.winner || current.state.winnerTeam || null,
+                                    version:Number(current.version || 0) + 1,
+                                    updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            }
+                        }).catch(err => console.warn('Could not repair terminal match status:', err));
+                    }
                     // Apply the final board + replay log before opening the result UI.
-                    // Previously this branch returned early, so the opponent could
-                    // review the position from one move before the actual finish.
                     if (data.state) applyOnlineSnapshot(data.state);
                     if (!asSpectator) recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
                     G.gameOver = true;
@@ -7313,9 +7335,10 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 if (restoredRoom.status === 'started') {
                     const matchSnap = await firestoreDB.collection('matches').doc(code).get().catch(() => null);
                     const matchData = matchSnap && matchSnap.exists ? (matchSnap.data() || {}) : null;
-                    if (!matchData || matchData.status !== 'active') {
-                        // The room document can outlive the match. Clear this stale
-                        // membership instead of relaunching the board from old state.
+                    if (!matchData || matchData.status !== 'active' || matchData.state?.gameOver || matchData.winner || matchData.state?.winnerTeam) {
+                        // The room document can outlive the match, and older/raced
+                        // writes may leave a terminal board with status='active'.
+                        // Never restore a player into either kind of ended match.
                         const batch = firestoreDB.batch();
                         batch.update(firestoreDB.doc('users/' + user.uid), { activeLobbyCode: null });
                         batch.delete(roomRef.collection('players').doc(user.uid));
