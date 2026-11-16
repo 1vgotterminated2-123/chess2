@@ -950,8 +950,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
     <!-- DAILY QUESTS PAGE -->
     <div id="daily-quests-page" class="fixed inset-0 z-[95] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-3 sm:p-5 overflow-y-auto">
       <div class="glass-panel w-full max-w-5xl rounded-3xl border-lime-500/40 p-4 sm:p-6 space-y-5 my-auto max-h-[96vh] overflow-y-auto">
-        <div class="flex flex-wrap items-start justify-between gap-3"><div><div class="text-[10px] text-lime-300 font-mono tracking-[.25em]">DAILY CHALLENGES · RESETS AT LOCAL MIDNIGHT</div><h2 class="font-orbitron text-2xl sm:text-3xl font-black">DAILY QUESTS</h2><p class="text-xs text-slate-400 mt-1">Three randomly selected challenges every day. Finish all three for a bonus stash!</p></div><button onclick="closeHubPage('daily-quests-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div>
-        <div class="rounded-2xl border border-lime-500/30 bg-gradient-to-r from-lime-950/35 via-slate-950 to-emerald-950/25 p-4"><div class="flex flex-wrap justify-between items-end gap-2"><div><div class="text-[10px] text-slate-400 font-mono">TODAY'S COMPLETION</div><div class="font-orbitron text-3xl font-black"><span id="daily-quest-count">0 / 3</span> <span class="text-sm text-lime-300">QUESTS</span></div></div><div id="daily-quest-reset" class="text-[10px] text-slate-400">Resets at local midnight</div></div><div class="h-3 rounded-full bg-slate-800 overflow-hidden border border-slate-700 mt-3"><div id="daily-quest-fill" class="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-300" style="width:0%"></div></div><div class="text-[10px] text-emerald-200 mt-2">ALL-QUEST BONUS: +150 XP · +50 MATERIAL</div></div>
+        <div class="flex flex-wrap items-start justify-between gap-3"><div><div class="text-[10px] text-lime-300 font-mono tracking-[.25em]">DAILY CHALLENGES · SAME FOR EVERY PLAYER · UTC RESET</div><h2 class="font-orbitron text-2xl sm:text-3xl font-black">DAILY QUESTS</h2><p class="text-xs text-slate-400 mt-1">Everyone gets the same three challenges each day. Finish all three for a bonus stash!</p></div><button onclick="closeHubPage('daily-quests-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div>
+        <div class="rounded-2xl border border-lime-500/30 bg-gradient-to-r from-lime-950/35 via-slate-950 to-emerald-950/25 p-4"><div class="flex flex-wrap justify-between items-end gap-2"><div><div class="text-[10px] text-slate-400 font-mono">TODAY'S COMPLETION</div><div class="font-orbitron text-3xl font-black"><span id="daily-quest-count">0 / 3</span> <span class="text-sm text-lime-300">QUESTS</span></div></div><div id="daily-quest-reset" class="text-[10px] text-slate-400">Resets at 00:00 UTC</div></div><div class="h-3 rounded-full bg-slate-800 overflow-hidden border border-slate-700 mt-3"><div id="daily-quest-fill" class="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-300" style="width:0%"></div></div><div class="text-[10px] text-emerald-200 mt-2">ALL-QUEST BONUS: +150 XP · +50 MATERIAL</div></div>
         <div id="daily-quest-list" class="grid grid-cols-1 md:grid-cols-3 gap-3"><div class="text-sm text-slate-400">Loading today's quests…</div></div>
         <div class="rounded-xl bg-slate-950/70 border border-slate-800 p-3 flex flex-wrap items-center justify-between gap-2"><div><div class="text-[10px] text-lime-300 font-mono">YOUR LIFETIME QUEST SCORE</div><div class="text-xl font-black text-white" id="daily-quest-total">0 completed</div></div><div class="text-[10px] text-slate-500">Every completed daily quest adds to the global quest leaderboard.</div></div>
       </div>
@@ -1019,7 +1019,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
 
     <div id="player-search-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-2xl rounded-3xl border-purple-500/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-purple-300 font-mono">COMMUNITY</div><h2 class="font-orbitron text-2xl font-black">FIND PLAYERS</h2></div><button onclick="closeHubPage('player-search-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><input id="player-search-input" oninput="searchPlayersDebounced()" class="w-full rounded-xl bg-slate-950 border border-slate-700 px-4 py-3 text-white outline-none focus:border-purple-400" placeholder="Search any username..."><div id="player-search-results" class="space-y-2 text-sm text-slate-400">Start typing to find players.</div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-emerald-300 mb-2">FRIENDS</h3><div id="player-friends-list" class="space-y-2 text-sm text-slate-400">No friends yet.</div></div><div class="border-t border-slate-800 pt-4"><h3 class="font-orbitron text-xs text-cyan-300 mb-2">RECENTLY PLAYED AGAINST</h3><div id="recent-opponents-list" class="space-y-2 text-sm text-slate-400">No recent opponents yet.</div></div></div></div>
 
-    <div id="leaderboard-page" class="fixed inset-0 z-[94] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-4xl rounded-3xl border-amber-400/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-amber-300 font-mono">CHESS 2 COMPETITIVE</div><h2 class="font-orbitron text-2xl font-black">LEADERBOARD</h2><p id="leaderboard-subtitle" class="text-xs text-slate-400 mt-1">Top players across Chess 2</p></div><button onclick="closeHubPage('leaderboard-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div id="leaderboard-tabs" class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="renderLeaderboardTab('overall')" data-lb-tab="overall" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">OVERALL ELO</button><button onclick="renderLeaderboardTab('classic')" data-lb-tab="classic" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">CLASSIC</button><button onclick="renderLeaderboardTab('draft')" data-lb-tab="draft" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">DRAFT</button><button onclick="renderLeaderboardTab('bedwars')" data-lb-tab="bedwars" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">BEDWARS</button><button onclick="renderLeaderboardTab('wins')" data-lb-tab="wins" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">MOST WINS</button><button onclick="renderLeaderboardTab('games')" data-lb-tab="games" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">MOST GAMES</button><button onclick="renderLeaderboardTab('winrate')" data-lb-tab="winrate" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">WIN RATE</button><button onclick="renderLeaderboardTab('streak')" data-lb-tab="streak" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">WIN STREAK</button><button onclick="renderLeaderboardTab('quests')" data-lb-tab="quests" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">DAILY QUESTS</button></div><div id="leaderboard-content" class="space-y-2"><div class="text-sm text-slate-400">Loading leaderboard…</div></div><p class="text-[10px] text-slate-500">Leaderboard positions refresh when opened. Elo rankings require at least 3 ranked matches; stats rankings include players with recorded matches.</p></div></div>
+    <div id="leaderboard-page" class="fixed inset-0 z-[94] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-4xl rounded-3xl border-amber-400/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-amber-300 font-mono">CHESS 2 COMPETITIVE</div><h2 class="font-orbitron text-2xl font-black">LEADERBOARD</h2><p id="leaderboard-subtitle" class="text-xs text-slate-400 mt-1">Top players across Chess 2</p></div><button onclick="closeHubPage('leaderboard-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div id="leaderboard-tabs" class="grid grid-cols-2 sm:grid-cols-4 gap-2"><button onclick="renderLeaderboardTab('overall')" data-lb-tab="overall" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">OVERALL ELO</button><button onclick="renderLeaderboardTab('classic')" data-lb-tab="classic" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">CLASSIC</button><button onclick="renderLeaderboardTab('draft')" data-lb-tab="draft" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">DRAFT</button><button onclick="renderLeaderboardTab('bedwars')" data-lb-tab="bedwars" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">BEDWARS</button><button onclick="renderLeaderboardTab('wins')" data-lb-tab="wins" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">MOST WINS</button><button onclick="renderLeaderboardTab('games')" data-lb-tab="games" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">MOST GAMES</button><button onclick="renderLeaderboardTab('winrate')" data-lb-tab="winrate" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">WIN RATE</button><button onclick="renderLeaderboardTab('streak')" data-lb-tab="streak" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">WIN STREAK</button><button onclick="renderLeaderboardTab('quests')" data-lb-tab="quests" class="lb-tab px-3 py-2 rounded-lg text-xs font-bold">DAILY QUESTS</button></div><div id="leaderboard-content" class="space-y-2"><div class="text-sm text-slate-400">Loading leaderboard…</div></div><p class="text-[10px] text-slate-500">Leaderboard positions refresh when opened. Elo rankings require at least 3 ranked matches. Highest win rate requires at least 5 lifetime ranked matches and at least 1 ranked match played today (UTC).</p></div></div>
 
     <div id="achievements-page" class="fixed inset-0 z-[91] hidden items-center justify-center bg-slate-950/95 backdrop-blur-md p-4 overflow-y-auto"><div class="glass-panel w-full max-w-4xl rounded-3xl border-amber-500/40 p-5 md:p-6 space-y-4 my-auto max-h-[94vh] overflow-y-auto"><div class="flex justify-between items-center"><div><div class="text-[10px] text-amber-300 font-mono">COLLECTION & REWARDS</div><h2 class="font-orbitron text-2xl font-black">ACHIEVEMENTS</h2><p id="achievement-progress" class="text-xs text-slate-400 mt-1">0 unlocked</p></div><button onclick="closeHubPage('achievements-page')" class="w-9 h-9 rounded-xl bg-slate-800">✕</button></div><div id="achievement-list" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"></div></div></div>
 
@@ -4161,11 +4161,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     const finishedRef = onlineMatchRef;
                     if (finishedRef && finishedCode) {
                         const finishedSnap = await finishedRef.get().catch(() => null);
-                        if (finishedSnap && finishedSnap.exists) {
-                            await recordOnlineMatchElo(finishedSnap.data(), finishedCode);
-                        }
+                        if (finishedSnap && finishedSnap.exists) await recordOnlineMatchElo(finishedSnap.data(), finishedCode);
                     }
-                    await releaseLobbyAfterMatch();
+                    if (activeLobbyCode === finishedCode) await releaseLobbyAfterMatch();
                     return;
                 }
             }
@@ -5718,11 +5716,16 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
             // If the game has already ended, wait for its authoritative result and
             // Elo write before tearing down the online session.
             if (G.gameOver && onlineFinalizationPromise) await onlineFinalizationPromise;
-            if (activeLobbyCode && onlineMatchRef && !G.gameOver) {
-                // Trust the canonical match document, not a possibly stale local flag.
+            if (activeLobbyCode && onlineMatchRef) {
+                // Always reconcile cloud membership, even when the local board already
+                // says game over. A failed final write must never strand the player in a room.
                 try {
-                    const authoritative = await onlineMatchRef.get();
-                    if (authoritative.exists && authoritative.data().status === 'finished') {
+                    let authoritative = await onlineMatchRef.get();
+                    if (authoritative.exists && authoritative.data().status === 'active' && G.gameOver) {
+                        await finalizeOnlineGameOver();
+                        authoritative = await onlineMatchRef.get();
+                    }
+                    if (authoritative.exists && (authoritative.data().status === 'finished' || authoritative.data().state?.gameOver)) {
                         const finished = authoritative.data();
                         if (finished.state) applyOnlineSnapshot(finished.state);
                         G.gameOver = true;
@@ -5730,10 +5733,16 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                         await recordOnlineMatchElo(finished, activeLobbyCode);
                         await releaseLobbyAfterMatch();
                     } else if (authoritative.exists && authoritative.data().status === 'active') {
+                        if (G.gameOver) {
+                            alert('Your board shows a win, but Firestore has not confirmed the finished result yet. Keep the page open and try again in a moment.');
+                            return;
+                        }
                         const leaveAsResign = confirm('Leaving an online match counts as a RESIGNATION. The other team will win. Are you sure you want to resign and return to the main menu?');
                         if (!leaveAsResign) return;
                         await resignOnlineMatch(true, true);
                         return;
+                    } else if (!authoritative.exists) {
+                        await releaseLobbyAfterMatch();
                     }
                 } catch (err) {
                     console.warn('Could not verify match status before leaving:', err);
@@ -6709,64 +6718,82 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         }
 
         let finishedLobbyCleanupCode = null;
+        let finishedLobbyCleanupPromise = null;
         async function releaseLobbyAfterMatch() {
             const code = activeLobbyCode;
             const user = firebaseAuth && firebaseAuth.currentUser;
-            if (!code || !user || finishedLobbyCleanupCode === code) return;
+            if (!code || !user || !firestoreDB) return;
+            if (finishedLobbyCleanupCode === code && finishedLobbyCleanupPromise) return finishedLobbyCleanupPromise;
             finishedLobbyCleanupCode = code;
+            const wasHost = !!activeLobbyIsHost;
+            const userRef = firestoreDB.doc('users/' + user.uid);
+            const roomRef = firestoreDB.collection('lobbies').doc(code);
+            const seatRef = roomRef.collection('players').doc(user.uid);
 
-            // A finished match is no longer an active room for this player.
-            // Keep the match document so replay/review can still use its local snapshots.
+            // Clear local membership immediately, then independently make the cloud
+            // profile, seat roster, and (for the host) room status agree.
             activeLobbyCode = null;
             if (currentAccount) currentAccount.activeLobbyCode = null;
-            try {
-                const batch = firestoreDB.batch();
-                batch.update(firestoreDB.doc('users/' + user.uid), { activeLobbyCode: null });
-                batch.delete(firestoreDB.collection('lobbies').doc(code).collection('players').doc(user.uid));
-                await batch.commit();
-            } catch (err) {
-                console.warn('Could not clear finished-room membership:', err);
-                // Still clear the local session so the finished match does not trap the player in the room.
-                await firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }).catch(() => {});
-            }
-            onlineFinalizationPromise = null;
-            resetLobbyUI();
-            setLobbyStatus('Match finished. You have left the room.');
-            refreshPublicLobbyList();
+            finishedLobbyCleanupPromise = (async () => {
+                let roomExists = false;
+                try { const roomSnap = await roomRef.get(); roomExists = roomSnap.exists; } catch (err) { console.warn('Could not inspect finished lobby:', err); }
+                try {
+                    const batch = firestoreDB.batch();
+                    batch.update(userRef, { activeLobbyCode: null });
+                    batch.delete(seatRef);
+                    if (wasHost && roomExists) batch.update(roomRef, { status: 'closed' });
+                    await batch.commit();
+                } catch (err) {
+                    console.warn('Combined finished-room cleanup failed; retrying each cleanup separately:', err);
+                    const tasks = [
+                        userRef.update({ activeLobbyCode: null }),
+                        seatRef.delete()
+                    ];
+                    if (wasHost && roomExists) tasks.push(roomRef.update({ status: 'closed' }));
+                    const results = await Promise.allSettled(tasks);
+                    results.forEach((result, index) => { if (result.status === 'rejected') console.warn('Finished-room cleanup step failed:', index, result.reason); });
+                    if (results[0]?.status === 'rejected') accountStatus('Match finished, but your cloud room marker could not be cleared. Try signing out and back in after checking Firestore permissions.', true);
+                }
+                onlineFinalizationPromise = null;
+                resetLobbyUI();
+                setLobbyStatus('Match finished. You have left the room.');
+                refreshPublicLobbyList();
+            })();
+            try { return await finishedLobbyCleanupPromise; }
+            finally { finishedLobbyCleanupCode = null; finishedLobbyCleanupPromise = null; }
         }
 
 
         async function recordOnlineMatchElo(matchData, matchCode) {
             const user = firebaseAuth?.currentUser;
-            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchCode) return;
+            if (!user || user.isAnonymous || !firestoreDB || !matchData || !matchCode) return false;
             try {
-                // Read the lobby before deciding whether this was ranked. The lobby is
-                // the source of truth for the room setting; older/partially-created
-                // match documents may not have copied config.ranked correctly.
+                // Capture the lobby setting and roster before cleanup removes this seat.
                 const lobbyRef = firestoreDB.collection('lobbies').doc(matchCode);
                 const [rosterSnap, lobbySnap] = await Promise.all([
-                    lobbyRef.collection('players').get(),
-                    lobbyRef.get()
+                    lobbyRef.collection('players').get(), lobbyRef.get()
                 ]);
-                const lobbyData = lobbySnap.exists ? lobbySnap.data() : {};
+                const lobbyData = lobbySnap.exists ? (lobbySnap.data() || {}) : {};
                 const rankedMatch = matchData.config?.ranked === true || lobbyData.ranked === true;
-                if (!rankedMatch) return;
+                if (!rankedMatch) return false;
 
-                const teams = TEAM_FORMATS[matchData.config?.teamFormat === '4-team' ? '4-team' : '2-team'] || ['white','black'];
+                const teamFormat = matchData.config?.teamFormat || lobbyData.teamFormat || '2-team';
+                const teams = TEAM_FORMATS[teamFormat === '4-team' ? '4-team' : '2-team'] || ['white','black'];
                 const playerTeams = matchData.config?.playerTeams || {};
                 const playerElos = matchData.config?.playerElos || {};
                 const aiElos = matchData.config?.aiElos || {};
-                const humans = rosterSnap.docs.map(d => ({ uid:d.id, ...d.data() }))
-                    .sort((a,b) => String(a.uid).localeCompare(String(b.uid)));
-                // Prefer the explicit playerTeams map saved at match creation. The
-                // seats map and stable roster order are compatibility fallbacks.
-                const seatTeam = Object.keys(matchData.seats || {}).find(team => matchData.seats[team] === user.uid);
+                const seats = matchData.seats || {};
+                const humans = rosterSnap.docs.map(d => ({ uid:d.id, ...d.data() }));
+                const seatTeam = Object.keys(seats).find(team => seats[team] === user.uid);
+                // onlineLocalTeam is the per-client authoritative assignment and avoids
+                // confusing the host's UID with AI seats that are also host-controlled.
                 const myTeam = playerTeams[user.uid]
-                    || seatTeam
-                    || teams[humans.findIndex(p => p.uid === user.uid)];
+                    || (teams.includes(onlineLocalTeam) ? onlineLocalTeam : null)
+                    || seatTeam;
                 if (!myTeam || !teams.includes(myTeam)) {
-                    console.warn('Ranked Elo was not recorded: this account has no saved team assignment.', { matchCode, uid:user.uid, playerTeams, rosterCount:humans.length });
-                    return;
+                    console.warn('Ranked Elo not recorded: missing player team assignment.', { matchCode, uid:user.uid, playerTeams, seats, onlineLocalTeam });
+                    accountStatus('Ranked match finished, but your team assignment was missing, so Elo could not be calculated.');
+                    return false;
                 }
 
                 const mode = matchData.config?.mode || lobbyData.mode || 'bedwars';
@@ -6775,35 +6802,38 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 const opponents = [];
                 for (const team of teams) {
                     if (team === myTeam) continue;
-                    const playerUid = Object.keys(playerTeams).find(uid => playerTeams[uid] === team);
-                    if (playerUid) {
+                    const playerUid = Object.keys(playerTeams).find(uid => playerTeams[uid] === team)
+                        || (seats[team] && seats[team] !== user.uid && humans.some(p => p.uid === seats[team]) ? seats[team] : null);
+                    if (playerUid && playerUid !== user.uid) {
                         const rosterPlayer = humans.find(p => p.uid === playerUid);
                         const rating = Number(playerElos[team] ?? rosterPlayer?.elo ?? rosterPlayer?.ratings?.[ratingKey] ?? 300);
                         opponents.push(Number.isFinite(rating) ? rating : 300);
                     } else {
-                        const lobbyAI = aiPlayers.find(ai => ai && ai.id && String(ai.id).startsWith('ai_'));
-                        const rating = Number(aiElos[team] ?? lobbyAI?.elo ?? 300);
+                        const rating = Number(aiElos[team] ?? aiPlayers.find(ai => ai && String(ai.id || '').startsWith('ai_'))?.elo ?? 300);
                         opponents.push(Number.isFinite(rating) ? Math.max(100, rating) : 300);
                     }
                 }
-                if (!opponents.length) return;
+                if (!opponents.length) return false;
 
                 let winningTeam = matchData.winner || matchData.state?.winnerTeam || matchData.winnerTeam || null;
                 const forfeitingTeam = matchData.resignedTeam || matchData.timeoutTeam;
                 if (!winningTeam && forfeitingTeam) winningTeam = teams.find(team => team !== forfeitingTeam) || null;
                 if (!winningTeam) {
-                    console.warn('Ranked Elo was not recorded: finished match has no winner.', matchCode, matchData);
-                    return;
+                    console.warn('Ranked Elo not recorded: finished match has no winner.', matchCode, matchData);
+                    accountStatus('Match finished, but Firestore did not contain a winner. Elo was not changed.', true);
+                    return false;
                 }
-                const opponentAverage = opponents.reduce((sum,elo) => sum + elo, 0) / opponents.length;
+                const opponentAverage = opponents.reduce((sum, elo) => sum + elo, 0) / opponents.length;
                 const didWin = String(winningTeam).trim().toLowerCase() === String(myTeam).trim().toLowerCase();
                 const profileRef = firestoreDB.doc('users/' + user.uid);
+                let committed = null;
+                const utcDate = new Date().toISOString().slice(0, 10);
                 await firestoreDB.runTransaction(async tx => {
                     const profileSnap = await tx.get(profileRef);
-                    if (!profileSnap.exists) return;
+                    if (!profileSnap.exists) throw new Error('Your cloud profile is missing.');
                     const profile = profileSnap.data() || {};
                     const processed = Array.isArray(profile.processedMatchIds) ? profile.processedMatchIds : [];
-                    if (processed.includes(matchCode)) return;
+                    if (processed.includes(matchCode)) { committed = { alreadyProcessed:true }; return; }
                     const ratings = Object.assign({classic:300,draft:300,bedwars:300}, profile.ratings || {});
                     const before = Number(ratings[ratingKey] ?? 300);
                     const expected = 1 / (1 + Math.pow(10, (opponentAverage - before) / 400));
@@ -6811,13 +6841,12 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     const after = Math.max(0, before + change);
                     ratings[ratingKey] = after;
                     const oldStats = profile.stats || {};
+                    const sameUtcDay = oldStats.rankedActivityDate === utcDate;
                     const stats = {
-                        gamesPlayed:Number(oldStats.gamesPlayed || 0) + 1,
+                        ...oldStats,
                         rankedMatches:Number(oldStats.rankedMatches || 0) + 1,
-                        wins:Number(oldStats.wins || 0) + (didWin ? 1 : 0),
-                        losses:Number(oldStats.losses || 0) + (didWin ? 0 : 1),
-                        winStreak:didWin ? Number(oldStats.winStreak || 0) + 1 : 0,
-                        bestWinStreak:Math.max(Number(oldStats.bestWinStreak || 0), didWin ? Number(oldStats.winStreak || 0) + 1 : 0)
+                        rankedActivityDate:utcDate,
+                        rankedMatchesToday:(sameUtcDay ? Number(oldStats.rankedMatchesToday || 0) : 0) + 1
                     };
                     const history = Array.isArray(profile.eloHistory) ? profile.eloHistory.slice(-99) : [];
                     history.push({ classic:ratings.classic, draft:ratings.draft, bedwars:ratings.bedwars,
@@ -6827,22 +6856,25 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                         ratings, stats, eloHistory:history,
                         processedMatchIds:firebase.firestore.FieldValue.arrayUnion(matchCode)
                     });
-                    if (currentAccount && currentAccount.id === user.uid) {
-                        currentAccount.ratings = ratings;
-                        currentAccount.stats = stats;
-                        currentAccount.eloHistory = history;
-                    }
+                    committed = { ratings, stats, eloHistory:history, change, after, didWin };
                 });
-                if (currentAccount && currentAccount.id === user.uid) {
+                if (committed && !committed.alreadyProcessed && currentAccount && currentAccount.id === user.uid) {
+                    currentAccount.ratings = committed.ratings;
+                    currentAccount.stats = committed.stats;
+                    currentAccount.eloHistory = committed.eloHistory;
                     ['classic','draft','bedwars'].forEach(k => {
                         const top = $('rating-' + k), page = $('profile-page-' + k);
                         if (top) top.textContent = currentAccount.ratings[k];
                         if (page) page.textContent = currentAccount.ratings[k];
                     });
                     if (viewingPlayerUid === user.uid) renderProfileRank(currentAccount);
+                    accountStatus(`Ranked ${didWin ? 'win' : 'loss'} recorded: ${committed.change >= 0 ? '+' : ''}${committed.change} ${ratingKey.toUpperCase()} Elo.`);
                 }
+                return true;
             } catch (err) {
-                console.warn('Could not update online Elo:', err);
+                console.error('Could not update online Elo:', err);
+                accountStatus('Match finished, but Elo could not be saved: ' + (err?.message || 'unknown Firestore error'), true);
+                return false;
             }
         }
 
@@ -7019,7 +7051,7 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     }
                     // Apply the final board + replay log before opening the result UI.
                     if (data.state) applyOnlineSnapshot(data.state);
-                    if (!asSpectator) recordOnlineMatchElo(data, code).finally(() => releaseLobbyAfterMatch());
+                    if (!asSpectator) { recordOnlineMatchElo(data, code).finally(() => { if (activeLobbyCode === code) releaseLobbyAfterMatch(); }); }
                     G.gameOver = true;
                 hideTeamStatsHUD(); stopOnlineClockTicker();
                     $('persistent-controls-bar')?.classList.add('hidden');
@@ -7594,6 +7626,14 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                 }
 
                 const restoredRoom = roomSnap.data();
+                if (restoredRoom.status === 'closed') {
+                    await Promise.allSettled([
+                        firestoreDB.doc('users/' + user.uid).update({ activeLobbyCode: null }),
+                        roomRef.collection('players').doc(user.uid).delete()
+                    ]);
+                    if (currentAccount) currentAccount.activeLobbyCode = null;
+                    return;
+                }
                 if (restoredRoom.status === 'started') {
                     const matchSnap = await firestoreDB.collection('matches').doc(code).get().catch(() => null);
                     const matchData = matchSnap && matchSnap.exists ? (matchSnap.data() || {}) : null;
@@ -7875,8 +7915,9 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         async function getPlayerLeaderboardBadges(uid){
             try{const users=await getLeaderboardUsers(true);const eligible=users.filter(u=>Number(u.stats?.rankedMatches||0)>=3);const out=[];
                 for(const category of ['overall','classic','draft','bedwars']){const sorted=eligible.slice().sort((a,b)=>leaderboardElo(b,category)-leaderboardElo(a,category)||String(a.username||'').localeCompare(String(b.username||'')));const index=sorted.findIndex(u=>u.id===uid);if(index>=0&&index<10)out.push(`leaderboard_${category}_${index+1}`);}
-                const statDefs={wins:u=>Number(u.stats?.wins||0),games:u=>Number(u.stats?.gamesPlayed||0),winrate:u=>{const g=Number(u.stats?.gamesPlayed||0);return g?Number(u.stats?.wins||0)/g*100:0;},streak:u=>Number(u.stats?.bestWinStreak||0)};
-                for(const [category,metric] of Object.entries(statDefs)){const sorted=users.filter(u=>Number(u.stats?.gamesPlayed||0)>0).sort((a,b)=>metric(b)-metric(a)||String(a.username||'').localeCompare(String(b.username||'')));const index=sorted.findIndex(u=>u.id===uid);if(index>=0&&index<10)out.push(`leaderboard_${category}_${index+1}`);}
+                const today=new Date().toISOString().slice(0,10);
+                const statDefs={wins:{metric:u=>Number(u.stats?.wins||0),eligible:u=>Number(u.stats?.gamesPlayed||0)>0},games:{metric:u=>Number(u.stats?.gamesPlayed||0),eligible:u=>Number(u.stats?.gamesPlayed||0)>0},winrate:{metric:u=>{const g=Number(u.stats?.gamesPlayed||0);return g?Number(u.stats?.wins||0)/g*100:0;},eligible:u=>Number(u.stats?.rankedMatches||0)>=5&&u.stats?.rankedActivityDate===today&&Number(u.stats?.rankedMatchesToday||0)>=1},streak:{metric:u=>Number(u.stats?.bestWinStreak||0),eligible:u=>Number(u.stats?.gamesPlayed||0)>0}};
+                for(const [category,def] of Object.entries(statDefs)){const sorted=users.filter(def.eligible).sort((a,b)=>def.metric(b)-def.metric(a)||String(a.username||'').localeCompare(String(b.username||'')));const index=sorted.findIndex(u=>u.id===uid);if(index>=0&&index<10)out.push(`leaderboard_${category}_${index+1}`);}
                 return out;
             }catch(e){console.warn('Leaderboard profile badges unavailable:',e);return [];}
         }
@@ -7889,10 +7930,19 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
                     $('leaderboard-subtitle').textContent='Most daily quests completed · lifetime total · top 100 players';
                 }else if(['wins','games','winrate','streak'].includes(category)){
                     const defs={wins:{label:'Most wins',metric:u=>Number(u.stats?.wins||0),display:u=>`${Number(u.stats?.wins||0)} wins`},games:{label:'Most games played',metric:u=>Number(u.stats?.gamesPlayed||0),display:u=>`${Number(u.stats?.gamesPlayed||0)} games`},winrate:{label:'Highest win rate',metric:u=>{const g=Number(u.stats?.gamesPlayed||0);return g?Number(u.stats?.wins||0)/g*100:0;},display:u=>{const g=Number(u.stats?.gamesPlayed||0);return `${g?Math.round(Number(u.stats?.wins||0)/g*100):0}% win rate`;}},streak:{label:'Best win streak',metric:u=>Number(u.stats?.bestWinStreak||0),display:u=>`${Number(u.stats?.bestWinStreak||0)} wins`}};
-                    const def=defs[category];metric=def.metric;valueLabel=def.display;rows=users.filter(u=>Number(u.stats?.gamesPlayed||0)>0).sort((a,b)=>metric(b)-metric(a)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);$('leaderboard-subtitle').textContent=def.label+' · top 100 players';
+                    const def=defs[category];metric=def.metric;valueLabel=def.display;
+                    if(category==='winrate'){
+                        const today=new Date().toISOString().slice(0,10);
+                        rows=users.filter(u=>Number(u.stats?.rankedMatches||0)>=5&&u.stats?.rankedActivityDate===today&&Number(u.stats?.rankedMatchesToday||0)>=1)
+                            .sort((a,b)=>metric(b)-metric(a)||Number(b.stats?.rankedMatches||0)-Number(a.stats?.rankedMatches||0)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);
+                        $('leaderboard-subtitle').textContent='Highest ranked win rate · 5+ lifetime ranked matches · played ranked today';
+                    }else{
+                        rows=users.filter(u=>Number(u.stats?.gamesPlayed||0)>0).sort((a,b)=>metric(b)-metric(a)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);
+                        $('leaderboard-subtitle').textContent=def.label+' · top 100 players';
+                    }
                 }else{rows=users.filter(u=>Number(u.stats?.rankedMatches||0)>=3).sort((a,b)=>leaderboardElo(b,category)-leaderboardElo(a,category)||String(a.username||'').localeCompare(String(b.username||''))).slice(0,100);$('leaderboard-subtitle').textContent='Ranked players · top 100 by '+(category==='overall'?'Overall Elo':category[0].toUpperCase()+category.slice(1)+' Elo');}
-                if(!rows.length){host.innerHTML='<div class="text-sm text-slate-400 p-4">No eligible players yet. Complete ranked matches to appear here.</div>';return;}
-                host.innerHTML=rows.map((u,i)=>{const st=u.stats||{},games=Number(st.gamesPlayed||0),wins=Number(st.wins||0),winRate=games?Math.round(wins/games*100):0;const value=metric?valueLabel(u):`${leaderboardElo(u,category)} Elo`;return `<div class="leaderboard-row"><div class="text-center font-black ${i===0?'text-amber-300':i===1?'text-slate-200':i===2?'text-orange-300':'text-slate-500'}">#${i+1}</div><button onclick="closeHubPage('leaderboard-page');openPlayerProfile('${u.id}')" class="min-w-0 text-left"><div class="font-bold text-white truncate ${nameCosmeticClasses(u)}">${escapeHubText(u.username||'Player')}</div><div class="text-[9px] text-slate-500">${games} games · ${wins} wins · ${winRate}% win rate</div></button><div class="text-right text-xs font-black text-cyan-200">${value}</div></div>`;}).join('');
+                if(!rows.length){host.innerHTML=`<div class="text-sm text-slate-400 p-4">${category==='winrate'?'No eligible players yet. Complete at least 5 ranked matches total and play at least 1 ranked match today (UTC).':'No eligible players yet. Complete ranked matches to appear here.'}</div>`;return;}
+                host.innerHTML=rows.map((u,i)=>{const st=u.stats||{},games=Number(st.gamesPlayed||0),wins=Number(st.wins||0),rankedGames=Number(st.rankedMatches||0);const value=metric?valueLabel(u):`${leaderboardElo(u,category)} Elo`;const detail=category==='winrate'?`${games} games · ${wins} wins · ${games?Math.round(wins/games*100):0}% win rate · ${rankedGames} ranked matches · active today`:`${games} games · ${wins} wins · ${games?Math.round(wins/games*100):0}% win rate`;return `<div class="leaderboard-row"><div class="text-center font-black ${i===0?'text-amber-300':i===1?'text-slate-200':i===2?'text-orange-300':'text-slate-500'}">#${i+1}</div><button onclick="closeHubPage('leaderboard-page');openPlayerProfile('${u.id}')" class="min-w-0 text-left"><div class="font-bold text-white truncate ${nameCosmeticClasses(u)}">${escapeHubText(u.username||'Player')}</div><div class="text-[9px] text-slate-500">${detail}</div></button><div class="text-right text-xs font-black text-cyan-200">${value}</div></div>`;}).join('');
             }catch(e){host.textContent='Could not load leaderboard: '+e.message;}
         }
 
@@ -8106,7 +8156,8 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
         async function setAchievementShowcase(id){if(!(currentAccount.unlockedAchievements||[]).includes(id))return;try{await firestoreDB.doc('users/'+currentAccount.id).update({showcaseAchievement:id});currentAccount.showcaseAchievement=id;renderOwnProfileStats();closeAchievementInspect();closeHubPage('achievements-page');if(viewingPlayerUid===currentAccount.id)loadPublicProfile(currentAccount.id);}catch(e){alert('Could not update displayed achievement: '+e.message);}}
         async function grantEligibleAchievements(stats,allowMaterial=true){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB)return;const userRef=firestoreDB.doc('users/'+currentAccount.id);for(const a of ACHIEVEMENTS){const progress=achievementProgress(a);const reachedByProgress=Array.isArray(progress)&&Number(progress[0])>=Number(progress[1]);const reachedByTest=(()=>{try{return !!a.test(stats,currentAccount);}catch(e){console.warn('Achievement condition failed:',a.id,e);return false;}})();if((currentAccount.unlockedAchievements||[]).includes(a.id)||(!reachedByProgress&&!reachedByTest))continue;try{const awarded=await firestoreDB.runTransaction(async tx=>{const ownerRef=firestoreDB.doc(`achievementOwners/${a.id}/owners/${currentAccount.id}`);const owner=await tx.get(ownerRef);const user=await tx.get(userRef);if(owner.exists){tx.update(userRef,{unlockedAchievements:firebase.firestore.FieldValue.arrayUnion(a.id)});return 'synced';}const data=user.data()||{};tx.set(ownerRef,{uid:currentAccount.id,username:currentAccount.username,unlockedAt:firebase.firestore.FieldValue.serverTimestamp()});tx.update(userRef,{...(allowMaterial?{material:Number(data.material||0)+a.reward}:{}),unlockedAchievements:firebase.firestore.FieldValue.arrayUnion(a.id)});return true;});if(!awarded)continue;if(awarded==='synced'){currentAccount.unlockedAchievements=[...(currentAccount.unlockedAchievements||[]),a.id];continue;}if(allowMaterial)currentAccount.material=Number(currentAccount.material||0)+a.reward;currentAccount.unlockedAchievements=(currentAccount.unlockedAchievements||[]).concat(a.id);accountStatus('Achievement unlocked: '+a.name+(allowMaterial?' (+'+a.reward+' Material)':' (no Material in AI-only match)'));}catch(e){console.warn('Achievement award failed:',a.id,e);}}renderOwnProfileStats();}
         async function recordRecentOpponents(){if(!currentAccount||currentAccount.isAnonymous||!activeLobbyCode)return;try{const snap=await firestoreDB.collection(`lobbies/${activeLobbyCode}/players`).get();const batch=firestoreDB.batch();snap.docs.filter(d=>d.id!==currentAccount.id).forEach(d=>{const data=d.data();batch.set(firestoreDB.doc(`users/${currentAccount.id}/recentOpponents/${d.id}`),{uid:d.id,username:data.username||'Player',playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});batch.set(firestoreDB.doc(`users/${d.id}/recentOpponents/${currentAccount.id}`),{uid:currentAccount.id,username:currentAccount.username,playedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});});await batch.commit();}catch(e){console.warn('Recent opponents save:',e);}}
-        // DAILY QUESTS: three account-specific randomized challenges, persisted per local calendar day.
+        // DAILY QUESTS: the challenge set is deterministic and identical for every player each UTC day.
+        // Progress and rewards remain personal to each account.
         const DAILY_QUEST_POOL = [
           {id:'turns_8',type:'turns',target:8,title:'Keep the Wheels Turning',description:'Complete 8 of your turns.',icon:'⚔️',xp:55,material:15},
           {id:'turns_15',type:'turns',target:15,title:'Board Commander',description:'Complete 15 of your turns.',icon:'♟️',xp:90,material:25},
@@ -8117,61 +8168,79 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
           {id:'wins_1',type:'wins',target:1,title:'Take the Crown',description:'Win a match.',icon:'🏆',xp:100,material:30},
           {id:'wins_2',type:'wins',target:2,title:'Double Victory',description:'Win 2 matches.',icon:'👑',xp:160,material:45}
         ];
-        function localQuestDate(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-        function chooseDailyQuests(){const pool=DAILY_QUEST_POOL.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}const chosen=[],types=new Set();for(const q of pool){if(!types.has(q.type)){chosen.push(q);types.add(q.type);}if(chosen.length===3)break;}return chosen.map(q=>({...q,progress:0,completed:false}));}
-        let dailyQuestQueue=Promise.resolve();
+        // A UTC date key gives every timezone the same daily rotation and reset instant.
+        function localQuestDate(){return new Date().toISOString().slice(0,10);}
+        function chooseDailyQuests(dateKey=localQuestDate()){
+          let seed=2166136261;for(let i=0;i<dateKey.length;i++){seed^=dateKey.charCodeAt(i);seed=Math.imul(seed,16777619);}
+          const random=()=>{seed+=0x6D2B79F5;let t=seed;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};
+          const pool=DAILY_QUEST_POOL.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+          const chosen=[],types=new Set();for(const q of pool){if(!types.has(q.type)){chosen.push(q);types.add(q.type);}if(chosen.length===3)break;}
+          return chosen.map(q=>({...q,progress:0,completed:false}));
+        }
+        function mergeDailyQuestProgress(sharedQuests,savedQuests,dateMatches){
+          const saved=new Map((Array.isArray(savedQuests)?savedQuests:[]).map(q=>[q.id,q]));
+          return sharedQuests.map(q=>{const old=dateMatches?saved.get(q.id):null;const progress=Math.min(q.target,Math.max(0,Number(old?.progress||0)));return {...q,progress,completed:!!old?.completed||progress>=q.target};});
+        }
+        function dailyQuestSetsMatch(saved,shared){return Array.isArray(saved)&&saved.length===3&&shared.every(q=>saved.some(old=>old?.id===q.id));}
+        function dailyQuestNextReset(){const now=new Date();return Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()+1,0,0,0);}
+        function renderDailyQuestReset(){
+          const reset=$('daily-quest-reset');if(!reset)return;const remaining=Math.max(0,dailyQuestNextReset()-Date.now()),hours=Math.floor(remaining/3600000),minutes=Math.floor((remaining%3600000)/60000),seconds=Math.floor((remaining%60000)/1000);
+          const resetLocal=new Date(dailyQuestNextReset()).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});
+          reset.textContent=`Resets in ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')} · ${resetLocal} your time`;
+        }
+        let dailyQuestQueue=Promise.resolve(),dailyQuestClockTimer=null;
+        function startDailyQuestClock(){
+          if(dailyQuestClockTimer)return;renderDailyQuestReset();dailyQuestClockTimer=setInterval(()=>{if(!currentAccount)return;const today=localQuestDate();if(currentAccount.dailyQuestDate!==today){ensureLocalDailyQuests();ensureDailyQuests();}renderDailyQuestReset();},1000);
+        }
         function ensureLocalDailyQuests(){
-          if(!currentAccount)return;const today=localQuestDate();
-          if(currentAccount.dailyQuestDate!==today||!Array.isArray(currentAccount.dailyQuests)||currentAccount.dailyQuests.length!==3){
-            currentAccount.dailyQuestDate=today;currentAccount.dailyQuests=chooseDailyQuests();currentAccount.dailyQuestAllCompleteDate=null;
+          if(!currentAccount)return;const today=localQuestDate(),shared=chooseDailyQuests(today),sameDate=currentAccount.dailyQuestDate===today;
+          if(!sameDate||!dailyQuestSetsMatch(currentAccount.dailyQuests,shared)){
+            currentAccount.dailyQuestDate=today;currentAccount.dailyQuests=mergeDailyQuestProgress(shared,currentAccount.dailyQuests,sameDate);currentAccount.dailyQuestAllCompleteDate=null;
           }
           if(typeof currentAccount.dailyQuestCompletionsTotal!=='number')currentAccount.dailyQuestCompletionsTotal=0;
           renderDailyQuests();
         }
         async function ensureDailyQuests(){
-          if(!currentAccount)return;
-          const today=localQuestDate();
-          if(currentAccount.dailyQuestDate===today&&Array.isArray(currentAccount.dailyQuests)&&currentAccount.dailyQuests.length===3){renderDailyQuests();}
-          else {currentAccount.dailyQuestDate=today;currentAccount.dailyQuests=chooseDailyQuests();currentAccount.dailyQuestAllCompleteDate=null;renderDailyQuests();}
-          if(currentAccount.isAnonymous||!firestoreDB)return;
+          if(!currentAccount)return;const today=localQuestDate(),shared=chooseDailyQuests(today);
+          ensureLocalDailyQuests();if(currentAccount.isAnonymous||!firestoreDB)return;
           const ref=firestoreDB.doc('users/'+currentAccount.id);
           try{
             const result=await firestoreDB.runTransaction(async tx=>{
-              const snap=await tx.get(ref);if(!snap.exists)throw new Error('Profile not found');const data=snap.data()||{};
-              if(data.dailyQuestDate===today&&Array.isArray(data.dailyQuests)&&data.dailyQuests.length===3)return {date:today,quests:data.dailyQuests,total:Number(data.dailyQuestCompletionsTotal||0),allDoneDate:data.dailyQuestAllCompleteDate||null};
-              const quests=currentAccount.dailyQuests;
-              tx.update(ref,{dailyQuestDate:today,dailyQuests:quests,dailyQuestAllCompleteDate:null,dailyQuestCompletionsTotal:Number(data.dailyQuestCompletionsTotal||0)});
-              return {date:today,quests,total:Number(data.dailyQuestCompletionsTotal||0),allDoneDate:null};
+              const snap=await tx.get(ref);if(!snap.exists)throw new Error('Profile not found');const data=snap.data()||{},sameDate=data.dailyQuestDate===today;
+              const matches=sameDate&&dailyQuestSetsMatch(data.dailyQuests,shared);
+              const quests=matches?mergeDailyQuestProgress(shared,data.dailyQuests,true):mergeDailyQuestProgress(shared,data.dailyQuests,sameDate);
+              const total=Number(data.dailyQuestCompletionsTotal||0),allDoneDate=(sameDate&&matches)?(data.dailyQuestAllCompleteDate||null):null;
+              if(!matches||!sameDate)tx.update(ref,{dailyQuestDate:today,dailyQuests:quests,dailyQuestAllCompleteDate:allDoneDate,dailyQuestCompletionsTotal:total});
+              return {date:today,quests,total,allDoneDate};
             });
             currentAccount.dailyQuestDate=result.date;currentAccount.dailyQuests=result.quests;currentAccount.dailyQuestCompletionsTotal=result.total;currentAccount.dailyQuestAllCompleteDate=result.allDoneDate;renderDailyQuests();
-          }catch(e){console.warn('Daily quest cloud sync failed; keeping the visible local quest set:',e);const reset=$('daily-quest-reset');if(reset)reset.textContent='Cloud sync unavailable · quests shown locally';}
+          }catch(e){console.warn('Daily quest cloud sync failed; keeping the shared daily quest set locally:',e);const reset=$('daily-quest-reset');if(reset)reset.textContent='Cloud sync unavailable · progress may be local';}
         }
         function applyLocalDailyQuestProgress(type,amount=1){
           let rewardXp=0,rewardMaterial=0;currentAccount.dailyQuests=(currentAccount.dailyQuests||[]).map(q=>{if(q.type!==type||q.completed)return q;const progress=Math.min(Number(q.target)||1,Number(q.progress||0)+amount),completed=progress>=Number(q.target||1);if(completed){rewardXp+=Number(q.xp||0);rewardMaterial+=Number(q.material||0);currentAccount.dailyQuestCompletionsTotal=Number(currentAccount.dailyQuestCompletionsTotal||0)+1;}return {...q,progress,completed};});
-          const bonus=currentAccount.dailyQuests.length===3&&currentAccount.dailyQuests.every(q=>q.completed)&&currentAccount.dailyQuestAllCompleteDate!==localQuestDate();if(bonus){rewardXp+=150;rewardMaterial+=50;currentAccount.dailyQuestAllCompleteDate=localQuestDate();}
+          const today=localQuestDate(),bonus=currentAccount.dailyQuests.length===3&&currentAccount.dailyQuests.every(q=>q.completed)&&currentAccount.dailyQuestAllCompleteDate!==today;if(bonus){rewardXp+=150;rewardMaterial+=50;currentAccount.dailyQuestAllCompleteDate=today;}
           currentAccount.xp=Number(currentAccount.xp||0)+rewardXp;currentAccount.material=Number(currentAccount.material||0)+rewardMaterial;const menu=$('menu-account-name');renderLevelNameInto(menu,currentAccount);const mat=$('menu-material');if(mat)mat.textContent='◆ '+currentAccount.material+' MATERIAL';const bp=$('battle-pass-page');if(bp&&!bp.classList.contains('hidden'))renderBattlePass();renderDailyQuests();if(rewardXp||rewardMaterial)accountStatus(`Daily quest rewards: +${rewardXp} XP · +${rewardMaterial} Material${bonus?' · ALL QUESTS COMPLETE!':''}`);return {rewardXp,rewardMaterial,bonus};
         }
         async function recordDailyQuestProgress(type,amount=1){
           if(!currentAccount||!['turns','captures','matches','wins'].includes(type))return;
-          ensureLocalDailyQuests();
-          if(currentAccount.isAnonymous||!firestoreDB){applyLocalDailyQuestProgress(type,amount);return;}
-          const uid=currentAccount.id,today=localQuestDate();
+          ensureLocalDailyQuests();if(currentAccount.isAnonymous||!firestoreDB){applyLocalDailyQuestProgress(type,amount);return;}
+          const uid=currentAccount.id,today=localQuestDate(),shared=chooseDailyQuests(today);
           dailyQuestQueue=dailyQuestQueue.then(async()=>{
             const ref=firestoreDB.doc('users/'+uid);
             const result=await firestoreDB.runTransaction(async tx=>{
-              const snap=await tx.get(ref);if(!snap.exists)return null;const data=snap.data()||{};
-              const isNewDay=data.dailyQuestDate!==today;
-              let quests=!isNewDay&&Array.isArray(data.dailyQuests)?data.dailyQuests:chooseDailyQuests();
-              let changed=false,questRewards=[],total=Number(data.dailyQuestCompletionsTotal||0);
+              const snap=await tx.get(ref);if(!snap.exists)return null;const data=snap.data()||{},sameDate=data.dailyQuestDate===today;
+              const matches=sameDate&&dailyQuestSetsMatch(data.dailyQuests,shared);
+              let quests=matches?mergeDailyQuestProgress(shared,data.dailyQuests,true):mergeDailyQuestProgress(shared,data.dailyQuests,sameDate);
+              let changed=!matches||!sameDate,questRewards=[],total=Number(data.dailyQuestCompletionsTotal||0),priorAllDoneDate=(sameDate&&matches)?(data.dailyQuestAllCompleteDate||null):null;
               quests=quests.map(q=>{if(q.type!==type||q.completed)return q;const progress=Math.min(Number(q.target)||1,Number(q.progress||0)+amount);const completed=progress>=Number(q.target||1);changed=true;if(completed){questRewards.push(q);total++;}return {...q,progress,completed};});
-              if(!changed&&!isNewDay)return {quests,total,xp:Number(data.xp||0),material:Number(data.material||0),allDoneDate:data.dailyQuestAllCompleteDate||null,rewardXp:0,rewardMaterial:0};
-              const allDone=quests.length===3&&quests.every(q=>q.completed),bonus=allDone&&data.dailyQuestAllCompleteDate!==today;
+              if(!changed)return {quests,total,xp:Number(data.xp||0),material:Number(data.material||0),allDoneDate:priorAllDoneDate,rewardXp:0,rewardMaterial:0,completedNames:[],bonus:false};
+              const allDone=quests.length===3&&quests.every(q=>q.completed),bonus=allDone&&priorAllDoneDate!==today;
               const rewardXp=questRewards.reduce((n,q)=>n+Number(q.xp||0),0)+(bonus?150:0);
               const rewardMaterial=questRewards.reduce((n,q)=>n+Number(q.material||0),0)+(bonus?50:0);
-              const patch={dailyQuestDate:today,dailyQuests:quests,dailyQuestCompletionsTotal:total};if(bonus)patch.dailyQuestAllCompleteDate=today;
+              const patch={dailyQuestDate:today,dailyQuests:quests,dailyQuestCompletionsTotal:total,dailyQuestAllCompleteDate:bonus?today:priorAllDoneDate};
               if(rewardXp)patch.xp=firebase.firestore.FieldValue.increment(rewardXp);if(rewardMaterial)patch.material=firebase.firestore.FieldValue.increment(rewardMaterial);
               tx.update(ref,patch);
-              return {quests,total,xp:Number(data.xp||0)+rewardXp,material:Number(data.material||0)+rewardMaterial,allDoneDate:bonus?today:(data.dailyQuestAllCompleteDate||null),rewardXp,rewardMaterial,completedNames:questRewards.map(q=>q.title),bonus};
+              return {quests,total,xp:Number(data.xp||0)+rewardXp,material:Number(data.material||0)+rewardMaterial,allDoneDate:patch.dailyQuestAllCompleteDate,rewardXp,rewardMaterial,completedNames:questRewards.map(q=>q.title),bonus};
             });
             if(!result)return;
             currentAccount.dailyQuestDate=today;currentAccount.dailyQuests=result.quests;currentAccount.dailyQuestCompletionsTotal=result.total;currentAccount.dailyQuestAllCompleteDate=result.allDoneDate;currentAccount.xp=Number(currentAccount.xp||0)+Number(result.rewardXp||0);currentAccount.material=Number(currentAccount.material||0)+Number(result.rewardMaterial||0);
@@ -8182,13 +8251,13 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
           }).catch(e=>{console.warn('Daily quest progress save failed; applying local progress for this session:',e);applyLocalDailyQuestProgress(type,amount);const reset=$('daily-quest-reset');if(reset)reset.textContent='Cloud save unavailable · progress is local for now';});
           return dailyQuestQueue;
         }
-        function openDailyQuestsPage(){if(!currentAccount)return;openHubPage('daily-quests-page');ensureLocalDailyQuests();ensureDailyQuests();}
+        function openDailyQuestsPage(){if(!currentAccount)return;openHubPage('daily-quests-page');startDailyQuestClock();ensureLocalDailyQuests();ensureDailyQuests();}
         function renderDailyQuests(){
           if(!currentAccount)return;const quests=currentAccount.dailyQuests||[],done=quests.filter(q=>q.completed).length;
           const count=$('daily-quest-count'),fill=$('daily-quest-fill'),total=$('daily-quest-total'),host=$('daily-quest-list');
           if(count)count.textContent=`${done} / 3`;if(fill)fill.style.width=(done/3*100)+'%';if(total)total.textContent=Number(currentAccount.dailyQuestCompletionsTotal||0).toLocaleString()+' completed';
           if(host)host.innerHTML=quests.length?quests.map(q=>{const pct=Math.min(100,Math.round(Number(q.progress||0)/Math.max(1,Number(q.target||1))*100));return `<article class="rounded-2xl border ${q.completed?'border-emerald-500/50 bg-emerald-950/20':'border-slate-700 bg-slate-950/80'} p-4 flex flex-col gap-3"><div class="flex items-center justify-between"><span class="text-3xl">${q.icon||'🎯'}</span><span class="text-[9px] font-mono ${q.completed?'text-emerald-300':'text-lime-300'}">${q.completed?'✓ COMPLETED':'DAILY QUEST'}</span></div><div><h3 class="font-black text-white">${escapeHubText(q.title||'Daily Quest')}</h3><p class="text-[11px] text-slate-400 mt-1">${escapeHubText(q.description||'Complete this challenge.')}</p></div><div><div class="flex justify-between text-[10px] text-slate-400 mb-1"><span>PROGRESS</span><b class="text-white">${Math.min(Number(q.progress||0),Number(q.target||1))} / ${q.target}</b></div><div class="h-2 rounded-full bg-slate-800 overflow-hidden"><div class="h-full rounded-full ${q.completed?'bg-emerald-400':'bg-gradient-to-r from-lime-400 to-emerald-300'}" style="width:${pct}%"></div></div></div><div class="mt-auto pt-2 border-t border-slate-800 flex justify-between text-[10px]"><span class="text-cyan-300">+${q.xp} XP</span><span class="text-amber-300">+${q.material} Material</span></div></article>`;}).join(''):'<div class="text-sm text-slate-400">Your daily quests are being prepared…</div>';
-          const reset=$('daily-quest-reset');if(reset)reset.textContent='New quests at local midnight';
+          renderDailyQuestReset();
         }
 
         // ACCOUNT LEVELS + BATTLE PASS. XP is lifetime account XP; level 100 needs about 250k total XP,
@@ -8269,11 +8338,48 @@ body[data-theme-style="omniverse"] #piece-inspector-card {
           track.innerHTML=BATTLE_PASS_REWARDS.map(r=>{const unlocked=state.level>=r.level,wasClaimed=claimed.has(r.level),isNext=!unlocked&&BATTLE_PASS_REWARDS.find(x=>x.level>state.level)?.level===r.level;return `<article class="battle-pass-card rounded-2xl border ${unlocked?'unlocked border-fuchsia-500/60 bg-fuchsia-950/25':'locked border-slate-700 bg-slate-950/80'} ${isNext?'current':''} p-3 flex flex-col gap-2"><div class="flex justify-between items-center"><span class="bp-level text-fuchsia-200">LEVEL ${r.level}</span><span class="text-[9px] ${unlocked?'text-emerald-300':'text-slate-500'}">${unlocked?(wasClaimed?'UNLOCKED':'AVAILABLE'):'LOCKED'}</span></div><div class="bp-icon text-center py-3">${r.icon}</div><div class="text-xs font-black text-white text-center">${r.name}</div><div class="mt-auto text-[9px] text-center ${unlocked?'text-emerald-300':'text-slate-500'}">${unlocked?'✓ Added to your account':'Reach level '+r.level}</div></article>`;}).join('');
         }
 
-        async function awardMatchProgress(won){if(!currentAccount||currentAccount.isAnonymous||!firestoreDB||G.matchRewarded)return;
-            // Profile match totals are for online matches only. Local/offline AI games
-            // can still train the AI, but must not affect account progression.
+        async function awardMatchProgress(won){
+            if(!currentAccount||currentAccount.isAnonymous||!firestoreDB||G.matchRewarded)return;
+            // Online account totals are recorded here; ranked-specific totals and Elo
+            // are recorded by recordOnlineMatchElo. Use a transaction so these two
+            // updates cannot overwrite each other's stats fields.
             if(!onlineMatchRef||!activeLobbyCode)return;
-            G.matchRewarded=true;const humanCount=(G.teams||[]).filter(t=>G.teamControllers&&G.teamControllers[t]&&G.teamControllers[t].type==='human').length;const allowMaterial=humanCount>=1;const st=Object.assign({gamesPlayed:0,wins:0,losses:0,winStreak:0,bestWinStreak:0},currentAccount.stats||{});st.gamesPlayed++;if(won){st.wins++;st.winStreak++;st.bestWinStreak=Math.max(st.bestWinStreak,st.winStreak);}else{st.losses++;st.winStreak=0;}currentAccount.stats=st;try{const ratings=currentAccount.ratings||{classic:300,draft:300,bedwars:300};const snap={at:Date.now(),classic:Number(ratings.classic??300),draft:Number(ratings.draft??300),bedwars:Number(ratings.bedwars??300)};currentAccount.eloHistory=[...(currentAccount.eloHistory||[]),snap].slice(-60);const patch={stats:st,eloHistory:currentAccount.eloHistory};if(allowMaterial){patch.material=firebase.firestore.FieldValue.increment(won?15:10);currentAccount.material=Number(currentAccount.material||0)+(won?15:10);}await firestoreDB.doc('users/'+currentAccount.id).update(patch);await grantEligibleAchievements(st,allowMaterial);if(allowMaterial)await recordRecentOpponents();renderOwnProfileStats();if(!allowMaterial)accountStatus('Match recorded. Material rewards require at least one human-controlled player.');}catch(e){console.warn('Match progress save failed:',e);}}
+            G.matchRewarded=true;
+            const uid=currentAccount.id;
+            const profileRef=firestoreDB.doc('users/'+uid);
+            const humanCount=(G.teams||[]).filter(t=>G.teamControllers&&G.teamControllers[t]&&G.teamControllers[t].type==='human').length;
+            const allowMaterial=humanCount>=1;
+            let committed=null;
+            try{
+                await firestoreDB.runTransaction(async tx=>{
+                    const snap=await tx.get(profileRef);
+                    if(!snap.exists)throw new Error('Your cloud profile is missing.');
+                    const profile=snap.data()||{};
+                    const old=profile.stats||{};
+                    const st=Object.assign({gamesPlayed:0,wins:0,losses:0,winStreak:0,bestWinStreak:0},old);
+                    st.gamesPlayed=Number(st.gamesPlayed||0)+1;
+                    if(won){st.wins=Number(st.wins||0)+1;st.winStreak=Number(st.winStreak||0)+1;st.bestWinStreak=Math.max(Number(st.bestWinStreak||0),st.winStreak);}
+                    else{st.losses=Number(st.losses||0)+1;st.winStreak=0;}
+                    const material=Number(profile.material||0)+(allowMaterial?(won?15:10):0);
+                    const history=Array.isArray(profile.eloHistory)?profile.eloHistory:[];
+                    const unlockedThemes=Array.isArray(profile.unlockedThemes)?profile.unlockedThemes:['midnight','dark','light'];
+                    const unlockedAchievements=Array.isArray(profile.unlockedAchievements)?profile.unlockedAchievements:[];
+                    tx.update(profileRef,{
+                        stats:st,material,eloHistory:history,unlockedThemes,
+                        activeTheme:profile.activeTheme||'midnight',unlockedAchievements,
+                        showcaseAchievement:profile.showcaseAchievement??null
+                    });
+                    committed={stats:st,material};
+                });
+                if(committed){currentAccount.stats=committed.stats;currentAccount.material=committed.material;}
+                await grantEligibleAchievements(currentAccount.stats,allowMaterial);
+                if(allowMaterial)await recordRecentOpponents();
+                renderOwnProfileStats();
+                const menuMat=$('menu-material');if(menuMat)menuMat.textContent='◆ '+currentAccount.material+' MATERIAL';
+                const profileMat=$('profile-page-material');if(profileMat)profileMat.textContent='◆ '+currentAccount.material;
+                if(!allowMaterial)accountStatus('Match recorded. Material rewards require at least one human-controlled player.');
+            }catch(e){console.warn('Match progress save failed:',e);accountStatus('Match finished, but match stats could not be saved: '+(e?.message||'Firestore error'),true);}
+        }
 
         // THEME SHOP: themes are cosmetic and paid for with Material.
         const UI_THEMES=[
